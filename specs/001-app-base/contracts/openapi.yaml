@@ -1,0 +1,36 @@
+openapi: 3.0.3
+info:
+  title: API base del TP
+  version: 1.0.0
+  description: Contrato de diseño del endpoint de salud del servidor.
+servers:
+  - url: http://localhost:3000
+security: []
+paths:
+  /health:
+    get:
+      operationId: consultarSalud
+      summary: Comprobar que el servidor responde
+      description: No consulta bases de datos ni proveedores externos. No requiere credenciales ni cuerpo.
+      security: []
+      responses:
+        '200':
+          description: El servidor está atendiendo peticiones.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+              example:
+                status: ok
+components:
+  schemas:
+    HealthResponse:
+      type: object
+      additionalProperties: false
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+            - ok

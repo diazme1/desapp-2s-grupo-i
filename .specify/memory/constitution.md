@@ -1,14 +1,15 @@
 <!--
 Sync Impact Report
-- Versión: plantilla sin ratificar -> 1.0.0 (adopción inicial).
-- Principios: se reemplazan los cinco espacios de ejemplo por nueve principios del proyecto:
-  stack tecnológico, arquitectura en capas, modelo rico, validación por nivel, tests,
-  definición de terminado, idioma, atomicidad e integraciones externas.
-- Secciones agregadas: Alcance y decisiones pendientes; Flujo de desarrollo y revisión;
-  reglas de Governance.
-- Secciones eliminadas: ninguna sección normativa previa; se retiran ejemplos de plantilla.
-- Plantillas y comandos: sin modificaciones; consultan esta constitución en runtime.
-- Pendiente: definir la organización y alcance del paquete end to end con Supertest.
+- Versión: 1.0.0 -> 2.0.0 (MAJOR: se redefine el alcance de una obligación de tests).
+- Principio modificado: V. Tests y protección de tests existentes.
+- PostgreSQL/Testcontainers se exige cuando hay persistencia; sin ella se exige
+  integración de los componentes involucrados, sin base de datos.
+- Aprobación explícita de la usuaria: 2026-09-06.
+- Secciones agregadas/eliminadas: ninguna.
+- Protección de tests existentes y definición de terminado: sin cambios.
+- Plantillas y comandos: sin cambios; consultan la constitución en runtime.
+- Artefactos dependientes: spec, checklist y plan de 001-app-base alineados.
+- Pendiente: organización del paquete end to end en una funcionalidad posterior.
 -->
 
 # Constitución de desapp-2s-grupo-i
@@ -74,8 +75,10 @@ del modelo al Service.
 ### V. Tests y protección de tests existentes
 
 - Los tests unitarios del dominio MUST ejecutarse sin NestJS y sin base de datos.
-- Los tests de integración de Services y Repositories MUST ejecutarse contra PostgreSQL
-  real levantado con Testcontainers.
+- Los tests de integración de Services y Repositories que involucren persistencia MUST
+  ejecutarse contra PostgreSQL real levantado con Testcontainers. Las funcionalidades
+  sin persistencia MUST tener tests de integración de los componentes involucrados,
+  sin requerir una base de datos.
 - Los tests end to end MUST utilizar Supertest y estar únicamente en su propio paquete.
   MUST NOT incluirse dentro de un test de Service. Su organización detallada y alcance
   se definirán más adelante.
@@ -158,4 +161,4 @@ incompatible; MINOR para agregar principios o ampliar obligaciones; PATCH para
 aclaraciones que no cambien su significado. Cada revisión de un requerimiento MUST
 comprobar el cumplimiento de los principios y la definición de terminado.
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-06 | **Last Amended**: 2026-09-06
+**Version**: 2.0.0 | **Ratified**: 2026-09-06 | **Last Amended**: 2026-09-06

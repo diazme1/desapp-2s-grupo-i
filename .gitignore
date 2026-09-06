@@ -15,3 +15,6 @@ coverage/
 # Archivos del sistema
 .DS_Store
 Thumbs.db
+# Herramientas y verificaciones locales
+.tools/
+.tmp/
