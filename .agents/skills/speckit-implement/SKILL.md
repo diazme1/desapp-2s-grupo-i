@@ -8,6 +8,23 @@ metadata:
 ---
 
 
+## Selección de intérprete
+
+Antes de ejecutar scripts, elegir una sola variante para esta invocación:
+- Respetar la preferencia explícita de la usuaria (Bash o PowerShell) si el intérprete está disponible. Si falta, informar el requisito antes de ejecutar.
+- Sin preferencia explícita, usar Bash en macOS/Linux (incluido WSL) y PowerShell en Windows. Comprobar que `bash` o `pwsh`, respectivamente, esté disponible; si falta el predeterminado y está disponible el otro, usar la otra variante e informarlo.
+- Si ninguno está disponible, informar el requisito pendiente. No instalar herramientas ni reinicializar Spec Kit como parte de esta selección.
+- Ejecutar únicamente el comando elegido desde la raíz del repositorio, con los argumentos de su variante. Invocar Bash con `bash` y PowerShell con `pwsh -NoProfile -File`; no se requieren permisos de ejecución en los archivos.
+- Citar rutas y argumentos según la shell que lanza el comando. No aplicar escapes de Bash a PowerShell. Si un comando falla, diagnosticar el error antes de reintentar; no ejecutar automáticamente la otra variante, porque podría repetir cambios.
+- Esta selección local guía esta skill aunque los metadatos de instalación indiquen `ps`. No modificar esos metadatos al seleccionar intérprete. Los hooks de extensiones conservan sus propias instrucciones.
+
+### Comando de esta skill
+
+| Variante | Comando |
+| --- | --- |
+| Bash | `bash .specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks` |
+| PowerShell | `pwsh -NoProfile -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` |
+
 ## User Input
 
 ```text
@@ -54,7 +71,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks` from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute. For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. Run the command selected under **Comando de esta skill** from repo root and parse FEATURE_DIR and AVAILABLE_DOCS list. All paths must be absolute.
 
 2. **Check checklists status** (if FEATURE_DIR/checklists/ exists):
    - Treat checklist markers as a read-only gate: scan checkbox state, report status, and ask before proceeding when needed; do NOT modify checklist files or markers
