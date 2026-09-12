@@ -38,6 +38,23 @@ metadata:
 - An agent may assist with evaluating items only when explicitly asked by the reviewer.
 - `checklists/requirements.md` is a separate built-in spec-quality checklist maintained by `$speckit-specify` and `$speckit-clarify`; do not treat that exception as applying to custom checklists generated here.
 
+## Selección de intérprete
+
+Antes de ejecutar scripts, elegir una sola variante para esta invocación:
+- Respetar la preferencia explícita de la usuaria (Bash o PowerShell) si el intérprete está disponible. Si falta, informar el requisito antes de ejecutar.
+- Sin preferencia explícita, usar Bash en macOS/Linux (incluido WSL) y PowerShell en Windows. Comprobar que `bash` o `pwsh`, respectivamente, esté disponible; si falta el predeterminado y está disponible el otro, usar la otra variante e informarlo.
+- Si ninguno está disponible, informar el requisito pendiente. No instalar herramientas ni reinicializar Spec Kit como parte de esta selección.
+- Ejecutar únicamente el comando elegido desde la raíz del repositorio, con los argumentos de su variante. Invocar Bash con `bash` y PowerShell con `pwsh -NoProfile -File`; no se requieren permisos de ejecución en los archivos.
+- Citar rutas y argumentos según la shell que lanza el comando. No aplicar escapes de Bash a PowerShell. Si un comando falla, diagnosticar el error antes de reintentar; no ejecutar automáticamente la otra variante, porque podría repetir cambios.
+- Esta selección local guía esta skill aunque los metadatos de instalación indiquen `ps`. No modificar esos metadatos al seleccionar intérprete. Los hooks de extensiones conservan sus propias instrucciones.
+
+### Comando de esta skill
+
+| Variante | Comando |
+| --- | --- |
+| Bash | `bash .specify/scripts/bash/check-prerequisites.sh --json --template checklist-template` |
+| PowerShell | `pwsh -NoProfile -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -Template checklist-template` |
+
 ## User Input
 
 ```text
@@ -84,9 +101,9 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Execution Steps
 
-1. **Setup**: Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -Template checklist-template` from repo root and parse JSON for FEATURE_DIR, AVAILABLE_DOCS list, and TEMPLATE_CONTENT.
+1. **Setup**: Run the command selected under **Comando de esta skill** from repo root and parse JSON for FEATURE_DIR, AVAILABLE_DOCS list, and TEMPLATE_CONTENT.
    - All file paths must be absolute.
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+   -
 
 2. **IF EXISTS**: Load `.specify/memory/constitution.md` for project principles and governance constraints.
 

@@ -8,6 +8,16 @@ metadata:
 ---
 
 
+## Selección de intérprete
+
+Antes de ejecutar scripts, elegir una sola variante para esta invocación:
+- Respetar la preferencia explícita de la usuaria (Bash o PowerShell) si el intérprete está disponible. Si falta, informar el requisito antes de ejecutar.
+- Sin preferencia explícita, usar Bash en macOS/Linux (incluido WSL) y PowerShell en Windows. Comprobar que `bash` o `pwsh`, respectivamente, esté disponible; si falta el predeterminado y está disponible el otro, usar la otra variante e informarlo.
+- Si ninguno está disponible, informar el requisito pendiente. No instalar herramientas ni reinicializar Spec Kit como parte de esta selección.
+- Ejecutar únicamente el comando elegido desde la raíz del repositorio, con los argumentos de su variante. Invocar Bash con `bash` y PowerShell con `pwsh -NoProfile -File`; no se requieren permisos de ejecución en los archivos.
+- Citar rutas y argumentos según la shell que lanza el comando. No aplicar escapes de Bash a PowerShell. Si un comando falla, diagnosticar el error antes de reintentar; no ejecutar automáticamente la otra variante, porque podría repetir cambios.
+- Esta selección local guía esta skill aunque los metadatos de instalación indiquen `ps`. No modificar esos metadatos al seleccionar intérprete. Los hooks de extensiones conservan sus propias instrucciones.
+
 ## User Input
 
 ```text
@@ -91,7 +101,7 @@ Given that feature description, do this:
       - If `branch_numbering` was used (and `feature_numbering` was absent), emit a one-line warning: "⚠️ `branch_numbering` in init-options.json is deprecated. Rename to `feature_numbering`."
 
    **Create the directory and spec file**:
-   - `mkdir -p SPECIFY_FEATURE_DIRECTORY`
+   - Crear el directorio resuelto: en Bash, `mkdir -p "$SPECIFY_FEATURE_DIRECTORY"`; en PowerShell, `New-Item -ItemType Directory -Force -Path $env:SPECIFY_FEATURE_DIRECTORY | Out-Null`. Asignar antes la variable de entorno al valor resuelto usando la sintaxis del intérprete elegido.
    - Resolve the active `spec-template` through the Spec Kit preset/template resolution stack (equivalent to `specify preset resolve spec-template`)
    - Copy the resolved `spec-template` file to `SPECIFY_FEATURE_DIRECTORY/spec.md` as the starting point
    - Set `SPEC_FILE` to `SPECIFY_FEATURE_DIRECTORY/spec.md`

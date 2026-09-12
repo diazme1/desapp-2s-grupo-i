@@ -1,15 +1,13 @@
 <!--
 Sync Impact Report
-- Versión: 1.0.0 -> 2.0.0 (MAJOR: se redefine el alcance de una obligación de tests).
-- Principio modificado: V. Tests y protección de tests existentes.
-- PostgreSQL/Testcontainers se exige cuando hay persistencia; sin ella se exige
-  integración de los componentes involucrados, sin base de datos.
-- Aprobación explícita de la usuaria: 2026-09-06.
-- Secciones agregadas/eliminadas: ninguna.
-- Protección de tests existentes y definición de terminado: sin cambios.
-- Plantillas y comandos: sin cambios; consultan la constitución en runtime.
-- Artefactos dependientes: spec, checklist y plan de 001-app-base alineados.
-- Pendiente: organización del paquete end to end en una funcionalidad posterior.
+- Versión: 2.0.0 -> 2.1.0 (MINOR: se agregan reglas de dominio base y contexto de producto).
+- Principios modificados: ninguno.
+- Sección agregada: invariantes de dominio del mercado de jugadores.
+- Sección de alcance actualizada: referencia a docs/product.md.
+- Secciones eliminadas: ninguna.
+- Artefactos dependientes: las próximas especificaciones, planes y tareas MUST consultar
+  docs/product.md y respetar sus invariantes.
+- Aprobación explícita de la usuaria: 2026-09-09.
 -->
 
 # Constitución de desapp-2s-grupo-i
@@ -128,6 +126,24 @@ Esta constitución gobierna el proyecto de valoración de mercado de jugadores d
 y sus entregas incrementales. Las especificaciones MUST delimitar el alcance de cada
 requerimiento conforme al enunciado y la entrega correspondiente.
 
+El contexto detallado del producto se encuentra en
+[docs/product.md](../../docs/product.md). Toda especificación, plan, tarea e
+implementación MUST respetar ese contexto y las invariantes de dominio indicadas a
+continuación.
+
+### Invariantes de dominio
+
+1. El suministro total de tokens de cada jugador MUST ser siempre 100.
+2. El dinero y las cotizaciones MUST utilizar aritmética exacta y MUST NOT depender de
+   números de punto flotante.
+3. Las operaciones de compra y venta MUST ser atómicas e idempotentes.
+4. Las transacciones financieras y sus registros de auditoría MUST ser append-only.
+5. Las cotizaciones históricas MUST insertarse y MUST NOT sobrescribirse.
+6. Una falla del proveedor externo MUST NOT interrumpir las lecturas que puedan resolverse
+   con datos locales o cacheados.
+7. Las cotizaciones MUST ser reproducibles a partir de sus entradas almacenadas, la
+   configuración y la versión de estrategia.
+
 El paquete end to end con Supertest queda pendiente de definición detallada en un plan
 posterior. Esta decisión pendiente MUST NOT relajar la separación respecto de los tests
 de Service ni la protección de tests existentes.
@@ -161,4 +177,4 @@ incompatible; MINOR para agregar principios o ampliar obligaciones; PATCH para
 aclaraciones que no cambien su significado. Cada revisión de un requerimiento MUST
 comprobar el cumplimiento de los principios y la definición de terminado.
 
-**Version**: 2.0.0 | **Ratified**: 2026-09-06 | **Last Amended**: 2026-09-06
+**Version**: 2.1.0 | **Ratified**: 2026-09-06 | **Last Amended**: 2026-09-09
