@@ -2,8 +2,8 @@ import { UnauthorizedException } from '@nestjs/common';
 import { AuthService } from '../../../src/auth/auth.service';
 import { User } from '../../../src/users/domain/user';
 
-describe('AuthService login', () => {
-  it('emite un token con sub y correo para credenciales válidas', async () => {
+describe('AuthService', () => {
+  it('inicia sesión y emite un token para credenciales válidas', async () => {
     const user = User.create({ correo: 'user@example.com', passwordHash: 'hash' });
     const repository = { findByEmail: jest.fn().mockResolvedValue(user) } as any;
     const hasher = { compare: jest.fn().mockResolvedValue(true) } as any;
@@ -17,7 +17,7 @@ describe('AuthService login', () => {
     expect(tokens.sign).toHaveBeenCalledWith({ sub: user.id, correo: user.correo });
   });
 
-  it('usa el mismo error para correo inexistente o contraseña incorrecta', async () => {
+  it('inicia sesión rechaza un correo inexistente con un error uniforme', async () => {
     const repository = { findByEmail: jest.fn().mockResolvedValue(null) } as any;
     const hasher = { compare: jest.fn() } as any;
     const service = new AuthService(repository, hasher, {} as any);

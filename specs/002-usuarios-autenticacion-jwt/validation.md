@@ -7,8 +7,8 @@ Desde `backend/`:
 | Comando | Resultado |
 | --- | --- |
 | `npm.cmd run build` | OK |
-| `npm.cmd run test:unit` | 5 suites, 21 tests OK |
-| `npm.cmd run test:integration` | 4 suites, 9 tests OK |
+| `npm.cmd run test:unit` | 9 suites, 32 tests OK |
+| `npm.cmd run test:integration` | 4 suites, 16 tests OK |
 
 Las pruebas cubren normalización y validación, registro, duplicados, hash, login, emisión de
 JWT, rechazo de tokens ausentes o inválidos, `/auth/me` y `/health` público. Las respuestas de

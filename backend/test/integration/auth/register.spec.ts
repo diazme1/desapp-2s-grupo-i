@@ -15,18 +15,29 @@ describe('POST /auth/register', () => {
   });
   afterAll(() => app?.close());
 
-  it('registra, normaliza y no expone password', async () => {
+  it('crea un usuario con correo normalizado y sin devolver la contraseña', async () => {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
-      .send({ correo: ' New@Example.com ', password: 'secret123' })
+      .send({ correo: ' Created@Example.com ', password: 'secret123' })
       .expect(201);
-    expect(response.body.correo).toBe('new@example.com');
+    expect(response.body.correo).toBe('created@example.com');
     expect(response.body.password).toBeUndefined();
     expect(response.body.passwordHash).toBeUndefined();
   });
 
-  it('rechaza duplicado y datos inválidos', async () => {
-    await request(app.getHttpServer()).post('/auth/register').send({ correo: 'new@example.com', password: 'secret123' }).expect(409);
+  it('rechaza un correo duplicado con 409', async () => {
+    await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ correo: 'duplicate@example.com', password: 'secret123' })
+      .expect(201);
+    await request(app.getHttpServer()).post('/auth/register').send({ correo: 'DUPLICATE@example.com', password: 'secret123' }).expect(409);
+  });
+
+  it('rechaza un correo o password inválidos con 422', async () => {
     await request(app.getHttpServer()).post('/auth/register').send({ correo: 'bad', password: 'x' }).expect(422);
+  });
+
+  it('rechaza propiedades no permitidas con 422', async () => {
+    await request(app.getHttpServer()).post('/auth/register').send({ correo: 'extra@example.com', password: 'secret123', role: 'admin' }).expect(422);
   });
 });
