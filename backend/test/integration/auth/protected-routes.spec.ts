@@ -4,12 +4,18 @@ import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
 import { AppModule } from '../../../src/app.module';
 import { configureApp } from '../../../src/configure-app';
+import { startTestDatabase, stopTestDatabase, type TestDatabase } from '../support/postgres';
 
 describe('rutas protegidas', () => {
   let app: INestApplication;
+  let database: TestDatabase | undefined;
   let token = '';
+  const previousDatabaseUrl = process.env.DATABASE_URL;
+
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
+    database = await startTestDatabase();
+    process.env.DATABASE_URL = database.url;
     const module = await Test.createTestingModule({ imports: [AppModule.register('.env.no-test')] }).compile();
     app = module.createNestApplication();
     configureApp(app);
@@ -17,7 +23,12 @@ describe('rutas protegidas', () => {
     await request(app.getHttpServer()).post('/auth/register').send({ correo: 'me@example.com', password: 'secret123' }).expect(201);
     token = (await request(app.getHttpServer()).post('/auth/login').send({ correo: 'me@example.com', password: 'secret123' }).expect(200)).body.accessToken;
   });
-  afterAll(() => app?.close());
+  afterAll(async () => {
+    await app?.close();
+    await stopTestDatabase(database);
+    if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
+    else process.env.DATABASE_URL = previousDatabaseUrl;
+  });
 
   it('mantiene GET /health público', async () => {
     await request(app.getHttpServer()).get('/health').expect(200);
