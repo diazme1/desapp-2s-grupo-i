@@ -17,16 +17,25 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:unit": "jest --runInBand --testPathPatterns=test/unit",
-    "test:integration": "jest --runInBand --testPathPatterns=test/integration"
+    "test:integration": "jest --runInBand --testPathPatterns=test/integration",
+    "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
+    "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts"
   },
   "dependencies": {
     "@nestjs/common": "^11.1.0",
     "@nestjs/config": "4.0.4",
     "@nestjs/core": "^11.1.0",
+    "@nestjs/jwt": "^11.0.0",
     "@nestjs/platform-express": "^11.1.0",
     "@nestjs/swagger": "11.4.7",
+    "@nestjs/typeorm": "^11.0.0",
+    "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "pg": "^8.16.3",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "typeorm": "^0.3.27"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.5",
@@ -35,10 +44,13 @@
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "22.10.2",
+    "@types/supertest": "^7.2.1",
     "jest": "^30.0.0",
     "oxlint": "1.0.0",
     "prettier": "^3.4.2",
     "source-map-support": "^0.5.21",
+    "supertest": "^7.2.2",
+    "testcontainers": "^11.5.1",
     "ts-jest": "^29.2.5",
     "ts-loader": "^9.5.2",
     "ts-node": "^10.9.2",

@@ -27,3 +27,28 @@ Para desarrollar con reinicio automático:
 ```bash
 npm run start:dev
 ```
+
+## Levantar con Docker
+
+Requisitos: Docker Desktop con Docker Compose.
+
+Desde la raíz del repositorio:
+
+```powershell
+docker compose up --build
+```
+
+Esto inicia la API y PostgreSQL, ejecuta las migraciones y deja disponible:
+
+- API: http://localhost:3000
+- PostgreSQL: localhost:5433
+- Swagger: http://localhost:3000/docs
+- Health: http://localhost:3000/health
+
+Para detener los servicios:
+
+```powershell
+docker compose down
+```
+
+Los datos de PostgreSQL se conservan en el volumen `postgres_data`.

@@ -1,0 +1,291 @@
+name: CI backend
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+    branches:
+      - main
+      - dev
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - edited
+
+permissions:
+  contents: read
+
+jobs:
+  build-unit:
+    name: Build y tests unitarios
+    runs-on: ubuntu-latest
+    outputs:
+      coverage_available: ${{ steps.unit_coverage.outputs.available }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.11.0
+          package-manager-cache: false
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
+      - name: Verificar descubrimiento de tests unitarios
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(mktemp)"
+          discovered="$(mktemp)"
+          trap 'rm -f "$expected" "$discovered"' EXIT
+          find test/unit -type f -name '*.spec.ts' -print | sort > "$expected"
+          npm run test:unit -- --listTests | sed -n "s#^${PWD}/##p" | sort > "$discovered"
+          test -s "$expected"
+          diff -u "$expected" "$discovered"
+
+      - name: Compilar backend
+        run: npm run build
+
+      - name: Ejecutar tests unitarios con coverage
+        run: npm run test:unit -- --coverage --coverageDirectory=coverage/unit
+
+      - name: Detectar coverage unitario
+        id: unit_coverage
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [[ -f coverage/unit/lcov.info ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No se generó coverage/unit/lcov.info; Sonar continuará sin ese reporte."
+          fi
+
+      - name: Publicar LCOV unitario disponible
+        if: ${{ always() && steps.unit_coverage.outputs.available == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-unit
+          path: backend/coverage/unit/lcov.info
+          if-no-files-found: ignore
+
+  integration:
+    name: Tests de integración con Testcontainers
+    runs-on: ubuntu-latest
+    needs: 
+      - build-unit
+    outputs:
+      coverage_available: ${{ steps.integration_coverage.outputs.available }}
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v6
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22.11.0
+          package-manager-cache: false
+
+      - name: Instalar dependencias reproducibles
+        run: npm ci
+
+      - name: Verificar acceso de Testcontainers al Docker daemon
+        run: docker info
+
+      - name: Verificar descubrimiento de tests de integración
+        shell: bash
+        run: |
+          set -euo pipefail
+          expected="$(mktemp)"
+          discovered="$(mktemp)"
+          trap 'rm -f "$expected" "$discovered"' EXIT
+          find test/integration -type f -name '*.spec.ts' -print | sort > "$expected"
+          npm run test:integration -- --listTests | sed -n "s#^${PWD}/##p" | sort > "$discovered"
+          test -s "$expected"
+          diff -u "$expected" "$discovered"
+
+      - name: Ejecutar tests de integración con coverage
+        run: npm run test:integration -- --coverage --coverageDirectory=coverage/integration
+
+      - name: Detectar coverage de integración
+        id: integration_coverage
+        if: ${{ always() }}
+        shell: bash
+        run: |
+          if [[ -f coverage/integration/lcov.info ]]; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::No se generó coverage/integration/lcov.info; Sonar continuará sin ese reporte."
+          fi
+
+      - name: Publicar LCOV de integración disponible
+        if: ${{ always() && steps.integration_coverage.outputs.available == 'true' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-integration
+          path: backend/coverage/integration/lcov.info
+          if-no-files-found: ignore
+
+  sonar:
+    name: SonarQube Cloud y Quality Gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-unit
+      - integration
+    if: ${{ always() && !cancelled() }}
+    steps:
+      - name: Informar exclusión de Sonar para Pull Requests desde forks
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: echo "SonarQube Cloud no aplica a Pull Requests desde forks porque GitHub no expone SONAR_TOKEN."
+
+      - name: Checkout completo para Sonar
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Restaurar LCOV unitario cuando esté disponible
+        if: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && needs['build-unit'].outputs.coverage_available == 'true' }}
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-unit
+          path: backend/coverage/unit
+
+      - name: Restaurar LCOV de integración cuando esté disponible
+        if: ${{ (github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository) && needs.integration.outputs.coverage_available == 'true' }}
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-integration
+          path: backend/coverage/integration
+
+      - name: Informar disponibilidad de coverage
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        shell: bash
+        run: |
+          [[ -f backend/coverage/unit/lcov.info ]] \
+            && echo "LCOV unitario disponible para Sonar." \
+            || echo "::notice::LCOV unitario ausente; el análisis Sonar se ejecutará igualmente."
+          [[ -f backend/coverage/integration/lcov.info ]] \
+            && echo "LCOV de integración disponible para Sonar." \
+            || echo "::notice::LCOV de integración ausente; el análisis Sonar se ejecutará igualmente."
+
+      - name: Validar precondiciones externas de SonarQube Cloud
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "$SONAR_TOKEN" ]]; then
+            echo "::error::Falta configurar SONAR_TOKEN como GitHub Repository Secret."
+            exit 1
+          fi
+          if ! grep -Eq '^sonar\.organization=[^<[:space:]].+$' backend/sonar-project.properties; then
+            echo "::error::Falta versionar sonar.organization con el valor verificado en SonarQube Cloud."
+            exit 1
+          fi
+          if ! grep -Eq '^sonar\.projectKey=[^<[:space:]].+$' backend/sonar-project.properties; then
+            echo "::error::Falta versionar sonar.projectKey con el valor verificado en SonarQube Cloud."
+            exit 1
+          fi
+
+      - name: Ejecutar análisis y esperar Quality Gate
+        if: ${{ github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository }}
+        uses: SonarSource/sonarqube-scan-action@v8
+        with:
+          projectBaseDir: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  docker-smoke:
+    name: Docker build y smoke de salud
+    runs-on: ubuntu-latest
+    needs:
+      - build-unit
+      - integration
+      - sonar
+    env:
+      IMAGE_TAG: desapp-backend-ci:${{ github.run_id }}-${{ github.run_attempt }}
+      CONTAINER_NAME: desapp-backend-ci-${{ github.run_id }}-${{ github.run_attempt }}
+    steps:
+      - name: Checkout del repositorio
+        uses: actions/checkout@v6
+
+      - name: Construir imagen local
+        run: docker build --file backend/Dockerfile --tag "$IMAGE_TAG" backend
+
+      - name: Iniciar contenedor desde la imagen construida
+        run: |
+          docker run --detach \
+            --name "$CONTAINER_NAME" \
+            --publish 127.0.0.1:3000:3000 \
+            --env NODE_ENV=production \
+            --env PORT=3000 \
+            --env JWT_EXPIRES_IN=15m \
+            --env JWT_ALGORITHM=HS256 \
+            --env JWT_SECRET=ci-only-secret-with-at-least-32-characters \
+            "$IMAGE_TAG"
+
+      - name: Verificar GET /health con timeout finito
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          response_body="$(mktemp)"
+          trap 'rm -f "$response_body"' EXIT
+
+          timeout=60
+          start_time=$SECONDS
+
+          while (( SECONDS - start_time < timeout )); do
+            if [[ "$(docker inspect --format '{{.State.Running}}' "$CONTAINER_NAME")" != "true" ]]; then
+              echo "::error::El contenedor finalizó antes de responder /health."
+              exit 1
+            fi
+
+            http_code="$(curl \
+              --silent \
+              --show-error \
+              --connect-timeout 1 \
+              --max-time 1 \
+              --output "$response_body" \
+              --write-out '%{http_code}' \
+              http://127.0.0.1:3000/health || true)"
+
+            if [[ "$http_code" == "200" ]] && \
+              grep -Eq '"status"[[:space:]]*:[[:space:]]*"ok"' "$response_body"; then
+              echo "El servidor respondió HTTP 200 con status ok."
+              exit 0
+            fi
+
+            sleep 2
+          done
+
+          echo "::error::El servidor no superó GET /health dentro de ${timeout} segundos."
+          exit 1
+
+      - name: Mostrar diagnóstico de startup
+        if: ${{ failure() }}
+        run: |
+          docker ps -a || true
+          docker inspect "$CONTAINER_NAME" || true
+          docker logs "$CONTAINER_NAME" || true
+
+      - name: Limpiar recursos Docker del job
+        if: ${{ always() }}
+        run: |
+          docker rm --force "$CONTAINER_NAME" 2>/dev/null || true
+          docker image rm "$IMAGE_TAG" 2>/dev/null || true
