@@ -8,6 +8,23 @@ metadata:
 ---
 
 
+## Selección de intérprete
+
+Antes de ejecutar scripts, elegir una sola variante para esta invocación:
+- Respetar la preferencia explícita de la usuaria (Bash o PowerShell) si el intérprete está disponible. Si falta, informar el requisito antes de ejecutar.
+- Sin preferencia explícita, usar Bash en macOS/Linux (incluido WSL) y PowerShell en Windows. Comprobar que `bash` o `pwsh`, respectivamente, esté disponible; si falta el predeterminado y está disponible el otro, usar la otra variante e informarlo.
+- Si ninguno está disponible, informar el requisito pendiente. No instalar herramientas ni reinicializar Spec Kit como parte de esta selección.
+- Ejecutar únicamente el comando elegido desde la raíz del repositorio, con los argumentos de su variante. Invocar Bash con `bash` y PowerShell con `pwsh -NoProfile -File`; no se requieren permisos de ejecución en los archivos.
+- Citar rutas y argumentos según la shell que lanza el comando. No aplicar escapes de Bash a PowerShell. Si un comando falla, diagnosticar el error antes de reintentar; no ejecutar automáticamente la otra variante, porque podría repetir cambios.
+- Esta selección local guía esta skill aunque los metadatos de instalación indiquen `ps`. No modificar esos metadatos al seleccionar intérprete. Los hooks de extensiones conservan sus propias instrucciones.
+
+### Comando de esta skill
+
+| Variante | Comando |
+| --- | --- |
+| Bash | `bash .specify/scripts/bash/check-prerequisites.sh --json --paths-only` |
+| PowerShell | `pwsh -NoProfile -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly` |
+
 ## User Input
 
 ```text
@@ -60,12 +77,12 @@ Note: This clarification workflow is expected to run (and be completed) BEFORE i
 
 Execution steps:
 
-1. Run `.specify/scripts/powershell/check-prerequisites.ps1 -Json -PathsOnly` from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
+1. Run the command selected under **Comando de esta skill** from repo root **once** (combined `--json --paths-only` mode / `-Json -PathsOnly`). Parse minimal JSON payload fields:
    - `FEATURE_DIR`
    - `FEATURE_SPEC`
    - (Optionally capture `IMPL_PLAN`, `TASKS` for future chained flows.)
    - If JSON parsing fails, abort and instruct user to re-run `$speckit-specify` or verify feature branch environment.
-   - For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+   -
 
 2. **IF EXISTS**: Load `.specify/memory/constitution.md` for project principles and governance constraints.
 

@@ -8,6 +8,23 @@ metadata:
 ---
 
 
+## Selección de intérprete
+
+Antes de ejecutar scripts, elegir una sola variante para esta invocación:
+- Respetar la preferencia explícita de la usuaria (Bash o PowerShell) si el intérprete está disponible. Si falta, informar el requisito antes de ejecutar.
+- Sin preferencia explícita, usar Bash en macOS/Linux (incluido WSL) y PowerShell en Windows. Comprobar que `bash` o `pwsh`, respectivamente, esté disponible; si falta el predeterminado y está disponible el otro, usar la otra variante e informarlo.
+- Si ninguno está disponible, informar el requisito pendiente. No instalar herramientas ni reinicializar Spec Kit como parte de esta selección.
+- Ejecutar únicamente el comando elegido desde la raíz del repositorio, con los argumentos de su variante. Invocar Bash con `bash` y PowerShell con `pwsh -NoProfile -File`; no se requieren permisos de ejecución en los archivos.
+- Citar rutas y argumentos según la shell que lanza el comando. No aplicar escapes de Bash a PowerShell. Si un comando falla, diagnosticar el error antes de reintentar; no ejecutar automáticamente la otra variante, porque podría repetir cambios.
+- Esta selección local guía esta skill aunque los metadatos de instalación indiquen `ps`. No modificar esos metadatos al seleccionar intérprete. Los hooks de extensiones conservan sus propias instrucciones.
+
+### Comando de esta skill
+
+| Variante | Comando |
+| --- | --- |
+| Bash | `bash .specify/scripts/bash/setup-tasks.sh --json` |
+| PowerShell | `pwsh -NoProfile -File .specify/scripts/powershell/setup-tasks.ps1 -Json` |
+
 ## User Input
 
 ```text
@@ -54,7 +71,7 @@ You **MUST** consider the user input before proceeding (if not empty).
 
 ## Outline
 
-1. **Setup**: Run `.specify/scripts/powershell/setup-tasks.ps1 -Json` from repo root and parse FEATURE_DIR, TASKS_TEMPLATE_CONTENT, TASKS_TEMPLATE, and AVAILABLE_DOCS list. `FEATURE_DIR` and `TASKS_TEMPLATE` must be absolute paths when provided. `AVAILABLE_DOCS` is a list of document names/relative paths available under `FEATURE_DIR` (for example `research.md` or `contracts/`). For single quotes in args like "I'm Groot", use escape syntax: e.g 'I'\''m Groot' (or double-quote if possible: "I'm Groot").
+1. **Setup**: Run the command selected under **Comando de esta skill** from repo root and parse FEATURE_DIR, TASKS_TEMPLATE_CONTENT, TASKS_TEMPLATE, and AVAILABLE_DOCS list. `FEATURE_DIR` and `TASKS_TEMPLATE` must be absolute paths when provided. `AVAILABLE_DOCS` is a list of document names/relative paths available under `FEATURE_DIR` (for example `research.md` or `contracts/`).
 
 2. **Load design documents**: Read from FEATURE_DIR:
    - **Required**: plan.md (tech stack, libraries, structure), spec.md (user stories with priorities)

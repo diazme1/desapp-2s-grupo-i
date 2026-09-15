@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Autenticación de Football Player Market
+  version: 1.0.0
+  description: Registro, inicio de sesión y autorización con JWT.
+paths:
+  /auth/register:
+    post:
+      summary: Crear una cuenta
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: Cuenta creada.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Datos inválidos.
+        '409':
+          description: El correo ya está registrado.
+  /auth/login:
+    post:
+      summary: Iniciar sesión
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Token emitido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Credenciales inválidas.
+  /auth/me:
+    get:
+      summary: Consultar la identidad autenticada
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Identidad del usuario autenticado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Token ausente, inválido o vencido.
+        '403':
+          description: El usuario no es propietario del recurso solicitado.
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [correo, password]
+      properties:
+        correo:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+          minLength: 8
+    LoginRequest:
+      type: object
+      required: [correo, password]
+      properties:
+        correo:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+    UserResponse:
+      type: object
+      required: [id, correo, creadoEn]
+      properties:
+        id:
+          type: string
+        correo:
+          type: string
+          format: email
+        creadoEn:
+          type: string
+          format: date-time
+    TokenResponse:
+      type: object
+      required: [accessToken, tokenType, expiresIn]
+      properties:
+        accessToken:
+          type: string
+        tokenType:
+          type: string
+          enum: [Bearer]
+        expiresIn:
+          type: integer
+          minimum: 1
