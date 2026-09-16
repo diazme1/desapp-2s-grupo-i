@@ -79,7 +79,7 @@ jobs:
           if-no-files-found: ignore
 
   integration:
-    name: Tests de integración con Testcontainers
+    name: Tests de integración con PostgreSQL
     runs-on: ubuntu-latest
     needs: 
       - build-unit
@@ -88,6 +88,8 @@ jobs:
     defaults:
       run:
         working-directory: backend
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5433/football_market
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v6
@@ -101,8 +103,25 @@ jobs:
       - name: Instalar dependencias reproducibles
         run: npm ci
 
-      - name: Verificar acceso de Testcontainers al Docker daemon
+      - name: Verificar acceso al Docker daemon
         run: docker info
+
+      - name: Iniciar PostgreSQL de docker compose
+        run: docker compose -f ../docker-compose.yml up -d postgres
+
+      - name: Esperar PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..30}; do
+            if docker compose -f ../docker-compose.yml exec -T postgres \
+              pg_isready --username postgres --dbname football_market >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -f ../docker-compose.yml logs postgres || true
+          exit 1
 
       - name: Verificar descubrimiento de tests de integración
         shell: bash
@@ -139,116 +158,120 @@ jobs:
           path: backend/coverage/integration/lcov.info
           if-no-files-found: ignore
 
+      - name: Limpiar PostgreSQL de integración
+        if: ${{ always() }}
+        run: docker compose -f ../docker-compose.yml down -v --remove-orphans
+
   sonar:
-  name: SonarQube Cloud y Quality Gate
-  runs-on: ubuntu-latest
-  needs:
-    - build-unit
-    - integration
+    name: SonarQube Cloud y Quality Gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-unit
+      - integration
 
-  steps:
-    - name: Informar exclusión de Sonar para Pull Requests desde forks
-      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-      run: echo "SonarQube Cloud no aplica a Pull Requests desde forks porque GitHub no expone SONAR_TOKEN."
+    steps:
+      - name: Informar exclusión de Sonar para Pull Requests desde forks
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: echo "SonarQube Cloud no aplica a Pull Requests desde forks porque GitHub no expone SONAR_TOKEN."
 
-    - name: Checkout completo para Sonar
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-
-    - name: Restaurar LCOV unitario cuando esté disponible
-      if: >-
-        ${{
-          (
+      - name: Checkout completo para Sonar
+        if: >-
+          ${{
             (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
             (github.event_name == 'pull_request' &&
-             github.event.pull_request.head.repo.full_name == github.repository)
-          ) &&
-          needs['build-unit'].outputs.coverage_available == 'true'
-        }}
-      uses: actions/download-artifact@v7
-      with:
-        name: coverage-unit
-        path: backend/coverage/unit
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-    - name: Restaurar LCOV de integración cuando esté disponible
-      if: >-
-        ${{
-          (
+      - name: Restaurar LCOV unitario cuando esté disponible
+        if: >-
+          ${{
+            (
+              (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+              (github.event_name == 'pull_request' &&
+              github.event.pull_request.head.repo.full_name == github.repository)
+            ) &&
+            needs['build-unit'].outputs.coverage_available == 'true'
+          }}
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-unit
+          path: backend/coverage/unit
+
+      - name: Restaurar LCOV de integración cuando esté disponible
+        if: >-
+          ${{
+            (
+              (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+              (github.event_name == 'pull_request' &&
+              github.event.pull_request.head.repo.full_name == github.repository)
+            ) &&
+            needs.integration.outputs.coverage_available == 'true'
+          }}
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-integration
+          path: backend/coverage/integration
+
+      - name: Informar disponibilidad de coverage
+        if: >-
+          ${{
             (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
             (github.event_name == 'pull_request' &&
-             github.event.pull_request.head.repo.full_name == github.repository)
-          ) &&
-          needs.integration.outputs.coverage_available == 'true'
-        }}
-      uses: actions/download-artifact@v7
-      with:
-        name: coverage-integration
-        path: backend/coverage/integration
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        shell: bash
+        run: |
+          [[ -f backend/coverage/unit/lcov.info ]] \
+            && echo "LCOV unitario disponible para Sonar." \
+            || echo "::notice::LCOV unitario ausente; el análisis Sonar se ejecutará igualmente."
 
-    - name: Informar disponibilidad de coverage
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      shell: bash
-      run: |
-        [[ -f backend/coverage/unit/lcov.info ]] \
-          && echo "LCOV unitario disponible para Sonar." \
-          || echo "::notice::LCOV unitario ausente; el análisis Sonar se ejecutará igualmente."
+          [[ -f backend/coverage/integration/lcov.info ]] \
+            && echo "LCOV de integración disponible para Sonar." \
+            || echo "::notice::LCOV de integración ausente; el análisis Sonar se ejecutará igualmente."
 
-        [[ -f backend/coverage/integration/lcov.info ]] \
-          && echo "LCOV de integración disponible para Sonar." \
-          || echo "::notice::LCOV de integración ausente; el análisis Sonar se ejecutará igualmente."
+      - name: Validar precondiciones externas de SonarQube Cloud
+        if: >-
+          ${{
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    - name: Validar precondiciones externas de SonarQube Cloud
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      shell: bash
-      run: |
-        set -euo pipefail
+          if [[ -z "$SONAR_TOKEN" ]]; then
+            echo "::error::Falta configurar SONAR_TOKEN como GitHub Repository Secret."
+            exit 1
+          fi
 
-        if [[ -z "$SONAR_TOKEN" ]]; then
-          echo "::error::Falta configurar SONAR_TOKEN como GitHub Repository Secret."
-          exit 1
-        fi
+          if ! grep -Eq '^sonar\.organization=[^<[:space:]].+$' backend/sonar-project.properties; then
+            echo "::error::Falta versionar sonar.organization con el valor verificado en SonarQube Cloud."
+            exit 1
+          fi
 
-        if ! grep -Eq '^sonar\.organization=[^<[:space:]].+$' backend/sonar-project.properties; then
-          echo "::error::Falta versionar sonar.organization con el valor verificado en SonarQube Cloud."
-          exit 1
-        fi
+          if ! grep -Eq '^sonar\.projectKey=[^<[:space:]].+$' backend/sonar-project.properties; then
+            echo "::error::Falta versionar sonar.projectKey con el valor verificado en SonarQube Cloud."
+            exit 1
+          fi
 
-        if ! grep -Eq '^sonar\.projectKey=[^<[:space:]].+$' backend/sonar-project.properties; then
-          echo "::error::Falta versionar sonar.projectKey con el valor verificado en SonarQube Cloud."
-          exit 1
-        fi
-
-    - name: Ejecutar análisis y esperar Quality Gate
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      uses: SonarSource/sonarqube-scan-action@v8
-      with:
-        projectBaseDir: backend
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Ejecutar análisis y esperar Quality Gate
+        if: >-
+          ${{
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        uses: SonarSource/sonarqube-scan-action@v8
+        with:
+          projectBaseDir: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   docker-smoke:
     name: Docker build y smoke de salud
@@ -260,6 +283,8 @@ jobs:
     env:
       IMAGE_TAG: desapp-backend-ci:${{ github.run_id }}-${{ github.run_attempt }}
       CONTAINER_NAME: desapp-backend-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      POSTGRES_CONTAINER_NAME: desapp-postgres-ci-${{ github.run_id }}-${{ github.run_attempt }}
+      NETWORK_NAME: desapp-network-ci-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v6
@@ -267,13 +292,50 @@ jobs:
       - name: Construir imagen local
         run: docker build --file backend/Dockerfile --tag "$IMAGE_TAG" backend
 
+      - name: Iniciar PostgreSQL para el smoke
+        run: |
+          docker network create "$NETWORK_NAME"
+          docker run --detach \
+            --name "$POSTGRES_CONTAINER_NAME" \
+            --network "$NETWORK_NAME" \
+            --network-alias postgres \
+            --env POSTGRES_DB=football_market \
+            --env POSTGRES_USER=postgres \
+            --env POSTGRES_PASSWORD=postgres \
+            postgres:16-alpine
+
+      - name: Esperar PostgreSQL
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in {1..30}; do
+            if docker exec "$POSTGRES_CONTAINER_NAME" pg_isready \
+              --username postgres \
+              --dbname football_market >/dev/null 2>&1; then
+              exit 0
+            fi
+            sleep 2
+          done
+          docker logs "$POSTGRES_CONTAINER_NAME" || true
+          exit 1
+
+      - name: Ejecutar migraciones
+        run: |
+          docker run --rm \
+            --network "$NETWORK_NAME" \
+            --env DATABASE_URL=postgres://postgres:postgres@postgres:5432/football_market \
+            "$IMAGE_TAG" \
+            npm run migration:run
+
       - name: Iniciar contenedor desde la imagen construida
         run: |
           docker run --detach \
             --name "$CONTAINER_NAME" \
+            --network "$NETWORK_NAME" \
             --publish 127.0.0.1:3000:3000 \
             --env NODE_ENV=production \
             --env PORT=3000 \
+            --env DATABASE_URL=postgres://postgres:postgres@postgres:5432/football_market \
             --env JWT_EXPIRES_IN=15m \
             --env JWT_ALGORITHM=HS256 \
             --env JWT_SECRET=ci-only-secret-with-at-least-32-characters \
@@ -328,4 +390,6 @@ jobs:
         if: ${{ always() }}
         run: |
           docker rm --force "$CONTAINER_NAME" 2>/dev/null || true
+          docker rm --force "$POSTGRES_CONTAINER_NAME" 2>/dev/null || true
+          docker network rm "$NETWORK_NAME" 2>/dev/null || true
           docker image rm "$IMAGE_TAG" 2>/dev/null || true

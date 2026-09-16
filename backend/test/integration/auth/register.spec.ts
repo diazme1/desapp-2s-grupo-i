@@ -1,30 +1,16 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../../../src/app.module';
-import { configureApp } from '../../../src/configure-app';
-import { startTestDatabase, stopTestDatabase, type TestDatabase } from '../support/postgres';
+import { createIntegrationApp, IntegrationApp } from '../helpers/integration-app';
 
 describe('POST /auth/register', () => {
   let app: INestApplication;
-  let database: TestDatabase | undefined;
-  const previousDatabaseUrl = process.env.DATABASE_URL;
-
+  let integration: IntegrationApp;
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
-    database = await startTestDatabase();
-    process.env.DATABASE_URL = database.url;
-    const module = await Test.createTestingModule({ imports: [AppModule.register('.env.no-test')] }).compile();
-    app = module.createNestApplication();
-    configureApp(app);
-    await app.init();
+    integration = await createIntegrationApp();
+    app = integration.app;
   });
-  afterAll(async () => {
-    await app?.close();
-    await stopTestDatabase(database);
-    if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
-    else process.env.DATABASE_URL = previousDatabaseUrl;
-  });
+  afterEach(async () => integration?.resetData());
+  afterAll(async () => integration?.close());
 
   it('crea un usuario con correo normalizado y sin devolver la contraseña', async () => {
     const response = await request(app.getHttpServer())

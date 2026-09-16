@@ -79,7 +79,7 @@ docker ps --filter name=desapp-backend-ci
 curl --fail --silent --show-error --max-time 5 http://127.0.0.1:3000/health
 ```
 
-Resultado esperado: el contenedor permanece activo y health devuelve HTTP 200 con `{"status":"ok"}`. No definir `DATABASE_URL`; este smoke usa el Repository en memoria y no contacta servicios productivos.
+Resultado esperado: PostgreSQL y el contenedor de la aplicación permanecen activos y health devuelve HTTP 200 con `{"status":"ok"}`. El smoke define `DATABASE_URL` apuntando al PostgreSQL aislado del job.
 
 Ante un startup fallido, obtener evidencia antes del cleanup:
 

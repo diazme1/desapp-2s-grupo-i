@@ -13,16 +13,16 @@ Desde esta carpeta:
 
 ```bash
 npm ci
-npm start
 ```
 
 Copiá `.env.example` como `.env` y definí un `JWT_SECRET` de al menos 32 caracteres.
-`DATABASE_URL` es opcional para desarrollo: si no está definida se usa un repositorio en memoria;
-con PostgreSQL configurado se utilizan las migraciones.
+`DATABASE_URL` es obligatoria y debe apuntar a una instancia PostgreSQL disponible.
+La aplicación utiliza las migraciones para crear su esquema de persistencia.
 
 ```powershell
 Copy-Item .env.example .env
 npm.cmd run migration:run
+npm.cmd start
 ```
 
 Para desarrollar con reinicio automático:
