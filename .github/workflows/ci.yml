@@ -140,115 +140,115 @@ jobs:
           if-no-files-found: ignore
 
   sonar:
-  name: SonarQube Cloud y Quality Gate
-  runs-on: ubuntu-latest
-  needs:
-    - build-unit
-    - integration
+    name: SonarQube Cloud y Quality Gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-unit
+      - integration
 
-  steps:
-    - name: Informar exclusión de Sonar para Pull Requests desde forks
-      if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
-      run: echo "SonarQube Cloud no aplica a Pull Requests desde forks porque GitHub no expone SONAR_TOKEN."
+    steps:
+      - name: Informar exclusión de Sonar para Pull Requests desde forks
+        if: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name != github.repository }}
+        run: echo "SonarQube Cloud no aplica a Pull Requests desde forks porque GitHub no expone SONAR_TOKEN."
 
-    - name: Checkout completo para Sonar
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      uses: actions/checkout@v6
-      with:
-        fetch-depth: 0
-
-    - name: Restaurar LCOV unitario cuando esté disponible
-      if: >-
-        ${{
-          (
+      - name: Checkout completo para Sonar
+        if: >-
+          ${{
             (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
             (github.event_name == 'pull_request' &&
-             github.event.pull_request.head.repo.full_name == github.repository)
-          ) &&
-          needs['build-unit'].outputs.coverage_available == 'true'
-        }}
-      uses: actions/download-artifact@v7
-      with:
-        name: coverage-unit
-        path: backend/coverage/unit
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
 
-    - name: Restaurar LCOV de integración cuando esté disponible
-      if: >-
-        ${{
-          (
+      - name: Restaurar LCOV unitario cuando esté disponible
+        if: >-
+          ${{
+            (
+              (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+              (github.event_name == 'pull_request' &&
+              github.event.pull_request.head.repo.full_name == github.repository)
+            ) &&
+            needs['build-unit'].outputs.coverage_available == 'true'
+          }}
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-unit
+          path: backend/coverage/unit
+
+      - name: Restaurar LCOV de integración cuando esté disponible
+        if: >-
+          ${{
+            (
+              (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+              (github.event_name == 'pull_request' &&
+              github.event.pull_request.head.repo.full_name == github.repository)
+            ) &&
+            needs.integration.outputs.coverage_available == 'true'
+          }}
+        uses: actions/download-artifact@v7
+        with:
+          name: coverage-integration
+          path: backend/coverage/integration
+
+      - name: Informar disponibilidad de coverage
+        if: >-
+          ${{
             (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
             (github.event_name == 'pull_request' &&
-             github.event.pull_request.head.repo.full_name == github.repository)
-          ) &&
-          needs.integration.outputs.coverage_available == 'true'
-        }}
-      uses: actions/download-artifact@v7
-      with:
-        name: coverage-integration
-        path: backend/coverage/integration
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        shell: bash
+        run: |
+          [[ -f backend/coverage/unit/lcov.info ]] \
+            && echo "LCOV unitario disponible para Sonar." \
+            || echo "::notice::LCOV unitario ausente; el análisis Sonar se ejecutará igualmente."
 
-    - name: Informar disponibilidad de coverage
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      shell: bash
-      run: |
-        [[ -f backend/coverage/unit/lcov.info ]] \
-          && echo "LCOV unitario disponible para Sonar." \
-          || echo "::notice::LCOV unitario ausente; el análisis Sonar se ejecutará igualmente."
+          [[ -f backend/coverage/integration/lcov.info ]] \
+            && echo "LCOV de integración disponible para Sonar." \
+            || echo "::notice::LCOV de integración ausente; el análisis Sonar se ejecutará igualmente."
 
-        [[ -f backend/coverage/integration/lcov.info ]] \
-          && echo "LCOV de integración disponible para Sonar." \
-          || echo "::notice::LCOV de integración ausente; el análisis Sonar se ejecutará igualmente."
+      - name: Validar precondiciones externas de SonarQube Cloud
+        if: >-
+          ${{
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    - name: Validar precondiciones externas de SonarQube Cloud
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      shell: bash
-      run: |
-        set -euo pipefail
+          if [[ -z "$SONAR_TOKEN" ]]; then
+            echo "::error::Falta configurar SONAR_TOKEN como GitHub Repository Secret."
+            exit 1
+          fi
 
-        if [[ -z "$SONAR_TOKEN" ]]; then
-          echo "::error::Falta configurar SONAR_TOKEN como GitHub Repository Secret."
-          exit 1
-        fi
+          if ! grep -Eq '^sonar\.organization=[^<[:space:]].+$' backend/sonar-project.properties; then
+            echo "::error::Falta versionar sonar.organization con el valor verificado en SonarQube Cloud."
+            exit 1
+          fi
 
-        if ! grep -Eq '^sonar\.organization=[^<[:space:]].+$' backend/sonar-project.properties; then
-          echo "::error::Falta versionar sonar.organization con el valor verificado en SonarQube Cloud."
-          exit 1
-        fi
+          if ! grep -Eq '^sonar\.projectKey=[^<[:space:]].+$' backend/sonar-project.properties; then
+            echo "::error::Falta versionar sonar.projectKey con el valor verificado en SonarQube Cloud."
+            exit 1
+          fi
 
-        if ! grep -Eq '^sonar\.projectKey=[^<[:space:]].+$' backend/sonar-project.properties; then
-          echo "::error::Falta versionar sonar.projectKey con el valor verificado en SonarQube Cloud."
-          exit 1
-        fi
-
-    - name: Ejecutar análisis y esperar Quality Gate
-      if: >-
-        ${{
-          (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
-          (github.event_name == 'pull_request' &&
-           github.event.pull_request.head.repo.full_name == github.repository)
-        }}
-      uses: SonarSource/sonarqube-scan-action@v8
-      with:
-        projectBaseDir: backend
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      - name: Ejecutar análisis y esperar Quality Gate
+        if: >-
+          ${{
+            (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+            (github.event_name == 'pull_request' &&
+            github.event.pull_request.head.repo.full_name == github.repository)
+          }}
+        uses: SonarSource/sonarqube-scan-action@v8
+        with:
+          projectBaseDir: backend
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   docker-smoke:
     name: Docker build y smoke de salud
