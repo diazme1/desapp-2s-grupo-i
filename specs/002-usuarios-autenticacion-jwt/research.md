@@ -40,7 +40,7 @@
 
 - **Decisión**: PostgreSQL con repositorio de usuarios y migración; las pruebas de
   integración de persistencia usarán PostgreSQL real con Testcontainers.
-- **Motivo**: cumple la constitución y evita que SQLite o un repositorio en memoria oculten
+- **Motivo**: cumple la constitución y evita que una persistencia simplificada o divergente oculte
   problemas del motor requerido.
-- **Alternativas consideradas**: SQLite en tests y repositorio en memoria para integración
+- **Alternativas consideradas**: SQLite para integración, descartado porque producción utiliza PostgreSQL
   (descartados; solo se permiten para unitarios aislados).

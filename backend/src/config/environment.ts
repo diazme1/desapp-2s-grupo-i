@@ -1,10 +1,15 @@
 export function validateEnvironment(config: Record<string, unknown>): {
   PORT: number;
-  DATABASE_URL?: string;
+  DATABASE_URL: string;
   JWT_SECRET?: string;
   JWT_EXPIRES_IN?: string;
   JWT_ALGORITHM?: string;
 } {
+  const databaseUrl = config.DATABASE_URL;
+  if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
+    throw new Error('DATABASE_URL es obligatoria y debe apuntar a PostgreSQL.');
+  }
+
   const raw = config.PORT;
   let port = 3000;
   if (raw !== undefined) {
@@ -38,9 +43,7 @@ export function validateEnvironment(config: Record<string, unknown>): {
 
   return {
     PORT: port,
-    ...(typeof config.DATABASE_URL === 'string' && {
-      DATABASE_URL: config.DATABASE_URL,
-    }),
+    DATABASE_URL: databaseUrl,
     ...(typeof jwtSecret === 'string' && { JWT_SECRET: jwtSecret }),
     JWT_EXPIRES_IN: typeof jwtExpiresIn === 'string' ? jwtExpiresIn : '15m',
     JWT_ALGORITHM: typeof algorithm === 'string' ? algorithm : 'HS256',

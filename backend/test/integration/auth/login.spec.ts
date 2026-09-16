@@ -1,20 +1,19 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import request from 'supertest';
-import { AppModule } from '../../../src/app.module';
-import { configureApp } from '../../../src/configure-app';
+import { createIntegrationApp, IntegrationApp } from '../helpers/integration-app';
 
 describe('POST /auth/login', () => {
   let app: INestApplication;
+  let integration: IntegrationApp;
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
-    const module = await Test.createTestingModule({ imports: [AppModule.register('.env.no-test')] }).compile();
-    app = module.createNestApplication();
-    configureApp(app);
-    await app.init();
+    integration = await createIntegrationApp();
+    app = integration.app;
+  });
+  beforeEach(async () => {
     await request(app.getHttpServer()).post('/auth/register').send({ correo: 'login@example.com', password: 'secret123' }).expect(201);
   });
-  afterAll(() => app?.close());
+  afterEach(async () => integration?.resetData());
+  afterAll(async () => integration?.close());
 
   it('devuelve un JWT Bearer con credenciales válidas', async () => {
     const response = await request(app.getHttpServer()).post('/auth/login').send({ correo: 'LOGIN@example.com', password: 'secret123' }).expect(200);

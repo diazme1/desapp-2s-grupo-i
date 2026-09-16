@@ -160,7 +160,7 @@ running -> exited -> removed
 
 ### Reglas
 
-- No recibe `DATABASE_URL`; el health smoke usa persistencia en memoria.
+- Recibe `DATABASE_URL` apuntando al PostgreSQL aislado del job y ejecuta las migraciones antes de arrancar.
 - Un estado `exited` antes de aprobar health es falla.
 - El cleanup solo apunta al nombre explícito de esta ejecución.
 

@@ -38,11 +38,11 @@
 
 ## Estado actual de Testcontainers y persistencia
 
-**Decision**: Agregar una suite nueva para `TypeOrmUserRepository` que cree `postgres:16-alpine` mediante `GenericContainer`, ejecute la migración existente y verifique persistencia. No modificar tests existentes ni agregar PostgreSQL como `services:`.
+**Decision**: Ejecutar las suites de integración contra `postgres:16-alpine` mediante `GenericContainer`, aplicar la migración existente y verificar la persistencia a través de `TypeOrmUserRepository`. No agregar PostgreSQL como `services:`.
 
-**Rationale**: `testcontainers` 11.5.1 está en package y lockfile, pero ninguna prueba lo importa. Las cuatro integraciones actuales omiten `DATABASE_URL` y usan `InMemoryUserRepository`; por sí solas no demuestran acceso a Docker ni PostgreSQL real. `GenericContainer` evita incorporar otro package y PostgreSQL 16 coincide con Compose.
+**Rationale**: `testcontainers` 11.5.1 ya está en package y lockfile. Las integraciones requieren una URL PostgreSQL real para demostrar acceso a la base y evitar sustitutos simplificados. `GenericContainer` evita incorporar otro package y PostgreSQL 16 coincide con Compose.
 
-**Alternatives considered**: Considerar cumplido el requisito solo con `docker info`, insuficiente para demostrar Testcontainers; agregar `services: postgres`, que duplica responsabilidad; modificar los tests de auth, prohibido sin aprobación; agregar `@testcontainers/postgresql`, innecesario con la dependencia actual.
+**Alternatives considered**: Considerar cumplido el requisito solo con `docker info`, insuficiente para demostrar persistencia; agregar `services: postgres`, que duplica responsabilidad; agregar `@testcontainers/postgresql`, innecesario con la dependencia actual.
 
 ## Dependencias y paralelismo
 
@@ -116,11 +116,11 @@
 
 ## Startup, health, diagnóstico y cleanup
 
-**Decision**: Ejecutar la imagen con puerto 3000, sin `DATABASE_URL`, esperar hasta 60 segundos por HTTP 200 de `GET /health`, inspeccionar que el proceso siga activo, mostrar estado/inspect/logs ante falla y eliminar únicamente el contenedor e imagen nombrados.
+**Decision**: Ejecutar PostgreSQL y la imagen en una red aislada, aplicar las migraciones, arrancar la imagen con `DATABASE_URL`, esperar hasta 60 segundos por HTTP 200 de `GET /health`, inspeccionar que el proceso siga activo, mostrar estado/inspect/logs ante falla y eliminar únicamente los recursos nombrados.
 
-**Rationale**: `PORT` tiene default 3000; `/health` devuelve `{status: "ok"}` y ya tiene un test HTTP 200. Sin `DATABASE_URL`, UsersModule usa persistencia en memoria, de modo que el smoke no depende de PostgreSQL. El cleanup específico evita afectar recursos de Testcontainers o del runner.
+**Rationale**: `PORT` tiene default 3000 y `/health` devuelve `{status: "ok"}`. Como `DATABASE_URL` es obligatoria, el smoke prepara PostgreSQL y ejecuta las migraciones antes de verificar el servidor. El cleanup específico evita afectar recursos de otros jobs o del runner.
 
-**Alternatives considered**: Sleep fijo, frágil; espera ilimitada, prohibida; DB productiva o servicio adicional, innecesarios; prune global, destructivo y difícil de diagnosticar.
+**Alternatives considered**: Sleep fijo, frágil; espera ilimitada, prohibida; DB productiva, innecesaria; prune global, destructivo y difícil de diagnosticar.
 
 ## Variables y secretos
 

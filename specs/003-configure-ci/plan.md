@@ -24,7 +24,7 @@ La Constitución continúa siendo normativa para el stack y la evolución del pr
 
 **Primary Dependencies**: NestJS 11, Jest 30, ts-jest 29, Testcontainers 11.5.1, PostgreSQL 16 Alpine, Docker, GitHub Actions y `SonarSource/sonarqube-scan-action@v8`
 
-**Storage**: PostgreSQL efímero administrado por Testcontainers para la nueva integración de persistencia; repositorio en memoria para el smoke HTTP, que no necesita base de datos
+**Storage**: PostgreSQL efímero administrado por Testcontainers para las integraciones y PostgreSQL aislado para el smoke HTTP
 
 **Testing**: `npm run test:unit` para `backend/test/unit`, `npm run test:integration` para `backend/test/integration`, ambos con coverage agregado mediante opciones de Jest; no existe paquete end-to-end
 
@@ -86,10 +86,8 @@ backend/
 └── test/
     ├── unit/                      # 9 suites existentes, sin cambios
     └── integration/
-        ├── app-module.spec.ts     # Existente, sin persistencia
-        ├── auth/                  # 3 suites existentes, en memoria
-        └── users/
-            └── typeorm-user.repository.spec.ts  # Nueva integración PostgreSQL
+        ├── auth/                  # 3 suites con PostgreSQL/Testcontainers
+        └── helpers/               # Arranque y cleanup de PostgreSQL de prueba
 ```
 
 **Structure Decision**: El único componente implementado es `backend`, por lo que todas las operaciones npm usan ese working directory. `backend/sonar-project.properties` mantiene `sonar.sources=src`, `sonar.tests=test` y hace coincidir las rutas `SF:src/...` de LCOV con el project base directory. El frontend se incorporará al CI cuando exista un package y lockfile verificables; no se inventan comandos para un componente ausente.
@@ -126,7 +124,7 @@ Los jobs son checks separados y visibles. Las reglas de protección de `main` y 
 
 ### Persistencia con Testcontainers
 
-- Los tests actuales no usan Testcontainers y todos trabajan sin persistencia. Para demostrar el requisito, se agrega `backend/test/integration/users/typeorm-user.repository.spec.ts` sin tocar las 13 suites existentes.
+- Las suites de integración existentes usan PostgreSQL real mediante un helper compartido; no se admite un repositorio alternativo para ejecutar la aplicación.
 - La nueva suite usa `GenericContainer` de `testcontainers` con `postgres:16-alpine`, alineada con `docker-compose.yml`; configura credenciales efímeras, espera disponibilidad, crea un `DataSource`, ejecuta la migración de `usuarios` y ejercita `TypeOrmUserRepository` con casos feliz y borde.
 - El test destruye primero el `DataSource` y luego el contenedor en `afterAll`/`finally`. Testcontainers conserva la responsabilidad sobre sus recursos; el workflow no ejecuta `docker system prune` ni elimina recursos ajenos.
 - No se declara PostgreSQL en GitHub Actions `services:`. La URL se construye dentro del test con host y puerto asignados por Testcontainers y nunca se guarda como secret.
@@ -154,7 +152,7 @@ Los jobs son checks separados y visibles. Las reglas de protección de `main` y 
 
 - La imagen se construye localmente con `backend/Dockerfile`, contexto `backend` y una etiqueta exclusiva de la ejecución; nunca se autentica contra un registry ni se publica.
 - Se conserva el Dockerfile actual en esta feature: la compilación ya es un gate independiente y el objetivo Docker es validar exactamente el artefacto hoy mantenido por el proyecto. Una migración a imagen multi-stage/productiva alteraría el flujo de desarrollo de Compose y queda fuera de alcance.
-- El contenedor publica el puerto 3000 y recibe `NODE_ENV=production`, `PORT=3000`, `JWT_EXPIRES_IN=15m`, `JWT_ALGORITHM=HS256` y un `JWT_SECRET` sintético de al menos 32 caracteres. No recibe `DATABASE_URL`, por lo que el startup usa el repositorio en memoria y no depende de PostgreSQL ni de servicios productivos.
+- El job inicia un PostgreSQL aislado y ejecuta las migraciones antes de arrancar el contenedor. La aplicación recibe `DATABASE_URL` junto con `NODE_ENV=production`, `PORT=3000`, `JWT_EXPIRES_IN=15m`, `JWT_ALGORITHM=HS256` y un `JWT_SECRET` sintético de al menos 32 caracteres.
 - Un bucle acotado consulta `http://127.0.0.1:3000/health`, exige HTTP 200 y revisa en cada intento que el contenedor siga corriendo. El límite total es 60 segundos y cada request tiene timeout corto.
 - Ante falla se muestran `docker ps -a`, `docker inspect` y `docker logs` antes de eliminar recursos. Un step con condición de falla conserva diagnóstico y otro con condición `always()` elimina solo el contenedor y la imagen nombrados por el job.
 

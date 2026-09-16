@@ -1,23 +1,22 @@
 import { INestApplication } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
 import request from 'supertest';
 import { JwtService } from '@nestjs/jwt';
-import { AppModule } from '../../../src/app.module';
-import { configureApp } from '../../../src/configure-app';
+import { createIntegrationApp, IntegrationApp } from '../helpers/integration-app';
 
 describe('rutas protegidas', () => {
   let app: INestApplication;
+  let integration: IntegrationApp;
   let token = '';
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
-    const module = await Test.createTestingModule({ imports: [AppModule.register('.env.no-test')] }).compile();
-    app = module.createNestApplication();
-    configureApp(app);
-    await app.init();
+    integration = await createIntegrationApp();
+    app = integration.app;
+  });
+  beforeEach(async () => {
     await request(app.getHttpServer()).post('/auth/register').send({ correo: 'me@example.com', password: 'secret123' }).expect(201);
     token = (await request(app.getHttpServer()).post('/auth/login').send({ correo: 'me@example.com', password: 'secret123' }).expect(200)).body.accessToken;
   });
-  afterAll(() => app?.close());
+  afterEach(async () => integration?.resetData());
+  afterAll(async () => integration?.close());
 
   it('mantiene GET /health público', async () => {
     await request(app.getHttpServer()).get('/health').expect(200);
