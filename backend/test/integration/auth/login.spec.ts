@@ -22,10 +22,18 @@ describe('POST /auth/login', () => {
   });
 
   it('rechaza una contraseña incorrecta con 401', async () => {
-    await request(app.getHttpServer()).post('/auth/login').send({ correo: 'login@example.com', password: 'wrongpass' }).expect(401);
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ correo: 'login@example.com', password: 'wrongpass' })
+      .expect(401);
+    expect(response.body.statusCode).toBe(401);
   });
 
   it('rechaza un correo inexistente con 401 sin revelar si existe', async () => {
-    await request(app.getHttpServer()).post('/auth/login').send({ correo: 'missing@example.com', password: 'wrongpass' }).expect(401);
+    const response = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ correo: 'missing@example.com', password: 'wrongpass' })
+      .expect(401);
+    expect(response.body.statusCode).toBe(401);
   });
 });

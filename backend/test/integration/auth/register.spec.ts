@@ -27,14 +27,26 @@ describe('POST /auth/register', () => {
       .post('/auth/register')
       .send({ correo: 'duplicate@example.com', password: 'secret123' })
       .expect(201);
-    await request(app.getHttpServer()).post('/auth/register').send({ correo: 'DUPLICATE@example.com', password: 'secret123' }).expect(409);
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ correo: 'DUPLICATE@example.com', password: 'secret123' })
+      .expect(409);
+    expect(response.body.statusCode).toBe(409);
   });
 
   it('rechaza un correo o password inválidos con 422', async () => {
-    await request(app.getHttpServer()).post('/auth/register').send({ correo: 'bad', password: 'x' }).expect(422);
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ correo: 'bad', password: 'x' })
+      .expect(422);
+    expect(response.body.statusCode).toBe(422);
   });
 
   it('rechaza propiedades no permitidas con 422', async () => {
-    await request(app.getHttpServer()).post('/auth/register').send({ correo: 'extra@example.com', password: 'secret123', role: 'admin' }).expect(422);
+    const response = await request(app.getHttpServer())
+      .post('/auth/register')
+      .send({ correo: 'extra@example.com', password: 'secret123', role: 'admin' })
+      .expect(422);
+    expect(response.body.statusCode).toBe(422);
   });
 });

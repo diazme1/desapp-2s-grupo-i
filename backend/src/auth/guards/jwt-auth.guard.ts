@@ -8,7 +8,7 @@ export class JwtAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest<{ headers: Record<string, string>; user?: unknown }>();
     const header = request.headers?.authorization;
-    const match = typeof header === 'string' ? /^Bearer\s+(.+)$/i.exec(header) : null;
+    const match = typeof header === 'string' ? /^Bearer\s+(\S+)$/i.exec(header) : null;
     if (!match) throw new UnauthorizedException('Token Bearer requerido.');
     try {
       const payload = this.tokens.verify(match[1]);
