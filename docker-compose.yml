@@ -34,5 +34,21 @@ services:
       - /app/node_modules
     command: sh -c "npm run migration:run && npm run start:dev"
 
+  frontend:
+    build:
+      context: ./frontend
+    environment:
+      VITE_API_BASE_URL: /api
+      VITE_PROXY_TARGET: http://api:3000
+    ports:
+      - "5173:5173"
+    depends_on:
+      api:
+        condition: service_started
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+
 volumes:
   postgres_data:
