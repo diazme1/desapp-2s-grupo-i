@@ -1,0 +1,54 @@
+{
+  "info": {
+    "name": "Football Player Market - Catálogo de jugadores",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "playerId", "value": "30000000-0000-4000-8000-000000000001" }
+  ],
+  "item": [
+    {
+      "name": "Listar jugadores",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/players"
+      }
+    },
+    {
+      "name": "Filtrar por liga",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/players?liga=premier-league"
+      }
+    },
+    {
+      "name": "Filtrar por equipo y posicion",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/players?equipo=Arsenal&posicion=extremo"
+      }
+    },
+    {
+      "name": "Detalle de jugador",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/players/{{playerId}}"
+      }
+    },
+    {
+      "name": "Filtro invalido",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/players?posicion="
+      }
+    },
+    {
+      "name": "Jugador inexistente",
+      "request": {
+        "method": "GET",
+        "url": "{{baseUrl}}/players/30000000-0000-4000-8000-000000000099"
+      }
+    }
+  ]
+}

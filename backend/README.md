@@ -32,9 +32,5 @@ npm run start:dev
 ```
 
 - [Swagger](http://localhost:3000/docs)
-- [Health](http://localhost:3000/health)
-- `POST /auth/register` para crear una cuenta.
-- `POST /auth/login` para obtener un JWT Bearer.
-- `GET /auth/me` requiere `Authorization: Bearer <token>`.
 
 En PowerShell, si se bloquea `npm.ps1`, usar `npm.cmd` en lugar de `npm`.

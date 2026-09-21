@@ -4,11 +4,18 @@ import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
 import { AppModule } from '../../../src/app.module';
 import { configureApp } from '../../../src/configure-app';
+import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
+import { IdentidadExternaJugadorEntity } from '../../../src/players/persistence/identidad-externa-jugador.entity';
+import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
+import { LigaEntity } from '../../../src/players/persistence/liga.entity';
+import { CreateCatalogoJugadores1720000000000 } from '../../../migrations/1720000000000-CreateCatalogoJugadores';
+import { CreateIdentidadesExternasJugador1720000001000 } from '../../../migrations/1720000001000-CreateIdentidadesExternasJugador';
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
 
 export interface IntegrationApp {
   app: INestApplication;
+  database: DataSource;
   resetData(): Promise<void>;
   close(): Promise<void>;
 }
@@ -31,8 +38,12 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
     testDataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [UserEntity],
-      migrations: [CreateUsuarios1710000000000],
+      entities: [UserEntity, LigaEntity, EquipoEntity, JugadorEntity, IdentidadExternaJugadorEntity],
+      migrations: [
+        CreateUsuarios1710000000000,
+        CreateCatalogoJugadores1720000000000,
+        CreateIdentidadesExternasJugador1720000001000,
+      ],
       dropSchema: true,
       synchronize: false,
     });
@@ -49,6 +60,7 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
 
     return {
       app,
+      database: testDataSource,
       async resetData() {
         if (testDataSource?.isInitialized) await testDataSource.query('TRUNCATE TABLE usuarios');
       },
