@@ -1,12 +1,6 @@
 import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainers';
 import { DataSource } from 'typeorm';
-import { CreateCatalogoJugadores1720000000000 } from '../../../migrations/1720000000000-CreateCatalogoJugadores';
-import { CreateIdentidadesExternasJugador1720000001000 } from '../../../migrations/1720000001000-CreateIdentidadesExternasJugador';
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
-import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
-import { IdentidadExternaJugadorEntity } from '../../../src/players/persistence/identidad-externa-jugador.entity';
-import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
-import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
 
 const POSTGRES_IMAGE = 'postgres:16-alpine';
@@ -33,12 +27,8 @@ export async function startTestDatabase(): Promise<TestDatabase> {
   const dataSource = new DataSource({
     type: 'postgres',
     url,
-    entities: [UserEntity, LigaEntity, EquipoEntity, JugadorEntity, IdentidadExternaJugadorEntity],
-    migrations: [
-      CreateUsuarios1710000000000,
-      CreateCatalogoJugadores1720000000000,
-      CreateIdentidadesExternasJugador1720000001000,
-    ],
+    entities: [UserEntity],
+    migrations: [CreateUsuarios1710000000000],
     synchronize: false,
   });
 

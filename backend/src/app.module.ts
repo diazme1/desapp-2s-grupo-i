@@ -3,7 +3,6 @@ import { ConfigModule } from '@nestjs/config';
 import { validateEnvironment } from './config/environment';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
-import { JugadoresModule } from './players/players.module';
 
 @Module({})
 export class AppModule {
@@ -18,7 +17,6 @@ export class AppModule {
         }),
         HealthModule,
         AuthModule,
-        JugadoresModule,
       ],
     };
   }
