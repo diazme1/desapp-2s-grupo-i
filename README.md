@@ -52,3 +52,17 @@ docker compose down
 ```
 
 Los datos de PostgreSQL se conservan en el volumen `postgres_data`.
+
+### Catálogo base de jugadores
+
+La Parte 1 del catálogo persiste ligas, equipos y jugadores localmente en PostgreSQL.
+Las consultas no llaman a proveedores externos:
+
+- `GET /players` lista el catálogo local; acepta opcionalmente `?ligaCodigo=PL`.
+- `GET /players/:id` devuelve el detalle de un jugador por su UUID interno.
+- `POST /catalog/refresh` actualiza el catálogo base desde Football-Data.org y requiere
+  un JWT Bearer. Configurá `FOOTBALL_DATA_API_TOKEN` en `backend/.env` para ejecutarlo.
+
+La actualización utiliza las competencias `PL,BL1,PD,SA,FL1` por defecto y puede
+configurarse con `FOOTBALL_DATA_COMPETITIONS`. WhoScored y las estadísticas quedan fuera
+de esta primera parte.

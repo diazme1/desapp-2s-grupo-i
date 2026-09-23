@@ -34,5 +34,6 @@ bootstrap().catch((error: unknown) => {
         ? error.message
         : 'No se pudo iniciar el servidor. Revisá la configuración local.';
   console.error(message);
+  console.error('Detalle del error:', error);
   process.exitCode = 1;
 });

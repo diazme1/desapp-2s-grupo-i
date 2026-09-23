@@ -4,6 +4,9 @@ export function validateEnvironment(config: Record<string, unknown>): {
   JWT_SECRET?: string;
   JWT_EXPIRES_IN?: string;
   JWT_ALGORITHM?: string;
+  FOOTBALL_DATA_API_URL?: string;
+  FOOTBALL_DATA_API_TOKEN?: string;
+  FOOTBALL_DATA_COMPETITIONS?: string;
 } {
   const databaseUrl = config.DATABASE_URL;
   if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
@@ -47,5 +50,14 @@ export function validateEnvironment(config: Record<string, unknown>): {
     ...(typeof jwtSecret === 'string' && { JWT_SECRET: jwtSecret }),
     JWT_EXPIRES_IN: typeof jwtExpiresIn === 'string' ? jwtExpiresIn : '15m',
     JWT_ALGORITHM: typeof algorithm === 'string' ? algorithm : 'HS256',
+    ...(typeof config.FOOTBALL_DATA_API_URL === 'string' && {
+      FOOTBALL_DATA_API_URL: config.FOOTBALL_DATA_API_URL,
+    }),
+    ...(typeof config.FOOTBALL_DATA_API_TOKEN === 'string' && {
+      FOOTBALL_DATA_API_TOKEN: config.FOOTBALL_DATA_API_TOKEN,
+    }),
+    ...(typeof config.FOOTBALL_DATA_COMPETITIONS === 'string' && {
+      FOOTBALL_DATA_COMPETITIONS: config.FOOTBALL_DATA_COMPETITIONS,
+    }),
   };
 }

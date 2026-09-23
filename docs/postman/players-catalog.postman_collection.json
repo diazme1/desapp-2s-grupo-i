@@ -1,0 +1,57 @@
+{
+  "info": {
+    "name": "Catálogo base de jugadores",
+    "description": "Pruebas de la Parte 1 del catálogo. Las consultas son locales; el refresh usa Football-Data.org.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "playerId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Actualizar catálogo base",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+        "header": [],
+        "url": "{{baseUrl}}/catalog/refresh",
+        "description": "Importa ligas, equipos y jugadores desde Football-Data.org. Requiere JWT."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde actualización exitosa', () => pm.response.to.have.status(200));",
+        "pm.test('Devuelve resumen del catálogo', () => pm.expect(pm.response.json()).to.have.all.keys('fuente', 'ligas', 'equipos', 'jugadores', 'actualizadoEn'));"
+      ] } }]
+    },
+    {
+      "name": "Listar jugadores",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": "{{baseUrl}}/players",
+        "description": "Lee el catálogo local sin llamar a fuentes externas."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+        "pm.test('Devuelve una lista', () => pm.expect(pm.response.json()).to.be.an('array'));",
+        "if (pm.response.json().length > 0) pm.collectionVariables.set('playerId', pm.response.json()[0].id);"
+      ] } }]
+    },
+    {
+      "name": "Obtener detalle de jugador",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": "{{baseUrl}}/players/{{playerId}}",
+        "description": "Devuelve los datos base del jugador y sus relaciones. Ejecutar después de listar jugadores."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+        "pm.test('Devuelve jugador, equipo y liga', () => pm.expect(pm.response.json()).to.have.all.keys('id', 'nombre', 'nombreCompleto', 'posicion', 'fechaNacimiento', 'nacionalidad', 'equipo', 'liga'));"
+      ] } }]
+    }
+  ]
+}

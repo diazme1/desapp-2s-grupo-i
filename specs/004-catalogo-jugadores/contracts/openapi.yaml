@@ -1,0 +1,136 @@
+openapi: 3.0.3
+info:
+  title: Catálogo base de Football Player Market
+  version: 1.0.0
+  description: Consulta local y actualización del catálogo base de ligas, equipos y jugadores.
+paths:
+  /players:
+    get:
+      tags: [Jugadores]
+      summary: Listar el catálogo local de jugadores
+      parameters:
+        - name: ligaCodigo
+          in: query
+          required: false
+          schema:
+            type: string
+            maxLength: 20
+            example: PL
+      responses:
+        '200':
+          description: Jugadores persistidos localmente.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/JugadorResponse'
+        '422':
+          description: Parámetros de búsqueda inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /players/{id}:
+    get:
+      tags: [Jugadores]
+      summary: Obtener el detalle local de un jugador
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Jugador encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JugadorResponse'
+        '404':
+          description: Jugador no encontrado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: El identificador no es válido.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+  /catalog/refresh:
+    post:
+      tags: [Jugadores]
+      summary: Actualizar el catálogo base desde Football-Data.org
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Catálogo actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshCatalogoResponse'
+        '401':
+          description: Token ausente, inválido o vencido.
+        '503':
+          description: La fuente externa no está disponible.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    LigaResponse:
+      type: object
+      required: [id, codigo, nombre, pais, emblemaUrl]
+      properties:
+        id: { type: string, format: uuid }
+        codigo: { type: string, example: PL }
+        nombre: { type: string, example: Premier League }
+        pais: { type: string, nullable: true, example: England }
+        emblemaUrl: { type: string, nullable: true, format: uri }
+    EquipoResponse:
+      type: object
+      required: [id, nombre, nombreCorto, sigla, escudoUrl]
+      properties:
+        id: { type: string, format: uuid }
+        nombre: { type: string, example: Manchester City FC }
+        nombreCorto: { type: string, nullable: true }
+        sigla: { type: string, nullable: true, example: MCI }
+        escudoUrl: { type: string, nullable: true, format: uri }
+    JugadorResponse:
+      type: object
+      required: [id, nombre, nombreCompleto, posicion, fechaNacimiento, nacionalidad, equipo, liga]
+      properties:
+        id: { type: string, format: uuid, description: Identificador interno estable }
+        nombre: { type: string, example: John Doe }
+        nombreCompleto: { type: string, nullable: true }
+        posicion: { type: string, nullable: true, example: Midfielder }
+        fechaNacimiento: { type: string, nullable: true, format: date }
+        nacionalidad: { type: string, nullable: true, example: Argentina }
+        equipo: { $ref: '#/components/schemas/EquipoResponse' }
+        liga: { $ref: '#/components/schemas/LigaResponse' }
+    RefreshCatalogoResponse:
+      type: object
+      required: [fuente, ligas, equipos, jugadores, actualizadoEn]
+      properties:
+        fuente: { type: string, example: Football-Data.org }
+        ligas: { type: integer, minimum: 0, example: 5 }
+        equipos: { type: integer, minimum: 0, example: 100 }
+        jugadores: { type: integer, minimum: 0, example: 2500 }
+        actualizadoEn: { type: string, format: date-time }
+    ErrorResponse:
+      type: object
+      required: [statusCode, message]
+      properties:
+        statusCode: { type: integer, example: 422 }
+        message: { type: string, example: Los datos enviados no son válidos. }
