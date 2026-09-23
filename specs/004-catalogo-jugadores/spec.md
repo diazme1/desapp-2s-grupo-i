@@ -120,8 +120,9 @@ identificador inexistente para verificar ambos resultados.
   relaciones de ligas, equipos y jugadores, conservando la información entre reinicios.
 - **FR-004**: El sistema MUST limitar la primera etapa a las cinco competencias de producto:
   Premier League, Bundesliga, La Liga, Serie A y Ligue 1.
-- **FR-005**: `POST /catalog/refresh` MUST iniciar la importación de ligas, equipos y
-  jugadores base desde Football-Data.org y MUST devolver un resumen de la actualización.
+- **FR-005**: `POST /catalog/refresh` MUST aceptar opcionalmente `ligaCodigo` para iniciar
+  la importación de una liga, sus equipos y jugadores base desde Football-Data.org, y MUST
+  devolver un resumen de la actualización.
 - **FR-006**: La actualización MUST ser repetible y no MUST crear duplicados para un mismo
   identificador externo; las relaciones y atributos actuales deben poder actualizarse.
 - **FR-007**: La actualización MUST ser atómica respecto del catálogo: una falla de la

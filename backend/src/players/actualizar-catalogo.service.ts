@@ -15,10 +15,11 @@ export class ActualizarCatalogoService {
     @Inject(PLAYERS_REPOSITORY) private readonly players: PlayersRepository,
   ) {}
 
-  async ejecutar() {
+  async ejecutar(ligaCodigo?: string) {
     let catalogo;
+    const inicioExtraccion = Date.now();
     try {
-      catalogo = await this.source.obtenerCatalogo();
+      catalogo = await this.source.obtenerCatalogo(ligaCodigo);
     } catch (error) {
       const message =
         error instanceof FootballDataError
@@ -26,11 +27,18 @@ export class ActualizarCatalogoService {
           : 'Football-Data.org no está disponible en este momento.';
       throw new ServiceUnavailableException(message);
     }
+    const tiempoExtraccionMs = Date.now() - inicioExtraccion;
     const resumen = await this.players.guardarCatalogo(catalogo);
     return {
       fuente: 'Football-Data.org',
       ...resumen,
+      tiempoExtraccionMs,
+      tiempoExtraccion: this.formatearDuracion(tiempoExtraccionMs),
       actualizadoEn: new Date().toISOString(),
     };
+  }
+
+  private formatearDuracion(milisegundos: number): string {
+    return `${(milisegundos / 1000).toFixed(2)} s`;
   }
 }

@@ -44,11 +44,13 @@ $login = Invoke-RestMethod "$baseUrl/auth/login" -Method Post -ContentType 'appl
 
 ```powershell
 $headers = @{ Authorization = "Bearer $($login.accessToken)" }
-$refresh = Invoke-RestMethod "$baseUrl/catalog/refresh" -Method Post -Headers $headers
+$refresh = Invoke-RestMethod "$baseUrl/catalog/refresh?ligaCodigo=PL" -Method Post -Headers $headers
 $refresh
 ```
 
-Esperado: un resumen con `fuente`, `ligas`, `equipos`, `jugadores` y `actualizadoEn`.
+Esperado: un resumen con `fuente`, `ligas`, `equipos`, `jugadores`, `tiempoExtraccionMs`,
+`tiempoExtraccion` y `actualizadoEn`. El código
+`ligaCodigo` permite actualizar una liga por vez y evitar superar la cuota de Football-Data.org.
 Football-Data.org se consulta solo durante esta operación.
 
 ## Consultar localmente

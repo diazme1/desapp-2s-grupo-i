@@ -60,9 +60,9 @@ Las consultas no llaman a proveedores externos:
 
 - `GET /players` lista el catálogo local; acepta opcionalmente `?ligaCodigo=PL`.
 - `GET /players/:id` devuelve el detalle de un jugador por su UUID interno.
-- `POST /catalog/refresh` actualiza el catálogo base desde Football-Data.org y requiere
-  un JWT Bearer. Configurá `FOOTBALL_DATA_API_TOKEN` en `backend/.env` para ejecutarlo.
+- `POST /catalog/refresh?ligaCodigo=PL` actualiza una liga del catálogo base desde Football-Data.org
+  y requiere un JWT Bearer. Configurá `FOOTBALL_DATA_API_TOKEN` en el `.env` raíz para ejecutarlo.
 
-La actualización utiliza las competencias `PL,BL1,PD,SA,FL1` por defecto y puede
-configurarse con `FOOTBALL_DATA_COMPETITIONS`. WhoScored y las estadísticas quedan fuera
-de esta primera parte.
+La actualización acepta una liga por request mediante `ligaCodigo` y respeta un intervalo entre
+solicitudes externas configurado con `FOOTBALL_DATA_REQUEST_DELAY_MS`. WhoScored y las estadísticas
+quedan fuera de esta primera parte.

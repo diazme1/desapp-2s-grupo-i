@@ -48,7 +48,7 @@ lista documenta la secuencia SDD y sirve como trazabilidad para una revisión o 
 
 - [ ] T014 [US1] Implementar los tipos externos y `FootballDataAdapter` en `backend/src/players/adapters/football-data/football-data.types.ts` y `backend/src/players/adapters/football-data/football-data.adapter.ts` usando competencias y plantillas v4.
 - [ ] T015 [US1] Implementar `ActualizarCatalogoService` en `backend/src/players/actualizar-catalogo.service.ts` para completar la carga externa antes de delegar la transacción.
-- [ ] T016 [US1] Exponer `POST /catalog/refresh` protegido por Bearer JWT desde `backend/src/players/players.controller.ts` y documentarlo con `RefreshCatalogoResponseDto` en `backend/src/players/dto/refresh-catalogo-response.dto.ts`.
+- [ ] T016 [US1] Exponer `POST /catalog/refresh?ligaCodigo=PL` protegido por Bearer JWT desde `backend/src/players/players.controller.ts`, con espera configurable entre requests y documentación mediante `RefreshCatalogoResponseDto`.
 - [ ] T017 [US1] Registrar tokens de adapter/repository y providers en `backend/src/players/players.module.ts` y agregar `PlayersModule` a `backend/src/app.module.ts`.
 
 **Checkpoint**: La actualización base funciona sin WhoScored ni estadísticas, es repetible y no deja persistencia parcial.

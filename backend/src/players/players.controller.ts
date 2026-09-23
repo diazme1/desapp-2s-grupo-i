@@ -19,6 +19,7 @@ import {
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActualizarCatalogoService } from './actualizar-catalogo.service';
 import { CatalogoJugadoresService } from './catalogo-jugadores.service';
+import { ActualizarCatalogoDto } from './dto/actualizar-catalogo.dto';
 import { JugadorResponseDto } from './dto/jugador-response.dto';
 import { ListarJugadoresDto } from './dto/listar-jugadores.dto';
 import { RefreshCatalogoResponseDto } from './dto/refresh-catalogo-response.dto';
@@ -55,11 +56,11 @@ export class PlayersController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('bearerAuth')
-  @ApiOperation({ summary: 'Actualizar el catálogo base desde Football-Data.org' })
+  @ApiOperation({ summary: 'Actualizar una liga del catálogo base desde Football-Data.org' })
   @ApiOkResponse({ type: RefreshCatalogoResponseDto })
   @ApiResponse({ status: 401, description: 'Token ausente, inválido o vencido.' })
   @ApiResponse({ status: 503, description: 'La fuente externa no está disponible.' })
-  actualizarCatalogo() {
-    return this.actualizar.ejecutar();
+  actualizarCatalogo(@Query() query: ActualizarCatalogoDto) {
+    return this.actualizar.ejecutar(query.ligaCodigo);
   }
 }

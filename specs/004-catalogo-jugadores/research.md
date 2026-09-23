@@ -14,15 +14,25 @@
 - **Fuente**: [Competition API](https://docs.football-data.org/general/v4/competition.html)
   y [Team API](https://docs.football-data.org/general/v4/team.html).
 
-## Decisión 2: Competencias iniciales
+## Decisión 2: Competencias iniciales y actualización por liga
 
 - **Decisión**: configurar por defecto `PL`, `BL1`, `PD`, `SA` y `FL1`, con posibilidad de
-  reemplazarlas mediante `FOOTBALL_DATA_COMPETITIONS`.
-- **Motivo**: coincide con las cinco ligas del contexto de producto y permite pruebas con
-  un subconjunto sin modificar código.
+  reemplazarlas mediante `FOOTBALL_DATA_COMPETITIONS`, pero actualizar una sola liga por
+  request mediante `POST /catalog/refresh?ligaCodigo=PL`.
+- **Motivo**: coincide con las cinco ligas del contexto de producto y evita que una única
+  ejecución supere el límite de solicitudes del proveedor.
 - **Alternativas consideradas**: importar todas las competencias disponibles (descartado
-  por alcance y por límites del proveedor) y fijar una sola liga (descartado porque no
-  cubre el catálogo solicitado).
+  por alcance y por límites del proveedor) y cargar cinco ligas en un único request
+  (descartado por la cuota de Football-Data.org).
+
+## Decisión 7: Ritmo de solicitudes externas
+
+- **Decisión**: espaciar las solicitudes externas mediante `FOOTBALL_DATA_REQUEST_DELAY_MS`
+  y respetar los headers de reset ante respuestas `429`.
+- **Motivo**: el plan gratuito del proveedor permite 10 solicitudes por minuto; el catálogo
+  de una liga requiere consultar la competencia y el detalle de sus equipos.
+- **Alternativas consideradas**: disparar todas las solicitudes en paralelo (descartado por
+  rate limit) y consultar Football-Data.org durante cada `GET` (descartado por disponibilidad).
 
 ## Decisión 3: Identidad y actualización
 

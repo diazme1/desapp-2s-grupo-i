@@ -10,8 +10,9 @@
 
 Crear el módulo `players` del backend para administrar el catálogo base de las cinco
 competencias del producto. El módulo separa dominio, persistencia, servicios, DTOs y
-adapter externo. `POST /catalog/refresh` obtiene ligas, equipos y plantillas desde
-Football-Data.org, valida y persiste el conjunto en una transacción; `GET /players` y
+adapter externo. `POST /catalog/refresh?ligaCodigo=PL` obtiene una liga, sus equipos y
+plantillas desde Football-Data.org, respeta el ritmo de solicitudes configurado, valida y
+persiste el conjunto en una transacción; `GET /players` y
 `GET /players/:id` leen únicamente PostgreSQL. WhoScored, estadísticas, enriquecimiento,
 valuaciones y portfolio quedan explícitamente fuera de esta entrega.
 

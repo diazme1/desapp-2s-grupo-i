@@ -43,11 +43,11 @@ Después de ejecutar las migraciones, el backend expone:
 
 - `GET /players`: devuelve jugadores persistidos localmente y no consulta proveedores externos.
 - `GET /players/:id`: devuelve el detalle por el UUID interno del jugador.
-- `POST /catalog/refresh`: requiere un JWT Bearer e importa únicamente ligas, equipos y
-  jugadores base desde Football-Data.org.
+- `POST /catalog/refresh?ligaCodigo=PL`: requiere un JWT Bearer e importa una liga, sus equipos
+  y jugadores base desde Football-Data.org.
 
-Para actualizar el catálogo, configurá `FOOTBALL_DATA_API_TOKEN` en `.env`. La URL, las
-competencias (`PL,BL1,PD,SA,FL1`) y la fuente se pueden revisar en `.env.example`. La
+Para actualizar el catálogo, configurá `FOOTBALL_DATA_API_TOKEN` en el `.env` raíz. La URL,
+las competencias y el intervalo entre requests se pueden revisar en `.env.example`. La
 fuente externa se usa solo durante el refresh; si no está disponible, las lecturas locales
 siguen funcionando. WhoScored y las estadísticas pertenecen a una segunda especificación.
 
