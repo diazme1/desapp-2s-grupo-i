@@ -1,0 +1,15 @@
+{
+  "playerIdExterno": "300447",
+  "nombre": "Raphinha",
+  "equipo": "Barcelona",
+  "liga": "LaLiga",
+  "metricas": {
+    "goles": 12,
+    "asistencias": 3,
+    "tiros": 25,
+    "pasesClave": 14,
+    "regates": 12,
+    "entradas": 4,
+    "ratingWhoScored": 8.948571428571428
+  }
+}

@@ -1,0 +1,22 @@
+[
+  {"idJugador":"local-01","playerIdExterno":"ws-01","nombre":"Jugador 01","equipo":"Equipo 01","liga":"Liga 01","goles":1,"asistencias":2,"tiros":3,"pasesClave":4,"regates":5,"entradas":6,"ratingWhoScored":7.01},
+  {"idJugador":"local-02","playerIdExterno":"ws-02","nombre":"Jugador 02","equipo":"Equipo 02","liga":"Liga 02","goles":2,"asistencias":3,"tiros":4,"pasesClave":5,"regates":6,"entradas":7,"ratingWhoScored":7.02},
+  {"idJugador":"local-03","playerIdExterno":"ws-03","nombre":"Jugador 03","equipo":"Equipo 03","liga":"Liga 03","goles":3,"asistencias":4,"tiros":5,"pasesClave":6,"regates":7,"entradas":8,"ratingWhoScored":7.03},
+  {"idJugador":"local-04","playerIdExterno":"ws-04","nombre":"Jugador 04","equipo":"Equipo 04","liga":"Liga 04","goles":4,"asistencias":5,"tiros":6,"pasesClave":7,"regates":8,"entradas":9,"ratingWhoScored":7.04},
+  {"idJugador":"local-05","playerIdExterno":"ws-05","nombre":"Jugador 05","equipo":"Equipo 05","liga":"Liga 05","goles":5,"asistencias":6,"tiros":7,"pasesClave":8,"regates":9,"entradas":10,"ratingWhoScored":7.05},
+  {"idJugador":"local-06","playerIdExterno":"ws-06","nombre":"Jugador 06","equipo":"Equipo 06","liga":"Liga 06","goles":6,"asistencias":7,"tiros":8,"pasesClave":9,"regates":10,"entradas":11,"ratingWhoScored":7.06},
+  {"idJugador":"local-07","playerIdExterno":"ws-07","nombre":"Jugador 07","equipo":"Equipo 07","liga":"Liga 07","goles":7,"asistencias":8,"tiros":9,"pasesClave":10,"regates":11,"entradas":12,"ratingWhoScored":7.07},
+  {"idJugador":"local-08","playerIdExterno":"ws-08","nombre":"Jugador 08","equipo":"Equipo 08","liga":"Liga 08","goles":8,"asistencias":9,"tiros":10,"pasesClave":11,"regates":12,"entradas":13,"ratingWhoScored":7.08},
+  {"idJugador":"local-09","playerIdExterno":"ws-09","nombre":"Jugador 09","equipo":"Equipo 09","liga":"Liga 09","goles":9,"asistencias":10,"tiros":11,"pasesClave":12,"regates":13,"entradas":14,"ratingWhoScored":7.09},
+  {"idJugador":"local-10","playerIdExterno":"ws-10","nombre":"Jugador 10","equipo":"Equipo 10","liga":"Liga 10","goles":10,"asistencias":11,"tiros":12,"pasesClave":13,"regates":14,"entradas":15,"ratingWhoScored":7.1},
+  {"idJugador":"local-11","playerIdExterno":"ws-11","nombre":"Jugador 11","equipo":"Equipo 11","liga":"Liga 11","goles":11,"asistencias":12,"tiros":13,"pasesClave":14,"regates":15,"entradas":16,"ratingWhoScored":7.11},
+  {"idJugador":"local-12","playerIdExterno":"ws-12","nombre":"Jugador 12","equipo":"Equipo 12","liga":"Liga 12","goles":12,"asistencias":13,"tiros":14,"pasesClave":15,"regates":16,"entradas":17,"ratingWhoScored":7.12},
+  {"idJugador":"local-13","playerIdExterno":"ws-13","nombre":"Jugador 13","equipo":"Equipo 13","liga":"Liga 13","goles":13,"asistencias":14,"tiros":15,"pasesClave":16,"regates":17,"entradas":18,"ratingWhoScored":7.13},
+  {"idJugador":"local-14","playerIdExterno":"ws-14","nombre":"Jugador 14","equipo":"Equipo 14","liga":"Liga 14","goles":14,"asistencias":15,"tiros":16,"pasesClave":17,"regates":18,"entradas":19,"ratingWhoScored":7.14},
+  {"idJugador":"local-15","playerIdExterno":"ws-15","nombre":"Jugador 15","equipo":"Equipo 15","liga":"Liga 15","goles":15,"asistencias":16,"tiros":17,"pasesClave":18,"regates":19,"entradas":20,"ratingWhoScored":7.15},
+  {"idJugador":"local-16","playerIdExterno":"ws-16","nombre":"Jugador 16","equipo":"Equipo 16","liga":"Liga 16","goles":16,"asistencias":17,"tiros":18,"pasesClave":19,"regates":20,"entradas":21,"ratingWhoScored":7.16},
+  {"idJugador":"local-17","playerIdExterno":"ws-17","nombre":"Jugador 17","equipo":"Equipo 17","liga":"Liga 17","goles":17,"asistencias":18,"tiros":19,"pasesClave":20,"regates":21,"entradas":22,"ratingWhoScored":7.17},
+  {"idJugador":"local-18","playerIdExterno":"ws-18","nombre":"Jugador 18","equipo":"Equipo 18","liga":"Liga 18","goles":18,"asistencias":19,"tiros":20,"pasesClave":21,"regates":22,"entradas":23,"ratingWhoScored":7.18},
+  {"idJugador":"local-19","playerIdExterno":"ws-19","nombre":"Jugador 19","equipo":"Equipo 19","liga":"Liga 19","goles":19,"asistencias":20,"tiros":21,"pasesClave":22,"regates":23,"entradas":24,"ratingWhoScored":7.19},
+  {"idJugador":"local-20","playerIdExterno":"ws-20","nombre":"Jugador 20","equipo":"Equipo 20","liga":"Liga 20","goles":20,"asistencias":21,"tiros":22,"pasesClave":23,"regates":24,"entradas":25,"ratingWhoScored":7.2}
+]
