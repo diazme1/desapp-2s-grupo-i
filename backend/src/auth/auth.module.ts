@@ -12,6 +12,6 @@ import { OwnershipService } from './ownership/ownership.service';
   imports: [UsersModule, JwtModule.register({})],
   controllers: [AuthController],
   providers: [AuthService, BcryptPasswordHasher, JwtTokenService, JwtAuthGuard, OwnershipService],
-  exports: [AuthService, JwtAuthGuard, OwnershipService],
+  exports: [AuthService, JwtAuthGuard, JwtTokenService, OwnershipService],
 })
 export class AuthModule {}
