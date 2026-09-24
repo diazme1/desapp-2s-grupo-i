@@ -1,0 +1,10 @@
+{
+  "name": "desapp-2s-grupo-i",
+  "private": true,
+  "scripts": {
+    "dev": "docker compose up --build",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  }
+}
