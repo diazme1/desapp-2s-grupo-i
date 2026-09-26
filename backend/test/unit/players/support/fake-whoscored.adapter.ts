@@ -21,7 +21,7 @@ export class FakeWhoScoredAdapter implements WhoScoredLookupPort {
       tiros: 3,
       pasesClave: 4,
       regates: 5,
-      entradas: 6,
+      faltasCometidas: 6.2,
       ratingWhoScored: 7.1,
     },
   };

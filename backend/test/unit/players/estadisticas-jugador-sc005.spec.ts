@@ -14,7 +14,7 @@ interface ExpectedPlayer {
   tiros: number;
   pasesClave: number;
   regates: number;
-  entradas: number;
+  faltasCometidas: number;
   ratingWhoScored: number;
 }
 
@@ -43,7 +43,7 @@ describe('SC-005: asociacion de 20 jugadores', () => {
           tiros: player.tiros,
           pasesClave: player.pasesClave,
           regates: player.regates,
-          entradas: player.entradas,
+          faltasCometidas: player.faltasCometidas,
           ratingWhoScored: player.ratingWhoScored,
         },
       };
@@ -64,7 +64,7 @@ describe('SC-005: asociacion de 20 jugadores', () => {
         tiros: player.tiros,
         pasesClave: player.pasesClave,
         regates: player.regates,
-        entradas: player.entradas,
+        faltasCometidas: player.faltasCometidas,
         ratingWhoScored: player.ratingWhoScored,
       });
     }

@@ -1,214 +1,295 @@
-# Implementation Plan: Obtención y persistencia de estadísticas desde WhoScored
+# Implementation Plan: estadísticas WhoScored como segunda etapa del refresh
 
-**Branch**: `004-whoscored-player-stats` | **Date**: 2026-09-23 | **Spec**: [spec.md](./spec.md)
+**Branch**: `004-whoscored-player-stats` | **Date**: 2026-09-24 | **Spec**: [spec.md](./spec.md)
 
-**Input**: Especificación funcional para tomar un jugador existente, identificarlo en WhoScored, obtener siete estadísticas, normalizarlas y persistirlas asociadas mediante `idJugador`.
+**Input**: La especificación exige completar el flujo existente de `POST /catalog/refresh` con una segunda etapa que obtenga y persista estadísticas de los jugadores producidos por la primera etapa.
 
 ## Summary
 
-La implementación se dividirá en una parte ejecutable en la rama actual y una integración posterior con el catálogo que se desarrolla en paralelo.
+La implementación se integrará sobre el módulo `backend/src/players/` ya mergeado. La primera etapa del catálogo se conserva: `PlayersController` delega en `ActualizarCatalogoService`, que consulta `FootballDataAdapter` y persiste ligas, equipos y jugadores mediante `PlayersRepository` en una transacción.
 
-En la rama actual se implementarán el modelo de dominio `EstadisticasJugador`, los tipos y el adaptador de WhoScored, la investigación/fixtures que gobiernan su parsing, el matching nombre-equipo-liga, la normalización, los estados tipados del resultado y el servicio interno con puertos mínimos sustituibles por fakes.
+La modificación mínima consiste en que la persistencia del catálogo devuelva internamente, además del resumen existente, los jugadores efectivamente guardados durante esa ejecución con su `id` UUID interno y el contexto nombre/equipo/liga. `ActualizarCatalogoService` utilizará esa lista después del commit para invocar, una vez por jugador, `EstadisticasJugadorService`. La respuesta pública conservará todos los campos actuales y agregará únicamente el resumen agregado de estadísticas; no expondrá el detalle individual.
 
-La entidad TypeORM, la migración con foreign key física y el cableado contra el repositorio real de jugadores se integrarán después del merge del catálogo, porque esos archivos y la tabla `Jugador` todavía no existen en este checkout. No se crearán versiones provisionales o duplicadas para desbloquearlos.
-
-La operación es exclusivamente interna: no se agregará endpoint HTTP, DTO de controller ni modificación de `players.controller.ts`.
+La segunda etapa no participará de la transacción global del catálogo. Cada observación de estadísticas se escribirá atómicamente y un fallo de WhoScored o de persistencia de un jugador se contabilizará y permitirá continuar con los demás.
 
 ## Technical Context
 
-**Language/Version**: TypeScript 5.7 sobre Node.js 22.11.x
+**Language/Version**: TypeScript 5.7, Node.js `22.11.x` declarado en `backend/package.json`.
 
-**Primary Dependencies**: NestJS 11, TypeORM 0.3, PostgreSQL/`pg`, Jest 30, `ts-jest` y Testcontainers 11 ya presentes. El acceso externo se encapsulará en `WhoScoredAdapter`; no se selecciona una librería adicional de scraping antes de la investigación documentada.
+**Primary Dependencies**: NestJS 11, TypeORM 0.3, PostgreSQL/`pg`, Jest 30, `ts-jest`, Supertest y Testcontainers ya presentes. No se incorpora una dependencia nueva de scraping.
 
-**Runtime/transport validation**: el proyecto declara Node `22.11.x` en `backend/package.json`. Antes de implementar `WhoScoredAdapter` se debe ejecutar desde el runtime real del backend una validación de `fetch`, `AbortController`, request GET a WhoScored, abort por timeout y clasificación de errores de red. La exploración local ejecutada con Node `v24.6.0` confirmó las APIs nativas, pero la request falló con `ENOTFOUND www.whoscored.com` por DNS del entorno; por eso esa validación debe repetirse bajo Node `22.11.x` y con la conectividad real del backend. Si `fetch` no estuviera disponible en el runtime objetivo, se utilizará `https.request` nativo detrás de la misma interfaz, sin agregar una dependencia.
+**Actual runtime and transport**: El backend declara Node `22.11.x`. Antes de consolidar el transporte del adapter se debe repetir desde ese runtime la validación de `fetch`, `AbortController`, timeout, una request mínima a WhoScored y un error de red. El adapter conservará la interfaz de transporte sustituible; si `fetch` nativo no fuera viable, se documentará antes de implementarlo una alternativa mínima con `https.request` nativo. No se decide una librería nueva por anticipado.
 
-**WhoScored access decision**: después de validar el runtime, el transporte será HTTP mediante el `fetch` nativo de Node 22, encapsulado detrás de un transporte sustituible del adapter; `GET /search/?t={nombreCodificado}` obtiene candidatos y `GET /players/{playerId}/show/{slug}` obtiene el perfil. El perfil entrega un payload estructurado embebido en `require.config.params['args'].tournaments`; el adapter leerá ese payload y no dependerá de tablas visuales HTML ni de selectores de presentación. No se usarán endpoints históricos no verificados.
+**WhoScored access**: La investigación existente documenta la búsqueda `GET /search/?t={nombreCodificado}` y los perfiles `GET /players/{playerId}/show/{slug}`. El perfil se procesa desde su payload estructurado embebido en `require.config.params['args'].tournaments`; no se depende de tablas visuales ni se agregan endpoints de WhoScored no verificados.
 
-**Timeout policy**: cada request externa tiene 10 segundos y usa `AbortController`; el servicio/caso de uso crea un deadline total de 30 segundos para todo el flujo WhoScored. Cada request usa el menor entre su timeout individual y el tiempo restante de la operación. Al vencer el deadline se aborta cuando es posible, se descartan respuestas tardías, no se invoca persistencia y se devuelve `fuente_no_disponible`. No hay reintentos automáticos.
+**Timeout policy**: Cada request externa tiene timeout de 10 segundos con `AbortController`. `EstadisticasJugadorService` establece un deadline total de 30 segundos por jugador y pasa al adapter el tiempo restante. Al agotarse el deadline se aborta cuando es posible, no se persiste y se devuelve `fuente_no_disponible`. No hay reintentos automáticos.
 
-**Storage**: PostgreSQL mediante TypeORM cuando exista la entidad real de `Jugador`. En la rama actual la persistencia se prueba a través de un writer fake; la tabla y la foreign key se agregan después del merge del catálogo. La migración existente inspeccionada es `backend/migrations/1710000000000-CreateUsuarios.ts`; no existe aún una migración de jugadores, por lo que no se crea una migración de estadísticas con timestamp provisional.
+**Storage**: La migración real del catálogo es `backend/migrations/1727000000000-CreateCatalogoJugadores.ts` y crea `jugadores.id uuid` como primary key. La migración prevista para estadísticas es `backend/migrations/1790275835000-CreateEstadisticasJugadores.ts`, con foreign key a `jugadores(id)`, siempre después de la migración existente. El nombre es concreto; si el orden de migraciones cambia antes de implementar, se debe inspeccionar nuevamente el directorio y conservar un timestamp concreto posterior al de Jugador.
 
-**Testing**: Jest con fixtures locales de respuestas de búsqueda/perfil, tests unitarios del dominio, adapter y servicio, y un test controlado de al menos 20 casos para SC-005. Los tests de integración TypeORM/PostgreSQL y de foreign key quedan condicionados a la disponibilidad de las entidades/migraciones reales del catálogo.
+**Actual catalog flow inspected**:
 
-**Target Platform**: Backend NestJS ejecutado en Node.js localmente y en Docker.
+1. `PlayersController.actualizarCatalogo(@Query() query)` recibe el request autenticado en `POST /catalog/refresh` y llama `ActualizarCatalogoService.ejecutar(query.ligaCodigo)`.
+2. `ActualizarCatalogoService` llama una vez a `FOOTBALL_DATA_ADAPTER.obtenerCatalogo(ligaCodigo)`.
+3. Ante error de Football-Data lanza el `ServiceUnavailableException` existente; el controller conserva el HTTP 503.
+4. Ante éxito llama a `PLAYERS_REPOSITORY.guardarCatalogo(catalogo)`.
+5. `TypeOrmPlayersRepository.guardarCatalogo` persiste ligas, equipos y jugadores dentro de una única transacción TypeORM; los jugadores se upsertean por `proveedorId` y el `id` existente se conserva.
+6. Hoy el repositorio devuelve solo `{ ligas, equipos, jugadores }`; hoy el service devuelve ese resumen junto con fuente, tiempos y fecha.
+7. `RefreshCatalogoResponseDto` documenta esa respuesta mediante Swagger y la colección `docs/postman/players-catalog.postman_collection.json` verifica sus campos actuales.
 
-**Project Type**: Backend web service, sin endpoint nuevo para esta feature.
+**Project Type**: Backend web service. No se crea endpoint nuevo; se extiende la respuesta del endpoint existente.
 
-**Constraints**: WhoScored es la única fuente externa; el matching exige nombre, equipo y liga; `0` es distinto de ausencia (`null`); no se actualiza ni elimina `Jugador` ante fallas; no se duplican nombre/equipo/liga en estadísticas; no se toca Football-Data ni se reorganiza `players`.
+**Constraints**: WhoScored es la única fuente externa de estadísticas; Football-Data conserva exclusivamente la primera etapa. No se crean capas arquitectónicas paralelas, no se duplica Jugador, no se mueven archivos, no se implementa scraping en el controller y no se deshace el catálogo si falla la segunda etapa.
 
 ## Constitution Check
 
 *GATE: PASS antes de Phase 0. Se reevalúa después del diseño.*
 
-- **I. Stack tecnológico — PASS**: se usan TypeScript/NestJS, PostgreSQL y TypeORM existentes; la investigación no introduce una librería de scraping sin necesidad comprobada.
-- **II. Arquitectura en capas — PASS**: el servicio interno coordina, el adapter encapsula WhoScored, el dominio no conoce NestJS/HTTP/PostgreSQL y la persistencia real queda detrás de contratos del módulo `players`.
-- **III. Modelo rico — PASS**: `EstadisticasJugador` se construirá validando asociación y valores, sin setters públicos.
-- **IV. Validación por nivel — PASS**: el servicio verifica `idJugador`, el adapter valida la identidad externa y el dominio valida métricas y ausencia total.
-- **V. Tests y protección — PASS**: los tests del adapter usan fixtures; el caso de uso usa fakes; la integración real se agrega cuando exista el catálogo; no se modifican tests existentes.
-- **VI. Definición de terminado — PASS**: el flujo interno se verifica con build, lint, tests y un smoke test de arranque mediante el `npm run start` existente; no hay endpoint, Swagger ni Postman nuevos.
-- **VII. Idioma — PASS**: documentación y resultados funcionales en español; identificadores sin acentos ni `ñ`.
-- **VIII. Operaciones transaccionales — PASS**: el writer real insertará de forma atómica y no tocará el registro de `Jugador`.
-- **IX. Integraciones externas — PASS**: todo acceso a WhoScored vive en `adapters/whoscored`; sus fallas se convierten en resultados clasificados.
+- **I. Stack tecnológico — PASS**: se conservan TypeScript/NestJS, PostgreSQL, TypeORM, Jest, Supertest y Testcontainers existentes.
+- **II. Arquitectura en capas — PASS**: `PlayersController -> ActualizarCatalogoService -> domain/repository`; `EstadisticasJugadorService -> WhoScoredAdapter`; la persistencia queda en `TypeOrmPlayersRepository` y la entidad TypeORM.
+- **III. Modelo rico — PASS**: `EstadisticasJugador` mantiene sus invariantes mediante creación de dominio; el service no muta entidades directamente.
+- **IV. Validación por nivel — PASS**: el DTO existente valida la forma del query; el service comprueba el jugador local y la viabilidad del caso de uso; el dominio valida métricas.
+- **V. Tests y protección — PASS**: se agregan unit tests, integración PostgreSQL/Testcontainers y cobertura HTTP con Supertest. Los tests existentes no se eliminan; cualquier ajuste de mocks para el contrato extendido debe conservar sus escenarios.
+- **VI. Definition of Done — PASS**: se actualizarán Swagger y la colección Postman por la modificación de la respuesta existente; la validación final incluye build, lint, tests y `npm run start` controlado.
+- **VII. Idioma — PASS**: documentos y mensajes funcionales en español; identificadores sin acentos ni `ñ`.
+- **VIII. Atomicidad — PASS**: la etapa de catálogo conserva su transacción; cada observación de estadísticas se inserta de forma atómica; no existe una transacción global que pueda revertir el catálogo por un fallo externo.
+- **IX. Integraciones externas — PASS**: WhoScored permanece encapsulado en `adapters/whoscored`; una falla por jugador se clasifica y no rompe la actualización local ya confirmada.
 
-## Phase 0: Investigación técnica obligatoria de WhoScored
+## Phase 0: Investigación y decisiones técnicas
 
-Esta fase debe completarse y documentarse antes de implementar `WhoScoredAdapter`. El documento de decisión es [research.md](./research.md), y los fixtures representan el contrato observado sin convertirlo en una dependencia live de CI.
+La investigación detallada está en [research.md](./research.md). Antes de implementar el adapter deben completarse la validación real del transporte y la confirmación de la estructura que utiliza la versión de WhoScored disponible para el backend.
 
-Debe dejar resuelto:
+Debe quedar documentado:
 
-1. mecanismo concreto de acceso, validación de `fetch`/`AbortController` desde el backend, requests de búsqueda y perfil, formato de cada respuesta y límites de timeout;
-2. preferencia por datos estructurados embebidos en el perfil frente al HTML visual;
-3. selección determinística por liga, equipo, temporada actual y jugador, sin combinar registros;
-4. mapping de `Goals`, `Assists`, `TotalShots`, `KeyPasses`, `Dribbles`, `TotalTackles` y `Rating`;
-5. coordinación entre timeout individual de 10 segundos y deadline total de 30 segundos, además del comportamiento ante indisponibilidad, estructura inesperada, métricas ausentes y payload bloqueado;
-6. formato de fixtures HTML/JSON sanitizados y casos controlados para tests.
+1. transporte efectivo, disponibilidad de `fetch` y `AbortController`, request mínima y error de red;
+2. requests de búsqueda y perfil, formato de respuestas y fixtures sanitizados;
+3. extracción de las siete métricas y diferencia entre `0` y `null`;
+4. matching determinístico por liga, equipo, temporada vigente y jugador;
+5. timeout de 10 segundos por request y deadline total de 30 segundos por operación;
+6. clasificación de timeout, indisponibilidad, estructura inesperada, matching ambiguo y ausencia de métricas;
+7. decisión de procesamiento secuencial de los jugadores del refresh.
 
-La investigación actual observa la búsqueda pública `https://www.whoscored.com/search/?t=Raphinha` y el perfil oficial [Raphinha](https://www.whoscored.com/players/300447/show/raphinha). El adapter dependerá de estos hallazgos documentados y no de una conjetura sobre selectores o endpoints antiguos.
+### Regla determinística de registro vigente
 
-## Project Structure
+El adapter aplicará, en este orden, los siguientes filtros sobre el payload estructurado de WhoScored:
 
-### Documentation
+1. torneo compatible con `ligaEquipoJugador`;
+2. equipo compatible con `equipoJugador`, usando nombre y los identificadores externos disponibles;
+3. temporada actual/vigente de esa competición, usando la marca explícita del contexto y, si no existe, el mayor `SeasonId` numérico único entre los registros ya filtrados;
+4. jugador compatible con `nombreJugador` y el identificador del candidato.
+
+Exactamente un registro permite continuar. Más de uno es `matching_ambiguo`; ninguno es `jugador_no_encontrado` o ausencia de registro compatible. No se combinan temporadas, equipos o competiciones.
+
+## Integración de estadísticas en `POST /catalog/refresh`
+
+### Flujo actual encontrado
+
+El punto de entrada es `backend/src/players/players.controller.ts`, método `actualizarCatalogo`. El controller ya delega y no contiene lógica de catálogo más allá del request. `ActualizarCatalogoService` realiza la extracción, y `TypeOrmPlayersRepository.guardarCatalogo` persiste toda la primera etapa en una transacción.
+
+La etapa actual devuelve contadores y no los objetos persistidos. El repositorio sí dispone, durante su transacción, de cada `JugadorEntity` guardado y de los mapas que resuelven el equipo y la liga. Es el punto correcto para conservar el contexto de los jugadores producidos sin volver a llamar a Football-Data.
+
+### Flujo final propuesto
 
 ```text
-specs/004-whoscored-player-stats/
-├── plan.md
-├── research.md
-├── data-model.md
-├── quickstart.md
-├── checklists/requirements.md
-└── tasks.md
+POST /catalog/refresh?ligaCodigo=...
+  -> PlayersController
+  -> ActualizarCatalogoService.ejecutar
+  -> FootballDataAdapter.obtenerCatalogo                 [etapa 1]
+  -> PlayersRepository.guardarCatalogo                   [transacción catálogo]
+  -> commit de ligas/equipos/jugadores
+  -> jugadoresProcesados de esa misma ejecución
+  -> EstadisticasJugadorService por cada jugador           [etapa 2]
+  -> WhoScoredAdapter + normalización
+  -> escritura atómica de cada EstadisticasJugador
+  -> resumen global sin detalle individual
 ```
 
-### Source code and tests
+La modificación mínima del contrato `PlayersRepository` será ampliar el resultado interno de `guardarCatalogo` con `jugadoresProcesados`, cada uno con:
 
 ```text
-backend/src/players/
-├── domain/
-│   └── estadisticas-jugador.ts                         # implementar ahora
-├── dto/                                                  # existente del catálogo; no modificar
-├── persistence/
-│   └── estadisticas-jugador.entity.ts                  # integrar después del catálogo
-├── adapters/
-│   └── whoscored/
-│       ├── whoscored.adapter.ts                         # implementar ahora
-│       └── whoscored.types.ts                           # implementar ahora
-├── estadisticas-jugador.service.ts                     # implementar ahora, sin endpoint
-├── players.repository.ts                                # contrato real del catálogo; extender después
-├── persistence/typeorm-jugador.repository.ts             # integración posterior
-└── players.module.ts                                     # registrar providers después
-
-backend/test/
-├── unit/players/
-│   └── fixtures/whoscored/                               # fixtures controlados del adapter
-└── integration/players/                                 # solo cuando exista el catálogo real
+idJugador: string       // JugadorEntity.id real y estable
+nombreJugador: string
+equipoJugador: string
+ligaEquipoJugador: string
 ```
 
-`jugador.ts`, `jugador.entity.ts`, `typeorm-jugador.repository.ts`, `players.repository.ts`, `players.module.ts`, `catalogo-jugadores.service.ts`, `actualizar-catalogo.service.ts` y `players.controller.ts` pertenecen al catálogo o al módulo existente. Si faltan en esta rama, no se recrean.
+`TypeOrmPlayersRepository` construirá esa lista mientras guarda cada jugador: usará el `id` devuelto por el upsert y los nombres de las relaciones que ya está procesando. El retorno solo se produce después del commit de la transacción. `ActualizarCatalogoService` consumirá la lista internamente y excluirá ese campo de la respuesta HTTP.
 
-No se crearán `application/`, `use-cases/`, `infrastructure/`, `repositories/`, `services/` ni un segundo repositorio de jugadores.
+No se llamará a `FootballDataAdapter` por segunda vez, no se reconstruirá el catálogo y no se ejecutará `listar()` sobre toda la tabla para recuperar los jugadores.
 
-## Design Decisions
+### Integración con `EstadisticasJugadorService`
 
-### Caso de uso interno y puertos mínimos
-
-`EstadisticasJugadorService` recibirá:
+El service existente conserva la operación interna:
 
 ```text
 obtenerEstadisticasJugador(
   idJugador,
   nombreJugador,
   equipoJugador,
-  ligaEquipoJugador
+  ligaEquipoJugador,
 )
 ```
 
-El servicio verificará `idJugador` mediante un puerto mínimo de lookup del jugador y escribirá mediante un puerto mínimo de persistencia de estadísticas. Mientras no exista `players.repository.ts`, ambos contratos podrán vivir como interfaces internas del servicio y sus implementaciones serán fakes de test; no se creará un repositorio de producción alternativo. Al integrar el catálogo, esos puertos se conectarán al repositorio real previsto por `players`.
+`ActualizarCatalogoService` recibirá `EstadisticasJugadorService` como dependencia y solo preparará el contexto, invocará el caso de uso y agregará sus estados. No duplicará lookup local, matching, parsing, normalización ni escritura.
 
-El resultado tipado distinguirá exactamente `exito_completo`, `exito_parcial`, `jugador_local_inexistente`, `jugador_no_encontrado`, `matching_ambiguo`, `fuente_no_disponible`, `estructura_inesperada`, `sin_estadisticas` y `error_persistencia`. Los resultados sin identidad segura nunca invocan al writer.
+El service de estadísticas se conectará a:
 
-### Requests, matching y parsing
+- `PlayersRepository.existePorId`, extensión mínima del contrato actual para validar el `idJugador` real;
+- `WhoScoredLookupPort`, implementado por `WhoScoredAdapter`;
+- `EstadisticasJugadorWriterPort`, implementado por una operación del mismo `TypeOrmPlayersRepository` y no por otro repository.
 
-El adapter realizará la búsqueda pública por nombre, leerá candidatos con su nombre y enlace de equipo, y abrirá los perfiles necesarios para confirmar liga. El payload expone registros de `tournaments` con `TournamentName`, `TournamentId`, `RegionName`, `SeasonId`, `StageId`, `TeamName`, `TeamId` y `PlayerId`, además del contexto superior `playerId`/`currentTeamId`.
+Las interfaces existentes de los ports se conservarán; el módulo usará tokens/factories Nest para conectar interfaces TypeScript al repository y adapter concretos.
 
-La selección será determinística y respetará este orden: (1) `TournamentName` compatible con `ligaEquipoJugador`; (2) `TeamName` y, cuando estén disponibles, `TeamId` compatibles con `equipoJugador`; (3) `SeasonId` de la temporada actual de esa competición, prefiriendo la marca explícita de temporada actual del contexto de la página y, si no existe, el mayor `SeasonId` numérico único entre los registros ya filtrados; (4) `PlayerId` y nombre compatibles con `nombreJugador`. Si quedan varios registros igualmente válidos, el resultado es `matching_ambiguo`; si no queda ninguno, es `jugador_no_encontrado` o ausencia de registro compatible. No se combinan estadísticas de distintas temporadas, equipos o competiciones, ni se elige arbitrariamente el primer resultado.
+### Resultado global
 
-Mapping mínimo:
+La respuesta de `ActualizarCatalogoService` conservará `fuente`, `ligas`, `equipos`, `jugadores`, tiempos y `actualizadoEn`, y agregará:
 
-| Campo externo | Campo interno | Significado |
-|---|---|---|
-| `Goals` | `goles` | cantidad de goles del registro de competición/equipo seleccionado |
-| `Assists` | `asistencias` | cantidad de asistencias |
-| `TotalShots` | `tiros` | cantidad total de tiros, no tiros por partido (`SpG`) |
-| `KeyPasses` | `pasesClave` | cantidad de pases que generan una ocasión según WhoScored |
-| `Dribbles` | `regates` | cantidad de regates registrados |
-| `TotalTackles` | `entradas` | cantidad total de entradas |
-| `Rating` | `ratingWhoScored` | valoración numérica de WhoScored |
+```text
+estadisticas:
+  estado: completo | parcial | sin_estadisticas
+  procesados: number
+  exitosos: number       // exito_completo
+  parciales: number      // exito_parcial, persistible
+  fallidos: number       // estados sin observación persistida
+```
 
-Un campo ausente o inválido se normaliza como `null`; un cero numérico se conserva como `0`. Si la identidad es única y al menos una métrica es válida, el resultado puede ser `exito_parcial` y se persiste una única observación transaccional con los faltantes en `null`; si ninguna lo es, es `sin_estadisticas`. Si falta la estructura que permite interpretar la respuesta, es `estructura_inesperada`.
+Reglas:
 
-### Modelo y persistencia
+- `completo`: hay jugadores procesados y todos tienen `exito_completo`;
+- `parcial`: al menos una observación fue persistida (`exito_completo` o `exito_parcial`) y existe al menos un jugador fallido, o existe al menos un resultado `exito_parcial`;
+- `sin_estadisticas`: ningún jugador produjo una observación persistible, incluido el caso de lista vacía.
 
-El dominio modelará una observación independiente con identificador propio, `idJugador` obligatorio y siete métricas nullable. No permitirá valores negativos, fraccionarios cuando el dato sea contador, rating no finito ni una observación con todas las métricas ausentes.
+La respuesta no contiene estados, IDs ni métricas individuales. `exito_parcial` significa estadísticas parcialmente disponibles pero una observación completa y atómica; `fallido` significa que no se persistió ninguna observación para ese jugador.
 
-La entidad TypeORM y la tabla se crearán después del catálogo con columnas `idEstadistica`, `idJugador`, `goles`, `asistencias`, `tiros`, `pasesClave`, `regates`, `entradas` y `ratingWhoScored`. La foreign key utilizará el tipo y nombre reales de `JugadorEntity`; no se crea una tabla `Jugador` temporal. No habrá unicidad sobre `idJugador`, porque la relación es `Jugador 1-N EstadisticasJugador`.
+### Manejo de errores y límites transaccionales
 
-La migración de estadísticas queda como integración posterior: la única migración visible hoy es `1710000000000-CreateUsuarios.ts` y no existe todavía una migración de jugadores con la que calcular un siguiente timestamp válido. Al integrar el catálogo se inspeccionará nuevamente `backend/migrations/` y se creará entonces el archivo con un nombre concreto, inmediatamente posterior a la migración real de jugadores. No se usa placeholder ni se agrega una migración incompleta en esta rama.
+- **Falla de etapa 1**: se conserva el comportamiento actual. La excepción de Football-Data sigue produciendo HTTP 503; un error de persistencia del catálogo conserva su propagación actual. La etapa 2 no se inicia.
+- **Falla de un jugador en etapa 2**: se cuenta como `fallido`, no se elimina ni revierte Jugador/Equipo/Liga y se continúa con el siguiente.
+- **Deadline**: el deadline de 30 segundos pertenece a cada invocación de `EstadisticasJugadorService`; si vence, no se escribe y se clasifica como `fuente_no_disponible`.
+- **Persistencia de estadísticas**: cada escritura usa una operación transaccional propia y la FK real a Jugador. Una falla no deja fila incompleta, relación huérfana ni escritura parcial.
+- **Transacción global**: el commit de la etapa 1 ocurre antes de iniciar estadísticas. Estadísticas no se agregan a la transacción global del catálogo.
 
-### Atomicidad y errores
+### Procesamiento de múltiples jugadores
 
-El servicio nunca modifica ni elimina `Jugador`. Una falla de lookup local, fuente, matching, parsing, datos o vencimiento del deadline no produce escritura. Una respuesta parcial de estadísticas puede producir una observación completa desde el punto de vista transaccional, con campos faltantes en `null`. En cambio, un error del writer devuelve `error_persistencia`; el writer real deberá ejecutar una inserción atómica sin filas incompletas, huérfanas o parcialmente escritas. La caída o cambio de WhoScored solo afecta el resultado de esta operación.
+Se elegirá iteración secuencial `for...of`, en el orden de `jugadoresProcesados`. Es determinística, limita la carga sobre WhoScored, respeta el aislamiento por jugador y evita concurrencia ilimitada. No se agregan workers ni paralelismo en esta feature. El costo potencial de acumular hasta 30 segundos por jugador queda documentado; una estrategia de concurrencia limitada futura requeriría una decisión separada.
 
-## Implementation Sequence
+## Persistencia concreta
 
-1. Completar Phase 0 y registrar la validación real de Node/fetch/AbortController, mapping, matching, timeout individual, deadline total y fixtures de WhoScored.
-2. Implementar `EstadisticasJugador`, tipos externos, parser/mapping, matching y estados del adapter en `backend/src/players/adapters/whoscored/`.
-3. Implementar el servicio interno con lookup/writer sustituibles y cubrirlo con fakes, incluyendo los nueve estados de resultado.
-4. Ejecutar la prueba controlada de al menos 20 casos para SC-005 y las suites unitarias sin depender del catálogo real.
-5. Después del merge del catálogo, conectar los puertos al repositorio real, crear la entidad TypeORM, la migración con timestamp concreto, registrar providers y agregar integración PostgreSQL.
-6. Ejecutar build, lint, tests unitarios y, cuando exista el esquema real, tests de integración. Ejecutar además `npm run start`, comprobar que el proceso levanta sin error y finalizarlo de forma controlada después del smoke test. Revisar que el diff solo toque estadísticas, WhoScored y la integración mínima.
+### Entidad y migración
 
-## Final startup smoke test
+Agregar `backend/src/players/persistence/estadisticas-jugador.entity.ts` y registrar la entidad en el `DataSource` construido por `PlayersModule`. La entidad tendrá:
 
-La verificación final debe usar el script existente de `backend/package.json`:
+- PK UUID propia `id`/`idEstadistica` según la convención elegida por las entidades existentes;
+- `idJugador uuid NOT NULL` con `ManyToOne` a `JugadorEntity`, `ON DELETE RESTRICT`;
+- dos contadores enteros nullable y no negativos: goles y asistencias; cuatro promedios decimales nullable y no negativos: tiros (`SpG`), pases clave (`KeyP`), regates (`Drb`) y faltas cometidas (`Fouls`);
+- `ratingWhoScored double precision nullable` y no negativo;
+- índice `idx_estadisticas_jugadores_id_jugador`;
+- ninguna columna duplicada de nombre, equipo o liga;
+- ningún `UNIQUE` sobre `idJugador`, porque cada ejecución exitosa agrega una observación.
+
+La migración concreta será `backend/migrations/1790275835000-CreateEstadisticasJugadores.ts`, posterior a `1727000000000-CreateCatalogoJugadores.ts`. Antes de crearla se verificará nuevamente el orden real. No se modifica ni recrea `jugadores`.
+
+### Repository integration
+
+Extender `backend/src/players/players.repository.ts` y `backend/src/players/persistence/typeorm-players.repository.ts` sin crear otro repository:
+
+- `guardarCatalogo` devuelve el resumen y `jugadoresProcesados` internos;
+- `existePorId(idJugador)` consulta únicamente la existencia del jugador local;
+- `guardarEstadisticas(estadisticas, context?)` crea y guarda una única entidad en una transacción propia y devuelve su ID.
+
+Los nombres de los métodos se adaptarán a las interfaces existentes (`JugadorLookupPort` y `EstadisticasJugadorWriterPort`) para que el service no dependa de TypeORM. Los mocks existentes deberán agregar el retorno enriquecido y el fake de estadísticas; no se crea una segunda implementación del catálogo.
+
+## Archivos a modificar y archivos protegidos
+
+### Modificar o agregar en la implementación
+
+- `backend/src/players/players.repository.ts`: resultado interno de catálogo, lookup local y writer de estadísticas.
+- `backend/src/players/persistence/typeorm-players.repository.ts`: capturar jugadores guardados y persistir observaciones.
+- `backend/src/players/persistence/estadisticas-jugador.entity.ts`: entidad y FK.
+- `backend/src/players/estadisticas-jugador.service.ts`: solo ajustes de inyección/ports si el cableado real lo requiere; preservar matching, deadline, normalización y estados actuales.
+- `backend/src/players/adapters/whoscored/whoscored.adapter.ts` y `whoscored.types.ts`: solo lo necesario después de la validación de transporte/investigación.
+- `backend/src/players/actualizar-catalogo.service.ts`: orquestar etapa 2 y producir el agregado; conservar etapa 1 y sus errores.
+- `backend/src/players/dto/refresh-catalogo-response.dto.ts` y un DTO anidado dentro de `backend/src/players/dto/`: documentar el resumen agregado en Swagger.
+- `backend/src/players/players.module.ts`: registrar entidad, adapter, tokens/factories y service; incluir la entidad en el DataSource.
+- `backend/migrations/1790275835000-CreateEstadisticasJugadores.ts`: tabla, FK, checks e índice.
+- `docs/postman/players-catalog.postman_collection.json`: adaptar la aserción del refresh para el nuevo objeto `estadisticas`, sin crear una request nueva.
+- tests existentes de `backend/test/unit/players/`, `backend/test/integration/players/` y fixtures nuevos, conservando todos los escenarios actuales.
+
+### No modificar salvo integración mínima y justificada
+
+- `backend/src/players/players.controller.ts`: no agregar endpoints ni lógica; solo puede actualizarse el tipo Swagger indirectamente mediante el DTO existente.
+- `backend/src/players/catalogo-jugadores.service.ts`: no forma parte de la segunda etapa.
+- `backend/src/players/adapters/football-data/`: no modificar.
+- `backend/src/players/persistence/jugador.entity.ts`, `equipo.entity.ts`, `liga.entity.ts`: no recrear ni alterar tablas; la FK vive en la nueva entidad. Solo se agregaría una relación inversa si TypeORM la exige y no existe una alternativa equivalente.
+- `backend/src/app.module.ts`: no requiere cambios salvo que el cableado real demuestre una necesidad.
+
+No se crearán `application/`, `use-cases/`, `infrastructure/`, `repositories/`, `services/` ni otra carpeta arquitectónica.
+
+## Testing strategy
+
+### Unit tests
+
+- dominio: invariantes, siete métricas, cero frente a `null`, ausencia total;
+- adapter: fixtures de búsqueda/perfil, matching único, liga/equipo/temporada, ambiguo, no encontrado, estructura inesperada, timeout y mapping de las siete métricas;
+- `EstadisticasJugadorService`: fake de jugador local, fake de `WhoScoredAdapter` sustituible y writer fake para éxito completo, parcial persistible, no encontrado, matching ambiguo, fuente no disponible, deadline, sin estadísticas y error de persistencia;
+- `ActualizarCatalogoService`: catálogo completo + estadísticas completas, parciales, ninguna, fallo de un jugador que no interrumpe al siguiente, falla de catálogo que no invoca estadísticas y cálculo exacto de agregados. El fake debe devolver jugadores con IDs internos distintos y permitir verificar que no se hace una segunda consulta a Football-Data.
+
+No se realizan llamadas reales a WhoScored en unit tests.
+
+### Integration tests PostgreSQL/Testcontainers
+
+Extender `backend/test/integration/players/players-integration-app.ts` para incluir `EstadisticasJugadorEntity` y la nueva migración, y truncar estadísticas antes de jugadores. Verificar:
+
+- creación y persistencia del catálogo existente;
+- FK de `estadisticas_jugadores` hacia `jugadores`;
+- múltiples observaciones para un mismo jugador;
+- asociaciones correctas para múltiples jugadores;
+- persistencia del catálogo aun cuando el fake de estadísticas falle;
+- escritura atómica y ausencia de filas huérfanas ante error controlado.
+
+La app de integración debe sobrescribir `EstadisticasJugadorService` o su port con un fake controlado; no debe acceder a WhoScored.
+
+### Controller/HTTP tests
+
+Extender la suite existente con Supertest para comprobar que:
+
+- `POST /catalog/refresh` sigue delegando en `ActualizarCatalogoService`;
+- catálogo exitoso + estadísticas parciales o inexistentes devuelve HTTP 200;
+- el cuerpo conserva los contadores actuales y agrega solo `estadisticas` agregado;
+- falla de la primera etapa conserva el HTTP 503 y no ejecuta estadísticas;
+- no existe endpoint adicional ni lógica de scraping en el controller.
+
+### Validación final y startup smoke test
+
+Desde `backend/`, en este orden:
 
 ```bash
+npm run build
+npm run lint
+npm run test:unit
+npm run test:integration
 npm run start
 ```
 
-El smoke test debe iniciar la aplicación con la configuración local, comprobar que el proceso permanece levantado y no termina con error durante el arranque, y finalizarlo de forma controlada una vez obtenida la señal de arranque exitoso. Si el proceso termina con código de error o falla durante la inicialización, la verificación falla. No se agrega un mecanismo de despliegue ni se modifican scripts.
+La última verificación debe iniciar con el script existente, confirmar que la aplicación permanece levantada sin error durante el arranque, esperar solo lo necesario para observar la señal de startup y terminar el proceso de forma controlada. Si el proceso termina con error o no inicia, la validación falla. No se agrega despliegue ni se cambian scripts.
 
-## Work split by catalog availability
+## Implementation order
 
-### Implementable ahora
-
-- `domain/estadisticas-jugador.ts`.
-- `adapters/whoscored/whoscored.types.ts` y `whoscored.adapter.ts`.
-- investigación técnica, parser/mapping, matching, normalización y clasificación de fallas.
-- `estadisticas-jugador.service.ts` con contratos mínimos sustituibles.
-- estados de resultado y manejo de métricas faltantes.
-- fixtures y tests unitarios, incluido el escenario controlado de 20 casos.
-
-### Implementable con fake/mock de Jugador
-
-- validación de existencia de `idJugador`;
-- escenario `jugador_local_inexistente`;
-- pruebas del caso de uso, persistencia no invocada y resultados de error;
-- writer fake para verificar asociación y atomicidad lógica sin PostgreSQL.
-
-### Integración posterior al merge del catálogo
-
-- conexión de lookup/writer con `players.repository.ts` y su implementación real;
-- `persistence/estadisticas-jugador.entity.ts` con la relación física a `JugadorEntity`;
-- migración concreta de tabla y foreign key, posterior a la migración real de jugadores;
-- providers de `players.module.ts` que dependan de implementaciones presentes;
-- tests de integración que requieran ambas entidades y PostgreSQL real.
+1. Releer `spec.md`, `research.md`, migraciones y contratos reales; validar Node/fetch/AbortController/request/error desde el runtime backend.
+2. Congelar fixtures y tipos del adapter; completar matching determinístico, normalización, timeouts y deadline sin llamar WhoScored desde tests.
+3. Definir la extensión mínima de `PlayersRepository` para el resultado interno de jugadores procesados, lookup local y writer.
+4. Implementar/ajustar entidad de dominio, adapter y `EstadisticasJugadorService` manteniendo sus ports sustituibles.
+5. Ajustar `TypeOrmPlayersRepository` para devolver IDs reales después del commit y para guardar estadísticas atómicamente.
+6. Crear la migración concreta y registrar la entidad, adapter, service y factories en `PlayersModule`.
+7. Extender `ActualizarCatalogoService` con iteración secuencial, aislamiento de errores y agregado; actualizar DTO Swagger y colección Postman.
+8. Ejecutar unit tests, integración PostgreSQL y HTTP con fakes; ajustar únicamente mocks/fixtures necesarios sin eliminar tests.
+9. Ejecutar build, lint, tests completos y el startup smoke test con `npm run start`; revisar que el diff no toque Football-Data ni reorganice `players`.
 
 ## Constitution Check — Post-Design
 
 *GATE: PASS.*
 
-El diseño conserva la estructura obligatoria de `players`, mantiene el caso de uso fuera de HTTP, encapsula por completo WhoScored, no crea componentes duplicados del catálogo y deja aislados únicamente los puntos que requieren la rama del catálogo. La ausencia actual de la tabla `Jugador` no bloquea el desarrollo del adapter ni los tests con fakes.
+El diseño se apoya en la implementación mergeada del catálogo, conserva el endpoint y la transacción existentes, integra la segunda etapa en `ActualizarCatalogoService`, no duplica repositorios ni entidades de catálogo, mantiene WhoScored dentro de su adapter, define persistencia atómica por observación y contempla build/lint/tests/startup, Swagger y Postman.
 
 ## Complexity Tracking
 
-No hay violaciones de la constitución que requieran justificación.
+No hay violaciones de la constitución que requieran justificación. La única extensión transversal es la respuesta agregada del endpoint existente y el contrato interno enriquecido del repository para transportar los jugadores de la misma ejecución.

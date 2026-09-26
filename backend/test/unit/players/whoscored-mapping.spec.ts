@@ -45,10 +45,10 @@ describe('WhoScoredAdapter mapping', () => {
       metricas: {
         goles: 12,
         asistencias: 3,
-        tiros: 25,
-        pasesClave: 14,
-        regates: 12,
-        entradas: 4,
+        tiros: 2.5,
+        pasesClave: 1.4,
+        regates: 1.2,
+        faltasCometidas: 4.2,
         ratingWhoScored: 8.948571428571428,
       },
     });
@@ -59,10 +59,10 @@ describe('WhoScoredAdapter mapping', () => {
       .replaceAll('Raphinha', 'Raphinha')
       .replace(/Goals": 12/, 'Goals": 0')
       .replace(/Assists": 3/, 'Assists": null')
-      .replace(/TotalShots": 25/, 'TotalShots": ""')
-      .replace(/KeyPasses": 14/, 'KeyPasses": 1')
-      .replace(/Dribbles": 12/, 'Dribbles": null')
-      .replace(/TotalTackles": 4/, 'TotalTackles": null')
+      .replace(/shotsPerGame": 2.5/, 'shotsPerGame": ""')
+      .replace(/keyPassPerGame": 1.4/, 'keyPassPerGame": 1')
+      .replace(/dribbleWonPerGame": 1.2/, 'dribbleWonPerGame": null')
+      .replace(/foulsPerGame": 4.2/, 'foulsPerGame": null')
       .replace(/Rating": 8\.948571428571428/, 'Rating": 0');
     const result = await adapterWith(profile).obtenerEstadisticas(
       { nombreJugador: 'Raphinha', equipoJugador: 'Barcelona', ligaEquipoJugador: 'LaLiga' },
@@ -76,7 +76,7 @@ describe('WhoScoredAdapter mapping', () => {
       tiros: null,
       pasesClave: 1,
       regates: null,
-      entradas: null,
+      faltasCometidas: null,
       ratingWhoScored: 0,
     });
   });

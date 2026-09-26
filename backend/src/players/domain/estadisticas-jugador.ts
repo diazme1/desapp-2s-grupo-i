@@ -8,7 +8,7 @@ export interface EstadisticasJugadorInput {
   tiros: number | null;
   pasesClave: number | null;
   regates: number | null;
-  entradas: number | null;
+  faltasCometidas: number | null;
   ratingWhoScored: number | null;
 }
 
@@ -20,7 +20,7 @@ export class EstadisticasJugador {
   readonly tiros: number | null;
   readonly pasesClave: number | null;
   readonly regates: number | null;
-  readonly entradas: number | null;
+  readonly faltasCometidas: number | null;
   readonly ratingWhoScored: number | null;
 
   private constructor(input: Required<EstadisticasJugadorInput>) {
@@ -31,7 +31,7 @@ export class EstadisticasJugador {
     this.tiros = input.tiros;
     this.pasesClave = input.pasesClave;
     this.regates = input.regates;
-    this.entradas = input.entradas;
+    this.faltasCometidas = input.faltasCometidas;
     this.ratingWhoScored = input.ratingWhoScored;
   }
 
@@ -45,14 +45,14 @@ export class EstadisticasJugador {
       input.tiros,
       input.pasesClave,
       input.regates,
-      input.entradas,
+      input.faltasCometidas,
     ];
     if (contadores.every((valor) => valor === null) && input.ratingWhoScored === null) {
       throw new Error('Debe existir al menos una estadistica recuperable.');
     }
     for (const contador of contadores) {
-      if (contador !== null && (!Number.isInteger(contador) || contador < 0)) {
-        throw new Error('Las estadisticas de conteo deben ser enteros no negativos.');
+      if (contador !== null && (!Number.isFinite(contador) || contador < 0)) {
+        throw new Error('Las estadisticas deben ser numeros finitos no negativos.');
       }
     }
     if (
@@ -70,7 +70,7 @@ export class EstadisticasJugador {
       tiros: input.tiros,
       pasesClave: input.pasesClave,
       regates: input.regates,
-      entradas: input.entradas,
+      faltasCometidas: input.faltasCometidas,
       ratingWhoScored: input.ratingWhoScored,
     });
   }

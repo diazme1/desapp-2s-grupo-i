@@ -7,7 +7,7 @@ describe('EstadisticasJugador', () => {
     tiros: 2,
     pasesClave: null,
     regates: 1,
-    entradas: null,
+    faltasCometidas: null,
     ratingWhoScored: 0,
   };
 
@@ -28,15 +28,15 @@ describe('EstadisticasJugador', () => {
         tiros: null,
         pasesClave: null,
         regates: null,
-        entradas: null,
+        faltasCometidas: null,
         ratingWhoScored: null,
       }),
     ).toThrow('al menos una estadistica');
   });
 
-  it('rechaza contadores negativos o fraccionarios', () => {
+  it('rechaza contadores negativos y permite promedios fraccionarios', () => {
     expect(() => EstadisticasJugador.crear({ idJugador: 'jugador-1', ...metricas, goles: -1 })).toThrow();
-    expect(() => EstadisticasJugador.crear({ idJugador: 'jugador-1', ...metricas, tiros: 1.5 })).toThrow();
+    expect(EstadisticasJugador.crear({ idJugador: 'jugador-1', ...metricas, tiros: 1.5 }).tiros).toBe(1.5);
   });
 
   it('requiere un idJugador no vacio y un rating finito no negativo', () => {

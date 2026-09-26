@@ -1,4 +1,5 @@
 import request from 'supertest';
+import { FootballDataError } from '../../../src/players/adapters/football-data/football-data.adapter';
 import { Equipo } from '../../../src/players/domain/equipo';
 import { Jugador } from '../../../src/players/domain/jugador';
 import { Liga } from '../../../src/players/domain/liga';
@@ -30,6 +31,39 @@ function catalogo(version: number): CatalogoBase {
   return { ligas: [liga], equipos: [equipo], jugadores: [jugador] };
 }
 
+function catalogoConDosJugadores(): CatalogoBase {
+  const base = catalogo(1);
+  const segundoEquipo = Equipo.crear({
+    id: 'a21b7e37-50a7-4da6-bfcb-4f4ecb7b7b91',
+    proveedorId: 66,
+    ligaId: base.ligas[0].id,
+    nombre: 'Manchester United FC',
+  });
+  const segundoJugador = Jugador.crear({
+    id: 'b1b461dd-b3fb-4dc4-b0ad-e2d7adf2a9a8',
+    proveedorId: 45,
+    equipoId: segundoEquipo.id,
+    nombre: 'Jugador Dos',
+  });
+  return {
+    ...base,
+    equipos: [...base.equipos, segundoEquipo],
+    jugadores: [...base.jugadores, segundoJugador],
+  };
+}
+
+async function autenticar(app: ReturnType<PlayersIntegrationApp['app']['getHttpServer']>, correo: string) {
+  await request(app)
+    .post('/auth/register')
+    .send({ correo, password: 'secret123' })
+    .expect(201);
+  const login = await request(app)
+    .post('/auth/login')
+    .send({ correo, password: 'secret123' })
+    .expect(200);
+  return login.body.accessToken as string;
+}
+
 describe('Catálogo base de jugadores', () => {
   let integration: PlayersIntegrationApp;
 
@@ -41,6 +75,15 @@ describe('Catálogo base de jugadores', () => {
   beforeEach(async () => {
     await integration.resetData();
     integration.source.obtenerCatalogo.mockReset().mockResolvedValue(catalogo(1));
+    integration.estadisticasJugador.actualizarEstadisticasLiga
+      .mockReset()
+      .mockImplementation(async (_liga: string, jugadores: unknown[]) => ({
+        estado: 'completo',
+        procesados: jugadores.length,
+        exitosos: jugadores.length,
+        parciales: 0,
+        fallidos: 0,
+      }));
   });
 
   afterAll(async () => integration?.close());
@@ -62,7 +105,14 @@ describe('Catálogo base de jugadores', () => {
       .post('/catalog/refresh')
       .set('Authorization', `Bearer ${login.body.accessToken}`)
       .expect(200)
-      .expect(({ body }) => expect(body).toMatchObject({ ligas: 1, equipos: 1, jugadores: 1 }));
+      .expect(({ body }) =>
+        expect(body).toMatchObject({
+          ligas: 1,
+          equipos: 1,
+          jugadores: 1,
+          estadisticas: { estado: 'completo', procesados: 1, exitosos: 1, parciales: 0, fallidos: 0 },
+        }),
+      );
     const first = await request(app).get('/players').expect(200);
     expect(first.body).toHaveLength(1);
     const internalId = first.body[0].id;
@@ -75,6 +125,90 @@ describe('Catálogo base de jugadores', () => {
     expect(second.body[0].id).toBe(internalId);
     expect(second.body[0].nombre).toBe('Cristiano Ronaldo actualizado');
     expect(integration.source.obtenerCatalogo).toHaveBeenCalledTimes(2);
+  });
+
+  it('mantiene el catálogo y devuelve parcial cuando falla la estadística de un jugador', async () => {
+    const app = integration.app.getHttpServer();
+    const token = await autenticar(app, 'catalogo-partial@example.com');
+    integration.source.obtenerCatalogo.mockResolvedValue(catalogoConDosJugadores());
+    integration.estadisticasJugador.actualizarEstadisticasLiga.mockResolvedValueOnce({
+      estado: 'parcial',
+      procesados: 2,
+      exitosos: 1,
+      parciales: 0,
+      fallidos: 1,
+    });
+
+    const response = await request(app)
+      .post('/catalog/refresh')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(response.body.estadisticas).toEqual({
+      estado: 'parcial',
+      procesados: 2,
+      exitosos: 1,
+      parciales: 0,
+      fallidos: 1,
+    });
+    const players = await request(app).get('/players').expect(200);
+    expect(players.body).toHaveLength(2);
+    expect(integration.source.obtenerCatalogo).toHaveBeenCalledTimes(1);
+    expect(integration.estadisticasJugador.actualizarEstadisticasLiga).toHaveBeenCalledTimes(1);
+  });
+
+  it('devuelve sin_estadisticas y conserva el catálogo cuando WhoScored no encuentra al jugador', async () => {
+    const app = integration.app.getHttpServer();
+    const token = await autenticar(app, 'catalogo-none@example.com');
+    integration.estadisticasJugador.actualizarEstadisticasLiga.mockResolvedValue({
+      estado: 'sin_estadisticas',
+      procesados: 1,
+      exitosos: 0,
+      parciales: 0,
+      fallidos: 1,
+    });
+
+    const response = await request(app)
+      .post('/catalog/refresh')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(200);
+
+    expect(response.body.estadisticas).toEqual({
+      estado: 'sin_estadisticas',
+      procesados: 1,
+      exitosos: 0,
+      parciales: 0,
+      fallidos: 1,
+    });
+    const players = await request(app).get('/players').expect(200);
+    expect(players.body).toHaveLength(1);
+  });
+
+  it('conserva el 503 de Football-Data y no ejecuta estadísticas cuando falla la primera etapa externa', async () => {
+    const app = integration.app.getHttpServer();
+    const token = await autenticar(app, 'catalogo-source-error@example.com');
+    integration.source.obtenerCatalogo.mockRejectedValue(new FootballDataError('fuente caída'));
+
+    await request(app)
+      .post('/catalog/refresh')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(503);
+
+    expect(integration.estadisticasJugador.actualizarEstadisticasLiga).not.toHaveBeenCalled();
+  });
+
+  it('conserva el contrato actual de error de persistencia y no ejecuta estadísticas', async () => {
+    const app = integration.app.getHttpServer();
+    const token = await autenticar(app, 'catalogo-persistence-error@example.com');
+    const invalido = catalogo(1);
+    integration.source.obtenerCatalogo.mockResolvedValue({ ...invalido, equipos: [] });
+
+    await request(app)
+      .post('/catalog/refresh')
+      .set('Authorization', `Bearer ${token}`)
+      .expect(500);
+
+    expect(integration.estadisticasJugador.actualizarEstadisticasLiga).not.toHaveBeenCalled();
   });
 
   it('resuelve listado y detalle desde PostgreSQL y devuelve 404 para un id ausente', async () => {

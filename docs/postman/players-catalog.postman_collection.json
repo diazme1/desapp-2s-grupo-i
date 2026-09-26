@@ -21,7 +21,8 @@
       },
       "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
         "pm.test('Responde actualización exitosa', () => pm.response.to.have.status(200));",
-        "pm.test('Devuelve resumen del catálogo', () => pm.expect(pm.response.json()).to.have.all.keys('fuente', 'ligas', 'equipos', 'jugadores', 'tiempoExtraccionMs', 'tiempoExtraccion', 'actualizadoEn'));"
+        "pm.test('Devuelve resumen del catálogo y estadísticas', () => pm.expect(pm.response.json()).to.have.all.keys('fuente', 'ligas', 'equipos', 'jugadores', 'tiempoExtraccionMs', 'tiempoExtraccion', 'actualizadoEn', 'estadisticas'));",
+        "pm.test('Devuelve resumen agregado de estadísticas', () => pm.expect(pm.response.json().estadisticas).to.have.all.keys('estado', 'procesados', 'exitosos', 'parciales', 'fallidos'));"
       ] } }]
     },
     {

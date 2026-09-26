@@ -1,14 +1,18 @@
 import { DataSource, EntityManager } from 'typeorm';
+import type { WhoScoredOperationContext } from '../adapters/whoscored/whoscored.types';
+import { EstadisticasJugador } from '../domain/estadisticas-jugador';
 import { Equipo } from '../domain/equipo';
 import { Jugador } from '../domain/jugador';
 import { Liga } from '../domain/liga';
 import {
   CatalogoBase,
   JugadorConRelaciones,
+  JugadorProcesado,
   PlayersRepository,
-  ResumenActualizacionCatalogo,
+  ResultadoGuardadoCatalogo,
 } from '../players.repository';
 import { EquipoEntity } from './equipo.entity';
+import { EstadisticasJugadorEntity } from './estadisticas-jugador.entity';
 import { JugadorEntity } from './jugador.entity';
 import { LigaEntity } from './liga.entity';
 
@@ -19,10 +23,13 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
     if (this.dataSource.isInitialized) await this.dataSource.destroy();
   }
 
-  async guardarCatalogo(catalogo: CatalogoBase): Promise<ResumenActualizacionCatalogo> {
+  async guardarCatalogo(catalogo: CatalogoBase): Promise<ResultadoGuardadoCatalogo> {
     return this.dataSource.transaction(async (manager) => {
       const ligaIds = new Map<string, string>();
       const equipoIds = new Map<string, string>();
+      const ligasPorId = new Map(catalogo.ligas.map((liga) => [liga.id, liga]));
+      const equiposPorId = new Map(catalogo.equipos.map((equipo) => [equipo.id, equipo]));
+      const jugadoresProcesados: JugadorProcesado[] = [];
 
       for (const liga of catalogo.ligas) {
         const entity = await this.guardarLiga(manager, liga);
@@ -39,14 +46,54 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
       for (const jugador of catalogo.jugadores) {
         const equipoId = equipoIds.get(jugador.equipoId);
         if (!equipoId) throw new Error('El catálogo contiene un jugador sin equipo válido.');
-        await this.guardarJugador(manager, jugador, equipoId);
+        const equipo = equiposPorId.get(jugador.equipoId);
+        const liga = equipo ? ligasPorId.get(equipo.ligaId) : undefined;
+        if (!equipo || !liga) throw new Error('El catálogo contiene relaciones inválidas.');
+        const guardado = await this.guardarJugador(manager, jugador, equipoId);
+        jugadoresProcesados.push({
+          idJugador: guardado.id,
+          nombreJugador: jugador.nombre,
+          equipoJugador: equipo.nombre,
+          ligaEquipoJugador: liga.nombre,
+        });
       }
 
       return {
         ligas: catalogo.ligas.length,
         equipos: catalogo.equipos.length,
         jugadores: catalogo.jugadores.length,
+        jugadoresProcesados,
       };
+    });
+  }
+
+  async existePorId(idJugador: string): Promise<boolean> {
+    const jugador = await this.dataSource.getRepository(JugadorEntity).findOne({
+      select: { id: true },
+      where: { id: idJugador },
+    });
+    return Boolean(jugador);
+  }
+
+  async guardarEstadisticas(
+    estadisticas: EstadisticasJugador,
+    _context?: WhoScoredOperationContext,
+  ): Promise<string> {
+    return this.dataSource.transaction(async (manager) => {
+      const repository = manager.getRepository(EstadisticasJugadorEntity);
+      const entity = repository.create({
+        id: estadisticas.idEstadistica,
+        jugador: { id: estadisticas.idJugador } as JugadorEntity,
+        goles: estadisticas.goles,
+        asistencias: estadisticas.asistencias,
+        tiros: estadisticas.tiros,
+        pasesClave: estadisticas.pasesClave,
+        regates: estadisticas.regates,
+        faltasCometidas: estadisticas.faltasCometidas,
+        ratingWhoScored: estadisticas.ratingWhoScored,
+      });
+      const guardada = await repository.save(entity);
+      return guardada.id;
     });
   }
 

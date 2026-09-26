@@ -19,7 +19,7 @@ export interface WhoScoredMetricas {
   tiros: number | null;
   pasesClave: number | null;
   regates: number | null;
-  entradas: number | null;
+  faltasCometidas: number | null;
   ratingWhoScored: number | null;
 }
 
@@ -37,6 +37,30 @@ export interface WhoScoredLookupResult {
   detalle?: string;
 }
 
+export interface WhoScoredLeagueLookupInput {
+  liga: string;
+}
+
+export interface WhoScoredPlayerStats {
+  playerIdExterno?: string;
+  nombre: string;
+  equipo: string;
+  liga: string;
+  metricas: WhoScoredMetricas;
+}
+
+export type WhoScoredLeagueEstado =
+  | 'exito'
+  | 'fuente_no_disponible'
+  | 'estructura_inesperada'
+  | 'liga_no_configurada';
+
+export interface WhoScoredLeagueLookupResult {
+  estado: WhoScoredLeagueEstado;
+  jugadores?: WhoScoredPlayerStats[];
+  detalle?: string;
+}
+
 export interface WhoScoredOperationContext {
   signal: AbortSignal;
   deadlineAt: number;
@@ -49,4 +73,11 @@ export interface WhoScoredHttpResponse {
 
 export interface WhoScoredTransport {
   get(url: string, signal: AbortSignal): Promise<WhoScoredHttpResponse>;
+}
+
+export interface WhoScoredLeagueTransport {
+  getLeagueFeed(
+    input: WhoScoredLeagueLookupInput,
+    context: WhoScoredOperationContext,
+  ): Promise<WhoScoredHttpResponse>;
 }

@@ -14,7 +14,7 @@ describe('estadisticas parciales persistibles', () => {
         tiros: null,
         pasesClave: 1,
         regates: null,
-        entradas: null,
+        faltasCometidas: null,
         ratingWhoScored: null,
       },
     };
