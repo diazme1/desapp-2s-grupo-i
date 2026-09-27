@@ -3,11 +3,13 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../shared/http-client'
 import { EyeIcon, LockIcon, MailIcon } from './auth-icons'
 import { register } from './auth-api'
+import { useAuth } from './auth-context'
 import { normalizeEmail, validateRegister } from './auth-validation'
 import type { FieldErrors, RegisterFormData } from './auth-types'
 
 export function RegisterPage() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [values, setValues] = useState<RegisterFormData>({
     correo: '',
     password: '',
@@ -33,9 +35,9 @@ export function RegisterPage() {
     if (Object.keys(nextErrors).length > 0) return
 
     setIsSubmitting(true)
+    const credentials = { ...values, correo: normalizeEmail(values.correo) }
     try {
-      await register({ ...values, correo: normalizeEmail(values.correo) })
-      navigate('/login', { replace: true, state: { registered: true } })
+      await register(credentials)
     } catch (error) {
       if (error instanceof ApiError && error.status === 409) {
         setServerError('Ya existe una cuenta con ese correo.')
@@ -44,6 +46,17 @@ export function RegisterPage() {
       } else {
         setServerError('No pudimos crear la cuenta. Revisá los datos e intentá nuevamente.')
       }
+      setIsSubmitting(false)
+      return
+    }
+
+    try {
+      await login(credentials)
+      navigate('/app', { replace: true })
+    } catch (error) {
+      setServerError(error instanceof ApiError && error.status === 0
+        ? 'La cuenta se creó, pero no pudimos conectarnos para iniciar sesión automáticamente.'
+        : 'La cuenta se creó, pero no pudimos iniciar sesión automáticamente. Intentá ingresar desde la pantalla de login.')
     } finally {
       setIsSubmitting(false)
     }

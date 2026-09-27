@@ -13,6 +13,7 @@ function renderRegister() {
         <Routes>
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/app" element={<p>Área protegida</p>} />
         </Routes>
       </AuthProvider>
     </MemoryRouter>,
@@ -35,9 +36,12 @@ describe('RegisterPage', () => {
     expect(fetchMock).not.toHaveBeenCalled()
   })
 
-  it('registra y lleva al login después del alta', async () => {
+  it('registra, inicia sesión automáticamente y lleva al área protegida', async () => {
     const user = userEvent.setup()
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(JSON.stringify({ id: '1', correo: 'ana@example.com', creadoEn: '2026-09-20T00:00:00.000Z' }), { status: 201, headers: { 'content-type': 'application/json' } })))
+    vi.stubGlobal('fetch', vi.fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: '1', correo: 'ana@example.com', creadoEn: '2026-09-20T00:00:00.000Z' }), { status: 201, headers: { 'content-type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ accessToken: 'token', tokenType: 'Bearer', expiresIn: 900 }), { status: 200, headers: { 'content-type': 'application/json' } }))
+      .mockResolvedValueOnce(new Response(JSON.stringify({ id: '1', correo: 'ana@example.com', creadoEn: '2026-09-20T00:00:00.000Z' }), { status: 200, headers: { 'content-type': 'application/json' } })))
     renderRegister()
 
     await user.type(screen.getByLabelText('Email'), 'ana@example.com')
@@ -45,6 +49,6 @@ describe('RegisterPage', () => {
     await user.type(screen.getByLabelText('Confirmar contraseña'), 'secreto123')
     await user.click(screen.getByRole('button', { name: 'Crear cuenta' }))
 
-    expect(await screen.findByText('Tu cuenta fue creada. Ahora podés iniciar sesión.')).toBeInTheDocument()
+    expect(await screen.findByText('Área protegida')).toBeInTheDocument()
   })
 })
