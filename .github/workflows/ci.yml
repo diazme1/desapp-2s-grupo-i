@@ -123,6 +123,9 @@ jobs:
           docker compose -f ../docker-compose.yml logs postgres || true
           exit 1
 
+      - name: Ejecutar migraciones de integración
+        run: npm run migration:run
+
       - name: Verificar descubrimiento de tests de integración
         shell: bash
         run: |
