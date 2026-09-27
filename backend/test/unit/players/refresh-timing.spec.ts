@@ -1,4 +1,5 @@
 import { ActualizarCatalogoService } from '../../../src/players/actualizar-catalogo.service';
+import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import { Equipo } from '../../../src/players/domain/equipo';
 import { Jugador } from '../../../src/players/domain/jugador';
 import { Liga } from '../../../src/players/domain/liga';
@@ -29,7 +30,14 @@ function catalogo(): CatalogoBase {
 describe('Tiempo de extracción del catálogo', () => {
   it('devuelve el tiempo de extracción en milisegundos y en formato legible', async () => {
     const repository: jest.Mocked<PlayersRepository> = {
-      guardarCatalogo: jest.fn().mockResolvedValue({ ligas: 1, equipos: 1, jugadores: 1 }),
+      guardarCatalogo: jest.fn().mockResolvedValue({
+        ligas: 1,
+        equipos: 1,
+        jugadores: 1,
+        jugadoresProcesados: [],
+      }),
+      existePorId: jest.fn(),
+      guardarEstadisticas: jest.fn(),
       listar: jest.fn(),
       buscarPorId: jest.fn(),
     };
@@ -39,7 +47,11 @@ describe('Tiempo de extracción del catálogo', () => {
         return catalogo();
       }),
     };
-    const service = new ActualizarCatalogoService(source, repository);
+    const service = new ActualizarCatalogoService(
+      source,
+      repository,
+      { obtenerEstadisticasJugador: jest.fn() } as unknown as EstadisticasJugadorService,
+    );
 
     const response = await service.ejecutar('PL');
 

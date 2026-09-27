@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { EstadisticasRefreshResponseDto } from './estadisticas-refresh-response.dto';
 
 export class RefreshCatalogoResponseDto {
   @ApiProperty({ example: 'Football-Data.org' })
@@ -21,4 +22,7 @@ export class RefreshCatalogoResponseDto {
 
   @ApiProperty({ example: '2026-09-22T12:00:00.000Z' })
   actualizadoEn!: string;
+
+  @ApiProperty({ type: EstadisticasRefreshResponseDto })
+  estadisticas!: EstadisticasRefreshResponseDto;
 }
