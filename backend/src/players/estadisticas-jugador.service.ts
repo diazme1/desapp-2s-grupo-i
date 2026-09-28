@@ -86,11 +86,12 @@ export class EstadisticasJugadorService {
           abortController.abort();
           break;
         }
-        await this.ejecutarConDeadline(
+        const guardado = await this.ejecutarConDeadline(
           () => this.writer.guardar(entidad, context),
           deadlineAt,
           abortController,
         );
+        if (guardado === DEADLINE) break;
         usados.add(jugador.idJugador);
         if (this.esCompleto(estadistica.metricas)) exitosos += 1;
         else parciales += 1;

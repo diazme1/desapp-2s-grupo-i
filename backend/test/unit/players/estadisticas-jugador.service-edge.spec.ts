@@ -224,4 +224,26 @@ describe('EstadisticasJugadorService: resultados y errores', () => {
       jest.useRealTimers();
     }
   });
+
+  it('no cuenta como exitoso un guardado que excede el deadline', async () => {
+    jest.useFakeTimers();
+    try {
+      const repository = writer();
+      repository.guardar.mockReturnValue(new Promise(() => undefined));
+      const whoscored = lookup({ estado: 'exito', jugadores: [estadistica('1')] });
+      const service = new EstadisticasJugadorService(whoscored, repository, () => 0, 10);
+      const resultado = service.actualizarEstadisticasLiga('Premier League', [jugador('1')]);
+
+      await jest.advanceTimersByTimeAsync(10);
+      await expect(resultado).resolves.toMatchObject({
+        estado: 'sin_estadisticas',
+        procesados: 1,
+        exitosos: 0,
+        parciales: 0,
+        fallidos: 1,
+      });
+    } finally {
+      jest.useRealTimers();
+    }
+  });
 });
