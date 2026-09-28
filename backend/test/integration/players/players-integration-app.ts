@@ -2,6 +2,7 @@ import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { GenericContainer, Wait } from 'testcontainers';
 import { DataSource } from 'typeorm';
+import '../helpers/load-env';
 import { AppModule } from '../../../src/app.module';
 import { configureApp } from '../../../src/configure-app';
 import { FOOTBALL_DATA_ADAPTER, FootballDataPort } from '../../../src/players/adapters/football-data/football-data.adapter';
