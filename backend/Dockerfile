@@ -1,4 +1,8 @@
-FROM node:22.11-alpine
+FROM node:22.11-bookworm-slim
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends chromium \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

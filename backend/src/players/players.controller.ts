@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { ActualizarCatalogoService } from './actualizar-catalogo.service';
 import { CatalogoJugadoresService } from './catalogo-jugadores.service';
 import { ActualizarCatalogoDto } from './dto/actualizar-catalogo.dto';
+import { JugadorDetalleResponseDto } from './dto/jugador-detalle-response.dto';
 import { JugadorResponseDto } from './dto/jugador-response.dto';
 import { ListarJugadoresDto } from './dto/listar-jugadores.dto';
 import { RefreshCatalogoResponseDto } from './dto/refresh-catalogo-response.dto';
@@ -43,13 +44,13 @@ export class PlayersController {
 
   @Get('players/:id')
   @ApiOperation({ summary: 'Obtener el detalle local de un jugador' })
-  @ApiOkResponse({ type: JugadorResponseDto })
+  @ApiOkResponse({ type: JugadorDetalleResponseDto })
   @ApiResponse({ status: 404, description: 'Jugador no encontrado.' })
   @ApiResponse({ status: 422, description: 'El identificador no es válido.' })
   async buscarPorId(
     @Param('id', new ParseUUIDPipe({ errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY })) id: string,
   ) {
-    return JugadorResponseDto.from(await this.catalogo.buscarPorId(id));
+    return JugadorDetalleResponseDto.from(await this.catalogo.buscarPorId(id));
   }
 
   @Post('catalog/refresh')

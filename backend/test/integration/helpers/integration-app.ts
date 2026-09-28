@@ -1,4 +1,4 @@
-import 'dotenv/config';
+import './load-env';
 import { INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { DataSource } from 'typeorm';
