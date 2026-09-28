@@ -18,6 +18,7 @@ function iniciales(nombre: string): string {
 export function PlayerCard({ jugador }: PlayerCardProps) {
   const navigate = useNavigate()
   const [imagenFallida, setImagenFallida] = useState(false)
+  const [escudoFallido, setEscudoFallido] = useState(false)
   const puedeVerEstadisticas = jugador.estadisticasDisponibles === true
   const disponibilidadTexto = jugador.estadisticasDisponibles === true
     ? 'Estadísticas disponibles'
@@ -32,23 +33,40 @@ export function PlayerCard({ jugador }: PlayerCardProps) {
 
   const contenido = (
     <>
-      <div className="player-card-photo" aria-hidden={Boolean(jugador.fotoUrl && !imagenFallida)}>
+      <div className="player-card-visual" aria-hidden="true">
+        <span className="player-card-visual-grid" />
+        <span className="player-card-visual-league">{jugador.liga.codigo}</span>
         {jugador.fotoUrl && !imagenFallida ? (
           <img
+            className="player-card-player-image"
             src={jugador.fotoUrl}
-            alt={`Foto de ${jugador.nombre}`}
             onError={() => setImagenFallida(true)}
           />
         ) : (
-          <span>{iniciales(jugador.nombre) || 'JP'}</span>
+          <span className="player-card-initials">{iniciales(jugador.nombre) || 'JP'}</span>
         )}
+        {jugador.equipo.escudoUrl && !escudoFallido && (
+          <span className="player-card-crest-wrap">
+            <img
+              className="player-card-crest"
+              src={jugador.equipo.escudoUrl}
+              alt=""
+              onError={() => setEscudoFallido(true)}
+            />
+          </span>
+        )}
+        <span className="player-card-visual-position">{jugador.posicion ?? 'PLAYER'}</span>
       </div>
       <div className="player-card-body">
-        <div className="player-card-heading">
-          <h3>{jugador.nombre}</h3>
+        <div className="player-card-topline">
+          <span className="player-card-type">PLAYER PROFILE</span>
           <span className={`stats-badge ${disponibilidadClase}`}>
+            <span className="stats-badge-dot" aria-hidden="true" />
             {disponibilidadTexto}
           </span>
+        </div>
+        <div className="player-card-heading">
+          <h3>{jugador.nombre}</h3>
         </div>
         <dl className="player-card-data">
           <div>
@@ -65,7 +83,17 @@ export function PlayerCard({ jugador }: PlayerCardProps) {
               <dd>{jugador.posicion}</dd>
             </div>
           )}
+          {jugador.nacionalidad && (
+            <div>
+              <dt>Nacionalidad</dt>
+              <dd>{jugador.nacionalidad}</dd>
+            </div>
+          )}
         </dl>
+        <div className="player-card-footer">
+          <span>Ver detalles</span>
+          <span className="player-card-arrow" aria-hidden="true">→</span>
+        </div>
       </div>
     </>
   )

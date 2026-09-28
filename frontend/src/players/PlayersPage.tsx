@@ -40,6 +40,10 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
   const jugadoresVisibles = useMemo(() => filtrarJugadores(jugadores, filtros), [jugadores, filtros])
   const opcionesLiga = useMemo(() => obtenerOpcionesLiga(jugadores), [jugadores])
   const opcionesEquipo = useMemo(() => obtenerOpcionesEquipo(jugadores, filtros.ligaCodigo), [jugadores, filtros.ligaCodigo])
+  const jugadoresConEstadisticas = useMemo(
+    () => jugadores.filter((jugador) => jugador.estadisticasDisponibles === true).length,
+    [jugadores],
+  )
 
   function actualizarFiltros(next: Partial<FiltrosCatalogo>) {
     setFiltros((actuales) => ({ ...actuales, ...next }))
@@ -48,14 +52,29 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
   return (
     <main className="players-page">
       <header className="players-header">
-        <div>
-          <p className="eyebrow">PlayerMarket</p>
-          <h1>Catálogo de jugadores</h1>
-          <p className="players-intro">Explorá jugadores, equipos y ligas desde un solo lugar.</p>
+        <div className="players-heading-copy">
+          <div className="players-kicker-row">
+            <p className="players-eyebrow">SCOUTING DATABASE</p>
+            <span className="catalog-live"><span aria-hidden="true" /> Catálogo activo</span>
+          </div>
+          <h1>Catálogo <span>de jugadores</span></h1>
+          <p className="players-intro">Explorá perfiles, equipos y rendimiento disponible desde una única mesa de análisis.</p>
         </div>
-        <div className="players-header-actions">
-          <span className="user-label">{user?.correo}</span>
-          <button className="text-button" type="button" onClick={onLogout}>Cerrar sesión</button>
+        <div className="players-header-side">
+          <div className="catalog-metrics" aria-label="Resumen del catálogo">
+            <div>
+              <strong>{jugadores.length.toLocaleString('es-AR')}</strong>
+              <span>perfiles<br />en catálogo</span>
+            </div>
+            <div>
+              <strong>{jugadoresConEstadisticas.toLocaleString('es-AR')}</strong>
+              <span>con datos<br />de rendimiento</span>
+            </div>
+          </div>
+          <div className="players-header-actions">
+            <span className="user-label">{user?.correo}</span>
+            <button className="text-button" type="button" onClick={onLogout}>Cerrar sesión</button>
+          </div>
         </div>
       </header>
 
@@ -94,7 +113,11 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
         {estado === 'cargado' && jugadoresVisibles.length > 0 && (
           <>
             <div className="players-results-heading">
-              <p><strong>{jugadoresVisibles.length}</strong> {jugadoresVisibles.length === 1 ? 'jugador encontrado' : 'jugadores encontrados'}</p>
+              <div>
+                <span className="results-kicker">PERFILES ENCONTRADOS</span>
+                <p><strong>{jugadoresVisibles.length}</strong> {jugadoresVisibles.length === 1 ? 'jugador encontrado' : 'jugadores encontrados'}</p>
+              </div>
+              <span className="results-order">ORDENADOS POR NOMBRE</span>
             </div>
             <div className="players-grid">
               {jugadoresVisibles.map((jugador) => <PlayerCard key={jugador.id} jugador={jugador} />)}
