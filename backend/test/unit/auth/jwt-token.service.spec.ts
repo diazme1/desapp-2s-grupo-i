@@ -1,14 +1,16 @@
 import { JwtService } from '@nestjs/jwt';
 import { JwtTokenService } from '../../../src/auth/strategies/jwt-token.service';
 
-function service(overrides: Record<string, string> = {}) {
-  const values = {
+type JwtConfigKey = 'JWT_SECRET' | 'JWT_EXPIRES_IN' | 'JWT_ALGORITHM';
+
+function service(overrides: Partial<Record<JwtConfigKey, string>> = {}) {
+  const values: Record<JwtConfigKey, string> = {
     JWT_SECRET: 'unit-test-secret-with-at-least-32-characters',
     JWT_EXPIRES_IN: '15m',
     JWT_ALGORITHM: 'HS256',
     ...overrides,
   };
-  const config = { get: jest.fn((key: string) => values[key]) } as any;
+  const config = { get: jest.fn((key: JwtConfigKey) => values[key]) } as any;
   return new JwtTokenService(new JwtService(), config);
 }
 
