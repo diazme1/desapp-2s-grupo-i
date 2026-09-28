@@ -96,6 +96,7 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
       .createQueryBuilder('jugador')
       .innerJoinAndSelect('jugador.equipo', 'equipo')
       .innerJoinAndSelect('equipo.liga', 'liga')
+      .leftJoinAndSelect('jugador.estadisticas', 'estadisticas')
       .orderBy('jugador.nombre', 'ASC')
       .addOrderBy('jugador.id', 'ASC');
     if (ligaCodigo) query.where('liga.codigo = :ligaCodigo', { ligaCodigo: ligaCodigo.trim().toUpperCase() });
