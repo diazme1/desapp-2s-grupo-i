@@ -1,5 +1,6 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 import { EquipoEntity } from './equipo.entity';
+import { EstadisticasJugadorEntity } from './estadisticas-jugador.entity';
 
 @Entity({ name: 'jugadores' })
 export class JugadorEntity {
@@ -27,6 +28,9 @@ export class JugadorEntity {
   @ManyToOne(() => EquipoEntity, (equipo) => equipo.jugadores, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'equipo_id' })
   equipo!: EquipoEntity;
+
+  @OneToMany(() => EstadisticasJugadorEntity, (estadistica) => estadistica.jugador)
+  estadisticas!: EstadisticasJugadorEntity[];
 
   @Column({ name: 'creado_en', type: 'timestamptz' })
   creadoEn!: Date;

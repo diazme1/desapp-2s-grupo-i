@@ -3,7 +3,6 @@ import type {
   WhoScoredHttpResponse,
   WhoScoredLeagueTransport,
   WhoScoredOperationContext,
-  WhoScoredTransport,
 } from '../../../src/players/adapters/whoscored/whoscored.types';
 
 function context(): WhoScoredOperationContext {
@@ -25,18 +24,17 @@ describe('WhoScoredAdapter por liga', () => {
                 tournamentName: 'Premier League',
                 goal: 2,
                 assistTotal: 1,
-                shotsPerGame: 4.2,
-                keyPassPerGame: 3.1,
-                dribbleWonPerGame: 5.4,
+                shotsPerGame: 4.256,
+                keyPassPerGame: 3.104,
+                dribbleWonPerGame: 5.405,
                 foulsPerGame: 6.2,
-                rating: 7.4,
+                rating: 7.456,
               },
             ],
           }),
         }),
     };
-    const httpTransport = { get: jest.fn() } as unknown as WhoScoredTransport;
-    const adapter = new WhoScoredAdapter(httpTransport, undefined, undefined, transport);
+    const adapter = new WhoScoredAdapter(transport);
 
     await expect(adapter.obtenerEstadisticasLiga('Premier League', context())).resolves.toEqual({
       estado: 'exito',
@@ -49,11 +47,11 @@ describe('WhoScoredAdapter por liga', () => {
           metricas: {
             goles: 2,
             asistencias: 1,
-            tiros: 4.2,
+            tiros: 4.26,
             pasesClave: 3.1,
-            regates: 5.4,
+            regates: 5.41,
             faltasCometidas: 6.2,
-            ratingWhoScored: 7.4,
+            ratingWhoScored: 7.46,
           },
         },
       ],
@@ -62,9 +60,6 @@ describe('WhoScoredAdapter por liga', () => {
 
   it('rechaza una liga que no tiene configuración', async () => {
     const adapter = new WhoScoredAdapter(
-      { get: jest.fn() } as unknown as WhoScoredTransport,
-      undefined,
-      undefined,
       { getLeagueFeed: jest.fn() },
     );
 

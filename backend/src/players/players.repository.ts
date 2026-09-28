@@ -18,6 +18,10 @@ export interface JugadorConRelaciones {
   liga: Liga;
 }
 
+export interface JugadorConEstadisticas extends JugadorConRelaciones {
+  estadisticas: EstadisticasJugador[];
+}
+
 export interface ResumenActualizacionCatalogo {
   ligas: number;
   equipos: number;
@@ -37,11 +41,10 @@ export interface ResultadoGuardadoCatalogo extends ResumenActualizacionCatalogo 
 
 export interface PlayersRepository {
   guardarCatalogo(catalogo: CatalogoBase): Promise<ResultadoGuardadoCatalogo>;
-  existePorId(idJugador: string): Promise<boolean | { idJugador: string } | null>;
   guardarEstadisticas(
     estadisticas: EstadisticasJugador,
     context?: WhoScoredOperationContext,
   ): Promise<string>;
   listar(ligaCodigo?: string): Promise<JugadorConRelaciones[]>;
-  buscarPorId(id: string): Promise<JugadorConRelaciones | null>;
+  buscarPorId(id: string): Promise<JugadorConEstadisticas | null>;
 }

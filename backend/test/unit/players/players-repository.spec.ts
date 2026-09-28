@@ -88,13 +88,6 @@ describe('TypeOrmPlayersRepository para estadísticas', () => {
     expect(repositorios.get(JugadorEntity)?.findOne).toHaveBeenCalledTimes(1);
   });
 
-  it('consulta únicamente la existencia puntual del jugador local', async () => {
-    const { repository, dataSource } = crearRepositorioConTransaccion();
-
-    await expect(repository.existePorId('jugador-real')).resolves.toBe(true);
-    expect(dataSource.getRepository).toHaveBeenCalledWith(JugadorEntity);
-  });
-
   it('guarda una observación completa en una transacción propia asociada por idJugador', async () => {
     const { repository, dataSource, repositorios } = crearRepositorioConTransaccion();
     const estadisticas = EstadisticasJugador.crear({

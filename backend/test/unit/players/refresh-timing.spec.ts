@@ -36,7 +36,6 @@ describe('Tiempo de extracción del catálogo', () => {
         jugadores: 1,
         jugadoresProcesados: [],
       }),
-      existePorId: jest.fn(),
       guardarEstadisticas: jest.fn(),
       listar: jest.fn(),
       buscarPorId: jest.fn(),
@@ -50,7 +49,7 @@ describe('Tiempo de extracción del catálogo', () => {
     const service = new ActualizarCatalogoService(
       source,
       repository,
-      { obtenerEstadisticasJugador: jest.fn() } as unknown as EstadisticasJugadorService,
+      { actualizarEstadisticasLiga: jest.fn() } as unknown as EstadisticasJugadorService,
     );
 
     const response = await service.ejecutar('PL');

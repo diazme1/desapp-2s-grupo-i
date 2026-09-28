@@ -1,10 +1,10 @@
 import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import type { WhoScoredLeagueLookupPort } from '../../../src/players/estadisticas-jugador.service';
-import { FakePlayersRepository } from './support/fake-players.repository';
+import { FakeEstadisticasWriter } from './support/fake-estadisticas-writer';
 
 describe('EstadisticasJugadorService por liga', () => {
   it('persiste solo jugadores locales que coinciden con el feed', async () => {
-    const repository = new FakePlayersRepository();
+    const repository = new FakeEstadisticasWriter();
     const whoscored: WhoScoredLeagueLookupPort = {
       obtenerEstadisticasLiga: jest.fn().mockResolvedValue({
         estado: 'exito',
@@ -42,14 +42,7 @@ describe('EstadisticasJugadorService por liga', () => {
         ],
       }),
     };
-    const service = new EstadisticasJugadorService(
-      repository,
-      whoscored as never,
-      repository,
-      Date.now,
-      30_000,
-      whoscored,
-    );
+    const service = new EstadisticasJugadorService(whoscored, repository, Date.now, 30_000);
 
     await expect(
       service.actualizarEstadisticasLiga('Primera Division', [

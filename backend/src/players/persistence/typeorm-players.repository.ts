@@ -6,6 +6,7 @@ import { Jugador } from '../domain/jugador';
 import { Liga } from '../domain/liga';
 import {
   CatalogoBase,
+  JugadorConEstadisticas,
   JugadorConRelaciones,
   JugadorProcesado,
   PlayersRepository,
@@ -67,14 +68,6 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
     });
   }
 
-  async existePorId(idJugador: string): Promise<boolean> {
-    const jugador = await this.dataSource.getRepository(JugadorEntity).findOne({
-      select: { id: true },
-      where: { id: idJugador },
-    });
-    return Boolean(jugador);
-  }
-
   async guardarEstadisticas(
     estadisticas: EstadisticasJugador,
     _context?: WhoScoredOperationContext,
@@ -109,12 +102,13 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
     return (await query.getMany()).map((entity) => this.aModelo(entity));
   }
 
-  async buscarPorId(id: string): Promise<JugadorConRelaciones | null> {
+  async buscarPorId(id: string): Promise<JugadorConEstadisticas | null> {
     const entity = await this.dataSource
       .getRepository(JugadorEntity)
       .createQueryBuilder('jugador')
       .innerJoinAndSelect('jugador.equipo', 'equipo')
       .innerJoinAndSelect('equipo.liga', 'liga')
+      .leftJoinAndSelect('jugador.estadisticas', 'estadisticas')
       .where('jugador.id = :id', { id })
       .getOne();
     return entity ? this.aModelo(entity) : null;
@@ -173,7 +167,7 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
     return repository.save(entity);
   }
 
-  private aModelo(entity: JugadorEntity): JugadorConRelaciones {
+  private aModelo(entity: JugadorEntity): JugadorConEstadisticas {
     const liga = Liga.crear({
       id: entity.equipo.liga.id,
       proveedorId: entity.equipo.liga.proveedorId,
@@ -201,6 +195,23 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
       fechaNacimiento: entity.fechaNacimiento,
       nacionalidad: entity.nacionalidad,
     });
-    return { jugador, equipo, liga };
+    return {
+      jugador,
+      equipo,
+      liga,
+      estadisticas: (entity.estadisticas ?? []).map((estadistica) =>
+        EstadisticasJugador.crear({
+          idEstadistica: estadistica.id,
+          idJugador: entity.id,
+          goles: estadistica.goles,
+          asistencias: estadistica.asistencias,
+          tiros: estadistica.tiros,
+          pasesClave: estadistica.pasesClave,
+          regates: estadistica.regates,
+          faltasCometidas: estadistica.faltasCometidas,
+          ratingWhoScored: estadistica.ratingWhoScored,
+        }),
+      ),
+    };
   }
 }
