@@ -86,11 +86,12 @@ export class EstadisticasJugadorService {
           abortController.abort();
           break;
         }
-        await this.ejecutarConDeadline(
+        const guardado = await this.ejecutarConDeadline(
           () => this.writer.guardar(entidad, context),
           deadlineAt,
           abortController,
         );
+        if (guardado === DEADLINE) break;
         usados.add(jugador.idJugador);
         if (this.esCompleto(estadistica.metricas)) exitosos += 1;
         else parciales += 1;
@@ -184,10 +185,11 @@ function normalizarNombre(value: string): string {
 }
 
 function normalizarEquipo(value: string): string {
-  return normalizarNombre(value)
-    .replace(/^(afc|fc|cf|sc|ac)\s+/, '')
-    .replace(/\s+(fc|afc|cf|sc|ac)$/, '')
-    .trim();
+  const partes = normalizarNombre(value).split(' ');
+  const sufijos = ['afc', 'fc', 'cf', 'sc', 'ac'];
+  if (sufijos.includes(partes[0])) partes.shift();
+  if (sufijos.includes(partes[partes.length - 1])) partes.pop();
+  return partes.join(' ');
 }
 
 function normalizarLiga(value: string): string {

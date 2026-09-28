@@ -12,7 +12,7 @@ describe('EstadisticasJugadorService por liga', () => {
           {
             playerIdExterno: 'ws-1',
             nombre: 'Jugador Uno',
-            equipo: 'Manchester City',
+            equipo: 'FC Manchester City',
             liga: 'LaLiga',
             metricas: {
               goles: 2,
