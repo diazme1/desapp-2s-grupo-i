@@ -4,6 +4,7 @@ import { Equipo } from '../../../src/players/domain/equipo';
 import { Jugador } from '../../../src/players/domain/jugador';
 import { Liga } from '../../../src/players/domain/liga';
 import { CatalogoBase } from '../../../src/players/players.repository';
+import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
 import {
   createPlayersIntegrationApp,
   PlayersIntegrationApp,
@@ -230,7 +231,35 @@ describe('Catálogo base de jugadores', () => {
       .expect(200);
 
     const list = await request(app).get('/players').expect(200);
-    await request(app).get(`/players/${list.body[0].id}`).expect(200);
+    await integration.dataSource.getRepository(EstadisticasJugadorEntity).save({
+      id: '5a1ce1cf-ef4d-4e04-871f-a54c51c3b7db',
+      jugador: { id: list.body[0].id },
+      goles: 12,
+      asistencias: 8,
+      tiros: 2.45,
+      pasesClave: 1.2,
+      regates: 3.1,
+      faltasCometidas: 0.8,
+      ratingWhoScored: 7.4,
+    });
+    await request(app)
+      .get(`/players/${list.body[0].id}`)
+      .expect(200)
+      .expect(({ body }) => {
+        expect(body.nombre).toBe('Cristiano Ronaldo');
+        expect(body.estadisticas).toEqual([
+          {
+            id: '5a1ce1cf-ef4d-4e04-871f-a54c51c3b7db',
+            goles: 12,
+            asistencias: 8,
+            tiros: 2.45,
+            pasesClave: 1.2,
+            regates: 3.1,
+            faltasCometidas: 0.8,
+            ratingWhoScored: 7.4,
+          },
+        ]);
+      });
     await request(app).get('/players/00000000-0000-4000-8000-000000000000').expect(404);
   });
 });

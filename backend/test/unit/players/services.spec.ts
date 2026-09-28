@@ -48,7 +48,6 @@ function jugadorProcesado(idJugador: string, nombreJugador = 'Jugador Uno'): Jug
 function crearRepository(): jest.Mocked<PlayersRepository> {
   return {
     guardarCatalogo: jest.fn(),
-    existePorId: jest.fn(),
     guardarEstadisticas: jest.fn(),
     listar: jest.fn(),
     buscarPorId: jest.fn(),
@@ -99,7 +98,7 @@ describe('Servicios del catálogo de jugadores', () => {
     const service = new ActualizarCatalogoService(source, repository, estadisticasJugador);
 
     await expect(service.ejecutar()).resolves.toMatchObject({
-      fuente: 'Football-Data.org',
+      fuente: 'Football-Data.org y WhoScored.com',
       ligas: 1,
       equipos: 1,
       jugadores: 1,

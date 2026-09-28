@@ -4,7 +4,7 @@ import { DataSource } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
 import { ActualizarCatalogoService } from './actualizar-catalogo.service';
 import { FootballDataAdapter, FOOTBALL_DATA_ADAPTER } from './adapters/football-data/football-data.adapter';
-import { WhoScoredAdapter, WHO_SCORED_LOOKUP } from './adapters/whoscored/whoscored.adapter';
+import { WhoScoredAdapter } from './adapters/whoscored/whoscored.adapter';
 import { CatalogoJugadoresService } from './catalogo-jugadores.service';
 import { EstadisticasJugadorService } from './estadisticas-jugador.service';
 import { EquipoEntity } from './persistence/equipo.entity';
@@ -42,14 +42,10 @@ import { PlayersController } from './players.controller';
     },
     WhoScoredAdapter,
     {
-      provide: WHO_SCORED_LOOKUP,
-      useExisting: WhoScoredAdapter,
-    },
-    {
       provide: EstadisticasJugadorService,
-      inject: [PLAYERS_REPOSITORY, WHO_SCORED_LOOKUP],
+      inject: [PLAYERS_REPOSITORY, WhoScoredAdapter],
       useFactory: (players: TypeOrmPlayersRepository, whoscored: WhoScoredAdapter) =>
-        new EstadisticasJugadorService(players, whoscored, {
+        new EstadisticasJugadorService(whoscored, {
           guardar: (estadisticas, context) => players.guardarEstadisticas(estadisticas, context),
         }),
     },

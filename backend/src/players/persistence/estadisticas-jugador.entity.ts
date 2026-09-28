@@ -7,7 +7,7 @@ export class EstadisticasJugadorEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
-  @ManyToOne(() => JugadorEntity, { nullable: false, onDelete: 'RESTRICT' })
+  @ManyToOne(() => JugadorEntity, (jugador) => jugador.estadisticas, { nullable: false, onDelete: 'RESTRICT' })
   @JoinColumn({ name: 'id_jugador' })
   jugador!: JugadorEntity;
 

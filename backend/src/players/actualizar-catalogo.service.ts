@@ -42,7 +42,7 @@ export class ActualizarCatalogoService {
           : 'Football-Data.org no está disponible en este momento.';
       throw new ServiceUnavailableException(message);
     }
-    const tiempoExtraccionMs = Date.now() - inicioExtraccion;
+
     const resumen = await this.players.guardarCatalogo(catalogo);
     const gruposPorLiga = new Map<string, typeof resumen.jugadoresProcesados>();
     for (const jugador of resumen.jugadoresProcesados) {
@@ -83,9 +83,10 @@ export class ActualizarCatalogoService {
       parciales,
       fallidos,
     };
+    const tiempoExtraccionMs = Date.now() - inicioExtraccion;
     const { jugadoresProcesados: _jugadoresProcesados, ...resumenPublico } = resumen;
     return {
-      fuente: 'Football-Data.org',
+      fuente: 'Football-Data.org y WhoScored.com',
       ...resumenPublico,
       estadisticas,
       tiempoExtraccionMs,
