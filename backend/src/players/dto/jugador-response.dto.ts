@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Equipo } from '../domain/equipo';
 import { Liga } from '../domain/liga';
-import { JugadorConRelaciones } from '../players.repository';
+import { JugadorConEstadisticas, JugadorConRelaciones } from '../players.repository';
 
 export class LigaResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -82,6 +82,9 @@ export class JugadorResponseDto {
   @ApiProperty({ type: () => LigaResponseDto })
   liga!: LigaResponseDto;
 
+  @ApiProperty({ required: false, description: 'Indica si existen estadísticas persistidas para el jugador.' })
+  estadisticasDisponibles?: boolean;
+
   static from(record: JugadorConRelaciones): JugadorResponseDto {
     const dto = new JugadorResponseDto();
     dto.id = record.jugador.id;
@@ -92,6 +95,12 @@ export class JugadorResponseDto {
     dto.nacionalidad = record.jugador.nacionalidad;
     dto.equipo = EquipoResponseDto.from(record.equipo);
     dto.liga = LigaResponseDto.from(record.liga);
+
+    const recordWithStats = record as JugadorConRelaciones & Partial<JugadorConEstadisticas>;
+    if (Array.isArray(recordWithStats.estadisticas)) {
+      dto.estadisticasDisponibles = recordWithStats.estadisticas.length > 0;
+    }
+
     return dto;
   }
 }

@@ -4,10 +4,12 @@ import { AuthLayout } from './auth/AuthLayout'
 import { LoginPage } from './auth/LoginPage'
 import { RegisterPage } from './auth/RegisterPage'
 import { ProtectedRoute } from './app/ProtectedRoute'
+import { PlayersPage } from './players/PlayersPage'
+import { PlayerStatsPage } from './players/PlayerStatsPage'
 import './App.css'
 
 function AuthenticatedHome() {
-  const { user, logout } = useAuth()
+  const { logout } = useAuth()
   const navigate = useNavigate()
 
   function handleLogout() {
@@ -15,24 +17,7 @@ function AuthenticatedHome() {
     navigate('/login', { replace: true })
   }
 
-  return (
-    <main className="app-home">
-      <header className="app-header">
-        <div>
-          <p className="eyebrow">PlayerMarket</p>
-          <h1>Tu cuenta está lista</h1>
-        </div>
-        <button className="text-button" type="button" onClick={handleLogout}>Cerrar sesión</button>
-      </header>
-      <section className="welcome-card">
-        <span className="status-dot" aria-hidden="true" />
-        <div>
-          <h2>Sesión autenticada</h2>
-          <p>Ingresaste como <strong>{user?.correo}</strong>. El mercado de jugadores estará disponible en la próxima feature.</p>
-        </div>
-      </section>
-    </main>
-  )
+  return <PlayersPage onLogout={handleLogout} />
 }
 
 function App() {
@@ -47,6 +32,14 @@ function App() {
         element={
           <ProtectedRoute>
             <AuthenticatedHome />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/app/players/:id/estadisticas"
+        element={
+          <ProtectedRoute>
+            <PlayerStatsPage />
           </ProtectedRoute>
         }
       />

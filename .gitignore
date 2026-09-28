@@ -18,6 +18,7 @@ Thumbs.db
 # Herramientas y verificaciones locales
 .tools/
 .tmp/
+**/.vite/
 .vscode/
 .idea/
 *.tmp
