@@ -16,6 +16,9 @@ import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrat
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
+import { CATALOG_REFRESH_TEST_API_KEY } from '../helpers/integration-app';
+
+export type PlayersIntegrationMode = 'legacy' | 'strict';
 
 const POSTGRES_IMAGE = 'postgres:16-alpine';
 const POSTGRES_PORT = 5432;
@@ -25,13 +28,17 @@ export interface PlayersIntegrationApp {
   dataSource: DataSource;
   source: jest.Mocked<FootballDataPort>;
   estadisticasJugador: { actualizarEstadisticasLiga: jest.Mock };
+  catalogRefreshApiKey: string;
   resetData(): Promise<void>;
   close(): Promise<void>;
 }
 
 export async function createPlayersIntegrationApp(
   source: jest.Mocked<FootballDataPort>,
+  options: { mode?: PlayersIntegrationMode } = {},
 ): Promise<PlayersIntegrationApp> {
+  const mode = options.mode ?? 'legacy';
+  const previousCatalogRefreshApiKey = process.env.CATALOG_REFRESH_API_KEY;
   const container = await new GenericContainer(POSTGRES_IMAGE)
     .withEnvironment({
       POSTGRES_DB: 'football_market',
@@ -42,6 +49,7 @@ export async function createPlayersIntegrationApp(
     .withWaitStrategy(Wait.forLogMessage(/database system is ready to accept connections/, 2))
     .withStartupTimeout(120_000)
     .start();
+  process.env.CATALOG_REFRESH_API_KEY = CATALOG_REFRESH_TEST_API_KEY;
   const databaseUrl = `postgres://postgres:postgres@${container.getHost()}:${container.getMappedPort(POSTGRES_PORT)}/football_market`;
   const dataSource = new DataSource({
     type: 'postgres',
@@ -81,6 +89,18 @@ export async function createPlayersIntegrationApp(
       .compile();
     const app = module.createNestApplication();
     configureApp(app);
+    if (mode === 'legacy') {
+      app.use((request: import('express').Request, _response: import('express').Response, next: import('express').NextFunction) => {
+        if (
+          request.method === 'POST' &&
+          request.path === '/catalog/refresh' &&
+          request.headers['x-api-key'] === undefined
+        ) {
+          request.headers['x-api-key'] = CATALOG_REFRESH_TEST_API_KEY;
+        }
+        next();
+      });
+    }
     app.enableShutdownHooks();
     await app.init();
     return {
@@ -88,6 +108,7 @@ export async function createPlayersIntegrationApp(
       dataSource,
       source,
       estadisticasJugador,
+      catalogRefreshApiKey: CATALOG_REFRESH_TEST_API_KEY,
       async resetData() {
         await dataSource.query(
           'TRUNCATE TABLE estadisticas_jugadores, jugadores, equipos, ligas, usuarios',
@@ -101,12 +122,16 @@ export async function createPlayersIntegrationApp(
           await container.stop();
           if (previousDatabaseUrl === undefined) delete process.env.DATABASE_URL;
           else process.env.DATABASE_URL = previousDatabaseUrl;
+          if (previousCatalogRefreshApiKey === undefined) delete process.env.CATALOG_REFRESH_API_KEY;
+          else process.env.CATALOG_REFRESH_API_KEY = previousCatalogRefreshApiKey;
         }
       },
     };
   } catch (error) {
     if (dataSource.isInitialized) await dataSource.destroy();
     await container.stop();
+    if (previousCatalogRefreshApiKey === undefined) delete process.env.CATALOG_REFRESH_API_KEY;
+    else process.env.CATALOG_REFRESH_API_KEY = previousCatalogRefreshApiKey;
     throw error;
   }
 }

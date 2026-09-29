@@ -71,7 +71,22 @@ Las consultas no llaman a proveedores externos:
 - `GET /players` lista el catálogo local; acepta opcionalmente `?ligaCodigo=PL`.
 - `GET /players/:id` devuelve el detalle de un jugador por su UUID interno.
 - `POST /catalog/refresh?ligaCodigo=PL` actualiza una liga del catálogo base desde Football-Data.org
-  y requiere un JWT Bearer. Configurá `FOOTBALL_DATA_API_TOKEN` en el `.env` raíz para ejecutarlo.
+  y requiere simultáneamente un JWT Bearer y el header `X-API-Key`. Configurá
+  `FOOTBALL_DATA_API_TOKEN` y `CATALOG_REFRESH_API_KEY` en el `.env` local para ejecutarlo.
+
+`CATALOG_REFRESH_API_KEY` debe ser una cadena base64url generada desde al menos 32 bytes de
+aleatoriedad criptográfica. Para desarrollo, generala sin copiarla al repositorio:
+
+```bash
+node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+```
+
+La aplicación valida al menos 32 bytes UTF-8 de configuración y rechaza valores vacíos,
+espacios laterales, solo espacios y los placeholders `change-me`, `changeme`, `your-api-key`,
+`your-secret`, `secret` y `test` en ambientes no-test. Una API key ausente o inválida responde
+401 sin revelar credenciales; los demás endpoints conservan su comportamiento y no requieren
+`X-API-Key`. El valor real debe permanecer únicamente en el mecanismo de secretos del entorno o
+en un `.env` local no versionado.
 
 La actualización acepta una liga por request mediante `ligaCodigo` y respeta un intervalo entre
 solicitudes externas configurado con `FOOTBALL_DATA_REQUEST_DELAY_MS`. WhoScored y las estadísticas

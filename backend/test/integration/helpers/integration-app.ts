@@ -5,7 +5,14 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../../../src/app.module';
 import { configureApp } from '../../../src/configure-app';
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
+import { CreateCatalogoJugadores1727000000000 } from '../../../migrations/1727000000000-CreateCatalogoJugadores';
+import { CreateEstadisticasJugadores1790275835000 } from '../../../migrations/1790275835000-CreateEstadisticasJugadores';
+import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrations/1790275836000-RenameEntradasAndAllowPerGameStats';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
+import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
+import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
+import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
+import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 
 export interface IntegrationApp {
   app: INestApplication;
@@ -13,9 +20,13 @@ export interface IntegrationApp {
   close(): Promise<void>;
 }
 
+export const CATALOG_REFRESH_TEST_API_KEY =
+  'catalog-refresh-test-fixture-key-2026-09-29-abcdefghijklmnopqrstuvwxyz';
+
 export async function createIntegrationApp(): Promise<IntegrationApp> {
   const previousNodeEnv = process.env.NODE_ENV;
   const previousDatabaseUrl = process.env.DATABASE_URL;
+  const previousCatalogRefreshApiKey = process.env.CATALOG_REFRESH_API_KEY;
   const configuredDatabaseUrl = process.env.DATABASE_URL;
   if (!configuredDatabaseUrl) {
     throw new Error('DATABASE_URL debe apuntar al PostgreSQL de docker compose para ejecutar integraciones.');
@@ -24,6 +35,7 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
   const databaseUrl = testDatabaseUrl(configuredDatabaseUrl);
   process.env.NODE_ENV = 'test';
   process.env.DATABASE_URL = databaseUrl;
+  process.env.CATALOG_REFRESH_API_KEY = CATALOG_REFRESH_TEST_API_KEY;
 
   let testDataSource: DataSource | undefined;
   try {
@@ -31,8 +43,13 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
     testDataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [UserEntity],
-      migrations: [CreateUsuarios1710000000000],
+      entities: [UserEntity, LigaEntity, EquipoEntity, JugadorEntity, EstadisticasJugadorEntity],
+      migrations: [
+        CreateUsuarios1710000000000,
+        CreateCatalogoJugadores1727000000000,
+        CreateEstadisticasJugadores1790275835000,
+        RenameEntradasAndAllowPerGameStats1790275836000,
+      ],
       dropSchema: true,
       synchronize: false,
     });
@@ -60,6 +77,7 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
             if (testDataSource?.isInitialized) await testDataSource.destroy();
           } finally {
             restoreEnvironment(previousNodeEnv, previousDatabaseUrl);
+            restoreCatalogRefreshApiKey(previousCatalogRefreshApiKey);
           }
         }
       },
@@ -67,8 +85,14 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
   } catch (error) {
     if (testDataSource?.isInitialized) await testDataSource.destroy();
     restoreEnvironment(previousNodeEnv, previousDatabaseUrl);
+    restoreCatalogRefreshApiKey(previousCatalogRefreshApiKey);
     throw error;
   }
+}
+
+function restoreCatalogRefreshApiKey(value: string | undefined): void {
+  if (value === undefined) delete process.env.CATALOG_REFRESH_API_KEY;
+  else process.env.CATALOG_REFRESH_API_KEY = value;
 }
 
 async function ensureDatabaseExists(databaseUrl: string): Promise<void> {

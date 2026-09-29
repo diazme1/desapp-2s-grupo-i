@@ -1,6 +1,9 @@
+import { getCatalogRefreshApiKeyConfigurationIssue } from '../auth/catalog-refresh-api-key';
+
 export function validateEnvironment(config: Record<string, unknown>): {
   PORT: number;
   DATABASE_URL: string;
+  CATALOG_REFRESH_API_KEY?: string;
   JWT_SECRET?: string;
   JWT_EXPIRES_IN?: string;
   JWT_ALGORITHM?: string;
@@ -46,6 +49,12 @@ export function validateEnvironment(config: Record<string, unknown>): {
     throw new Error('JWT_ALGORITHM debe ser HS256, HS384 o HS512.');
   }
 
+  const catalogRefreshApiKey = config.CATALOG_REFRESH_API_KEY;
+  const catalogRefreshApiKeyIssue = getCatalogRefreshApiKeyConfigurationIssue(catalogRefreshApiKey);
+  if (catalogRefreshApiKeyIssue !== undefined && !(isTest && catalogRefreshApiKey === undefined)) {
+    throw new Error(catalogRefreshApiKeyConfigurationError(catalogRefreshApiKeyIssue));
+  }
+
   const rawMaxTeams = config.FOOTBALL_DATA_MAX_TEAMS;
   const maxTeamsValue =
     typeof rawMaxTeams === 'string' && rawMaxTeams.trim() !== '' ? rawMaxTeams.trim() : undefined;
@@ -73,6 +82,7 @@ export function validateEnvironment(config: Record<string, unknown>): {
   return {
     PORT: port,
     DATABASE_URL: databaseUrl,
+    ...(typeof catalogRefreshApiKey === 'string' && { CATALOG_REFRESH_API_KEY: catalogRefreshApiKey }),
     ...(typeof jwtSecret === 'string' && { JWT_SECRET: jwtSecret }),
     JWT_EXPIRES_IN: typeof jwtExpiresIn === 'string' ? jwtExpiresIn : '15m',
     JWT_ALGORITHM: typeof algorithm === 'string' ? algorithm : 'HS256',
@@ -88,4 +98,18 @@ export function validateEnvironment(config: Record<string, unknown>): {
     ...(maxTeams !== undefined && { FOOTBALL_DATA_MAX_TEAMS: maxTeams }),
     ...(requestDelayMs !== undefined && { FOOTBALL_DATA_REQUEST_DELAY_MS: requestDelayMs }),
   };
+}
+
+function catalogRefreshApiKeyConfigurationError(
+  issue: NonNullable<ReturnType<typeof getCatalogRefreshApiKeyConfigurationIssue>>,
+): string {
+  const descriptions = {
+    missing: 'es obligatoria fuera del ambiente de tests',
+    empty: 'no puede estar vacía',
+    'only-spaces': 'no puede estar compuesta solo por espacios',
+    'lateral-spaces': 'no puede contener espacios laterales',
+    'too-short': 'no cumple el mínimo operativo de bytes UTF-8',
+    placeholder: 'no puede utilizar un placeholder conocido',
+  } as const;
+  return `CATALOG_REFRESH_API_KEY ${descriptions[issue]}.`;
 }
