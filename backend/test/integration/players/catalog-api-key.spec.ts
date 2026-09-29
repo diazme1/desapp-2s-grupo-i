@@ -68,18 +68,22 @@ function expectNoCredentialLeak(
   apiKey: string,
   jwt?: string,
 ): void {
-  const forbidden = [
-    apiKey,
-    apiKey.slice(0, 8),
-    apiKey.slice(-8),
-    String(Buffer.byteLength(apiKey, 'utf8')),
-    createHash('sha256').update(apiKey).digest('hex'),
-    'CATALOG_REFRESH_API_KEY',
-  ];
+  const forbidden = ['CATALOG_REFRESH_API_KEY'];
+  if (apiKey.length > 0) {
+    forbidden.push(
+      apiKey,
+      apiKey.slice(0, 8),
+      apiKey.slice(-8),
+      String(Buffer.byteLength(apiKey, 'utf8')),
+      createHash('sha256').update(apiKey).digest('hex'),
+    );
+  }
   if (jwt) {
     forbidden.push(jwt, jwt.slice(0, 8), jwt.slice(-8), String(jwt.length));
   }
-  for (const value of forbidden) expect(output).not.toContain(value);
+  for (const value of forbidden.filter((value) => value.length > 0)) {
+    expect(output).not.toContain(value);
+  }
 }
 
 function expiredJwt(): string {
@@ -147,7 +151,9 @@ describe('POST /catalog/refresh con doble credencial', () => {
     ['API key ausente', 'valid', undefined],
     ['API key vacía', 'valid', ''],
     ['API key solo espacios', 'valid', ' '.repeat(32)],
-    ['API key con espacios laterales', 'valid', ` ${CATALOG_REFRESH_TEST_API_KEY} `],
+    // Los espacios OWS ASCII son normalizados por el parser HTTP antes de llegar a Nest.
+    // NBSP permite verificar en integración que cualquier whitespace recibido altera la clave.
+    ['API key con espacios laterales', 'valid', `\u00a0${CATALOG_REFRESH_TEST_API_KEY}\u00a0`],
     ['API key inválida de igual longitud', 'valid', `x${CATALOG_REFRESH_TEST_API_KEY.slice(1)}`],
     ['API key inválida de longitud distinta', 'valid', 'short'],
     ['JWT ausente', 'missing-jwt', undefined],

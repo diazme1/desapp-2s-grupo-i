@@ -5,7 +5,14 @@ import { DataSource } from 'typeorm';
 import { AppModule } from '../../../src/app.module';
 import { configureApp } from '../../../src/configure-app';
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
+import { CreateCatalogoJugadores1727000000000 } from '../../../migrations/1727000000000-CreateCatalogoJugadores';
+import { CreateEstadisticasJugadores1790275835000 } from '../../../migrations/1790275835000-CreateEstadisticasJugadores';
+import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrations/1790275836000-RenameEntradasAndAllowPerGameStats';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
+import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
+import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
+import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
+import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 
 export interface IntegrationApp {
   app: INestApplication;
@@ -36,8 +43,13 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
     testDataSource = new DataSource({
       type: 'postgres',
       url: databaseUrl,
-      entities: [UserEntity],
-      migrations: [CreateUsuarios1710000000000],
+      entities: [UserEntity, LigaEntity, EquipoEntity, JugadorEntity, EstadisticasJugadorEntity],
+      migrations: [
+        CreateUsuarios1710000000000,
+        CreateCatalogoJugadores1727000000000,
+        CreateEstadisticasJugadores1790275835000,
+        RenameEntradasAndAllowPerGameStats1790275836000,
+      ],
       dropSchema: true,
       synchronize: false,
     });
