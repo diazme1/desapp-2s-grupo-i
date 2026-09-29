@@ -7,6 +7,7 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:3000", "type": "string" },
     { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "catalogRefreshApiKey", "value": "", "type": "string" },
     { "key": "playerId", "value": "", "type": "string" }
   ],
   "item": [
@@ -15,9 +16,9 @@
       "request": {
         "method": "POST",
         "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
-        "header": [],
+        "header": [{ "key": "X-API-Key", "value": "{{catalogRefreshApiKey}}", "type": "text" }],
         "url": "{{baseUrl}}/catalog/refresh?ligaCodigo=PL",
-        "description": "Importa una liga, sus equipos y jugadores desde Football-Data.org. Requiere JWT."
+        "description": "Importa una liga, sus equipos y jugadores desde Football-Data.org. Requiere JWT Bearer y X-API-Key."
       },
       "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
         "pm.test('Responde actualización exitosa', () => pm.response.to.have.status(200));",

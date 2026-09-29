@@ -13,9 +13,13 @@ export interface IntegrationApp {
   close(): Promise<void>;
 }
 
+export const CATALOG_REFRESH_TEST_API_KEY =
+  'catalog-refresh-test-fixture-key-2026-09-29-abcdefghijklmnopqrstuvwxyz';
+
 export async function createIntegrationApp(): Promise<IntegrationApp> {
   const previousNodeEnv = process.env.NODE_ENV;
   const previousDatabaseUrl = process.env.DATABASE_URL;
+  const previousCatalogRefreshApiKey = process.env.CATALOG_REFRESH_API_KEY;
   const configuredDatabaseUrl = process.env.DATABASE_URL;
   if (!configuredDatabaseUrl) {
     throw new Error('DATABASE_URL debe apuntar al PostgreSQL de docker compose para ejecutar integraciones.');
@@ -24,6 +28,7 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
   const databaseUrl = testDatabaseUrl(configuredDatabaseUrl);
   process.env.NODE_ENV = 'test';
   process.env.DATABASE_URL = databaseUrl;
+  process.env.CATALOG_REFRESH_API_KEY = CATALOG_REFRESH_TEST_API_KEY;
 
   let testDataSource: DataSource | undefined;
   try {
@@ -60,6 +65,7 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
             if (testDataSource?.isInitialized) await testDataSource.destroy();
           } finally {
             restoreEnvironment(previousNodeEnv, previousDatabaseUrl);
+            restoreCatalogRefreshApiKey(previousCatalogRefreshApiKey);
           }
         }
       },
@@ -67,8 +73,14 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
   } catch (error) {
     if (testDataSource?.isInitialized) await testDataSource.destroy();
     restoreEnvironment(previousNodeEnv, previousDatabaseUrl);
+    restoreCatalogRefreshApiKey(previousCatalogRefreshApiKey);
     throw error;
   }
+}
+
+function restoreCatalogRefreshApiKey(value: string | undefined): void {
+  if (value === undefined) delete process.env.CATALOG_REFRESH_API_KEY;
+  else process.env.CATALOG_REFRESH_API_KEY = value;
 }
 
 async function ensureDatabaseExists(databaseUrl: string): Promise<void> {

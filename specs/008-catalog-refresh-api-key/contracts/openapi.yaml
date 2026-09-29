@@ -1,0 +1,94 @@
+openapi: 3.0.3
+info:
+  title: Protección del refresh del catálogo de Football Player Market
+  version: 1.0.0
+  description: >-
+    Contrato de POST /catalog/refresh con JWT Bearer y API key obligatorios.
+    Los rechazos son genéricos y no exponen credenciales ni metadatos derivados.
+paths:
+  /catalog/refresh:
+    post:
+      tags: [Jugadores]
+      summary: Actualizar una liga del catálogo base desde Football-Data.org
+      parameters:
+        - name: ligaCodigo
+          in: query
+          required: false
+          description: Código de la liga a actualizar; si se omite, usa la configuración del entorno.
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]+$'
+            maxLength: 5
+            example: PL
+      security:
+        - bearerAuth: []
+          catalogRefreshApiKey: []
+      responses:
+        '200':
+          description: Catálogo actualizado.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefreshCatalogoResponse'
+        '401':
+          description: >-
+            JWT Bearer ausente o inválido, o API key ausente o inválida. La respuesta no
+            contiene API key, JWT, longitud, hash, prefijo ni fragmentos de credenciales.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '422':
+          description: Parámetros de actualización inválidos.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '503':
+          description: La fuente externa no está disponible.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    catalogRefreshApiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+      description: >-
+        API key secreta del servidor. La configuración operativa usa una cadena base64url
+        generada desde 32 bytes de aleatoriedad; no incluir su valor en documentación.
+  schemas:
+    RefreshCatalogoResponse:
+      type: object
+      required: [fuente, ligas, equipos, jugadores, tiempoExtraccionMs, tiempoExtraccion, actualizadoEn, estadisticas]
+      properties:
+        fuente: { type: string, example: Football-Data.org }
+        ligas: { type: integer, minimum: 0, example: 1 }
+        equipos: { type: integer, minimum: 0, example: 20 }
+        jugadores: { type: integer, minimum: 0, example: 500 }
+        tiempoExtraccionMs: { type: integer, minimum: 0, example: 126345 }
+        tiempoExtraccion: { type: string, example: 126.35 s }
+        actualizadoEn: { type: string, format: date-time }
+        estadisticas:
+          $ref: '#/components/schemas/EstadisticasRefreshResponse'
+    EstadisticasRefreshResponse:
+      type: object
+      required: [estado, procesados, exitosos, parciales, fallidos]
+      properties:
+        estado: { type: string, example: completo }
+        procesados: { type: integer, minimum: 0, example: 500 }
+        exitosos: { type: integer, minimum: 0, example: 500 }
+        parciales: { type: integer, minimum: 0, example: 0 }
+        fallidos: { type: integer, minimum: 0, example: 0 }
+    ErrorResponse:
+      type: object
+      required: [statusCode, message]
+      properties:
+        statusCode: { type: integer, example: 401 }
+        message: { type: string, example: Autenticación requerida o credenciales inválidas. }

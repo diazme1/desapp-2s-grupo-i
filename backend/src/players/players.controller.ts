@@ -10,13 +10,14 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import {
-  ApiBearerAuth,
+  ApiSecurity,
   ApiOkResponse,
   ApiOperation,
   ApiResponse,
   ApiTags,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { CatalogRefreshApiKeyGuard } from '../auth/guards/catalog-refresh-api-key.guard';
 import { ActualizarCatalogoService } from './actualizar-catalogo.service';
 import { CatalogoJugadoresService } from './catalogo-jugadores.service';
 import { ActualizarCatalogoDto } from './dto/actualizar-catalogo.dto';
@@ -55,11 +56,12 @@ export class PlayersController {
 
   @Post('catalog/refresh')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('bearerAuth')
+  @UseGuards(JwtAuthGuard, CatalogRefreshApiKeyGuard)
+  @ApiSecurity({ bearerAuth: [], catalogRefreshApiKey: [] })
   @ApiOperation({ summary: 'Actualizar una liga del catálogo base desde Football-Data.org' })
   @ApiOkResponse({ type: RefreshCatalogoResponseDto })
-  @ApiResponse({ status: 401, description: 'Token ausente, inválido o vencido.' })
+  @ApiResponse({ status: 401, description: 'Autenticación requerida o credenciales inválidas.' })
+  @ApiResponse({ status: 422, description: 'Parámetros de actualización inválidos.' })
   @ApiResponse({ status: 503, description: 'La fuente externa no está disponible.' })
   actualizarCatalogo(@Query() query: ActualizarCatalogoDto) {
     return this.actualizar.ejecutar(query.ligaCodigo);
