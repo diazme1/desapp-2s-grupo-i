@@ -1,8 +1,14 @@
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { JwtAuthGuard } from '../../../src/auth/guards/jwt-auth.guard';
+import type { JwtPayload } from '../../../src/auth/strategies/jwt-token.service';
+
+type AuthRequest = {
+  headers: Record<string, string>;
+  user?: JwtPayload;
+};
 
 function context(headers: Record<string, string>) {
-  const request = { headers };
+  const request: AuthRequest = { headers };
   const executionContext = {
     switchToHttp: () => ({ getRequest: () => request }),
   } as unknown as ExecutionContext;

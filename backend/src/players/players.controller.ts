@@ -56,9 +56,13 @@ export class PlayersController {
 
   @Post('catalog/refresh')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Actualizar una liga del catálogo y sus estadísticas',
+    description:
+      'Obtiene el catálogo base desde Football-Data.org y consulta WhoScored.com para enriquecer las estadísticas de los jugadores.',
+  })
   @UseGuards(JwtAuthGuard, CatalogRefreshApiKeyGuard)
   @ApiSecurity({ bearerAuth: [], catalogRefreshApiKey: [] })
-  @ApiOperation({ summary: 'Actualizar una liga del catálogo base desde Football-Data.org' })
   @ApiOkResponse({ type: RefreshCatalogoResponseDto })
   @ApiResponse({ status: 401, description: 'Autenticación requerida o credenciales inválidas.' })
   @ApiResponse({ status: 422, description: 'Parámetros de actualización inválidos.' })
