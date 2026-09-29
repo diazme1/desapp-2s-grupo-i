@@ -342,6 +342,7 @@ jobs:
             --env JWT_EXPIRES_IN=15m \
             --env JWT_ALGORITHM=HS256 \
             --env JWT_SECRET=ci-only-secret-with-at-least-32-characters \
+            --env CATALOG_REFRESH_API_KEY=ci-only-catalog-refresh-api-key-2026-09-29 \
             "$IMAGE_TAG"
 
       - name: Verificar GET /health con timeout finito
