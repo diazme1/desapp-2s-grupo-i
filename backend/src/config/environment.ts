@@ -1,10 +1,23 @@
+import { getCatalogRefreshApiKeyConfigurationIssue } from '../auth/catalog-refresh-api-key';
+
 export function validateEnvironment(config: Record<string, unknown>): {
   PORT: number;
-  DATABASE_URL?: string;
+  DATABASE_URL: string;
+  CATALOG_REFRESH_API_KEY?: string;
   JWT_SECRET?: string;
   JWT_EXPIRES_IN?: string;
   JWT_ALGORITHM?: string;
+  FOOTBALL_DATA_API_URL?: string;
+  FOOTBALL_DATA_API_TOKEN?: string;
+  FOOTBALL_DATA_COMPETITIONS?: string;
+  FOOTBALL_DATA_MAX_TEAMS?: number;
+  FOOTBALL_DATA_REQUEST_DELAY_MS?: number;
 } {
+  const databaseUrl = config.DATABASE_URL;
+  if (typeof databaseUrl !== 'string' || databaseUrl.trim() === '') {
+    throw new Error('DATABASE_URL es obligatoria y debe apuntar a PostgreSQL.');
+  }
+
   const raw = config.PORT;
   let port = 3000;
   if (raw !== undefined) {
@@ -36,13 +49,67 @@ export function validateEnvironment(config: Record<string, unknown>): {
     throw new Error('JWT_ALGORITHM debe ser HS256, HS384 o HS512.');
   }
 
+  const catalogRefreshApiKey = config.CATALOG_REFRESH_API_KEY;
+  const catalogRefreshApiKeyIssue = getCatalogRefreshApiKeyConfigurationIssue(catalogRefreshApiKey);
+  if (catalogRefreshApiKeyIssue !== undefined && !(isTest && catalogRefreshApiKey === undefined)) {
+    throw new Error(catalogRefreshApiKeyConfigurationError(catalogRefreshApiKeyIssue));
+  }
+
+  const rawMaxTeams = config.FOOTBALL_DATA_MAX_TEAMS;
+  const maxTeamsValue =
+    typeof rawMaxTeams === 'string' && rawMaxTeams.trim() !== '' ? rawMaxTeams.trim() : undefined;
+  let maxTeams: number | undefined;
+  if (maxTeamsValue !== undefined) {
+    if (!/^\d+$/.test(maxTeamsValue) || Number(maxTeamsValue) < 1) {
+      throw new Error('FOOTBALL_DATA_MAX_TEAMS debe ser un entero positivo.');
+    }
+    maxTeams = Number(maxTeamsValue);
+  }
+
+  const rawRequestDelay = config.FOOTBALL_DATA_REQUEST_DELAY_MS;
+  const requestDelayValue =
+    typeof rawRequestDelay === 'string' && rawRequestDelay.trim() !== ''
+      ? rawRequestDelay.trim()
+      : undefined;
+  let requestDelayMs: number | undefined;
+  if (requestDelayValue !== undefined) {
+    if (!/^\d+$/.test(requestDelayValue) || Number(requestDelayValue) < 0) {
+      throw new Error('FOOTBALL_DATA_REQUEST_DELAY_MS debe ser un entero mayor o igual a cero.');
+    }
+    requestDelayMs = Number(requestDelayValue);
+  }
+
   return {
     PORT: port,
-    ...(typeof config.DATABASE_URL === 'string' && {
-      DATABASE_URL: config.DATABASE_URL,
-    }),
+    DATABASE_URL: databaseUrl,
+    ...(typeof catalogRefreshApiKey === 'string' && { CATALOG_REFRESH_API_KEY: catalogRefreshApiKey }),
     ...(typeof jwtSecret === 'string' && { JWT_SECRET: jwtSecret }),
     JWT_EXPIRES_IN: typeof jwtExpiresIn === 'string' ? jwtExpiresIn : '15m',
     JWT_ALGORITHM: typeof algorithm === 'string' ? algorithm : 'HS256',
+    ...(typeof config.FOOTBALL_DATA_API_URL === 'string' && {
+      FOOTBALL_DATA_API_URL: config.FOOTBALL_DATA_API_URL,
+    }),
+    ...(typeof config.FOOTBALL_DATA_API_TOKEN === 'string' && {
+      FOOTBALL_DATA_API_TOKEN: config.FOOTBALL_DATA_API_TOKEN,
+    }),
+    ...(typeof config.FOOTBALL_DATA_COMPETITIONS === 'string' && {
+      FOOTBALL_DATA_COMPETITIONS: config.FOOTBALL_DATA_COMPETITIONS,
+    }),
+    ...(maxTeams !== undefined && { FOOTBALL_DATA_MAX_TEAMS: maxTeams }),
+    ...(requestDelayMs !== undefined && { FOOTBALL_DATA_REQUEST_DELAY_MS: requestDelayMs }),
   };
+}
+
+function catalogRefreshApiKeyConfigurationError(
+  issue: NonNullable<ReturnType<typeof getCatalogRefreshApiKeyConfigurationIssue>>,
+): string {
+  const descriptions = {
+    missing: 'es obligatoria fuera del ambiente de tests',
+    empty: 'no puede estar vacía',
+    'only-spaces': 'no puede estar compuesta solo por espacios',
+    'lateral-spaces': 'no puede contener espacios laterales',
+    'too-short': 'no cumple el mínimo operativo de bytes UTF-8',
+    placeholder: 'no puede utilizar un placeholder conocido',
+  } as const;
+  return `CATALOG_REFRESH_API_KEY ${descriptions[issue]}.`;
 }

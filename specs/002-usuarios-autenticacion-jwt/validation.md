@@ -17,12 +17,11 @@ usuario no contienen `password` ni `passwordHash`.
 ## Persistencia
 
 La migración `backend/migrations/1710000000000-CreateUsuarios.ts` crea la tabla `usuarios`.
-Cuando `DATABASE_URL` no está definida, los tests y el desarrollo local usan el repositorio en
-memoria. Para PostgreSQL, configurar `.env` y ejecutar `npm.cmd run migration:run`.
+`DATABASE_URL` es obligatoria para los tests de integración y el desarrollo local. Configurá `.env`
+con PostgreSQL disponible y ejecutá `npm.cmd run migration:run`.
 
 Testcontainers no pudo ejecutarse en este entorno porque el daemon de Docker no estaba iniciado.
-La integración HTTP funciona con el fallback en memoria; antes de una entrega con PostgreSQL se
-debe repetir la migración y la prueba con Docker/PostgreSQL disponible.
+La integración HTTP requiere Docker/PostgreSQL disponible para ejecutar la migración y la prueba.
 
 ## Revisión manual
 
