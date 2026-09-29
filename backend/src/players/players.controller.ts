@@ -57,7 +57,11 @@ export class PlayersController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth('bearerAuth')
-  @ApiOperation({ summary: 'Actualizar una liga del catálogo base desde Football-Data.org' })
+  @ApiOperation({
+    summary: 'Actualizar una liga del catálogo y sus estadísticas',
+    description:
+      'Obtiene el catálogo base desde Football-Data.org y consulta WhoScored.com para enriquecer las estadísticas de los jugadores.',
+  })
   @ApiOkResponse({ type: RefreshCatalogoResponseDto })
   @ApiResponse({ status: 401, description: 'Token ausente, inválido o vencido.' })
   @ApiResponse({ status: 503, description: 'La fuente externa no está disponible.' })
