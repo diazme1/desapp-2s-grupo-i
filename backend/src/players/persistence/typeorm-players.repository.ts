@@ -55,6 +55,7 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
           idJugador: guardado.id,
           nombreJugador: jugador.nombre,
           equipoJugador: equipo.nombre,
+          ...(equipo.nombreCorto ? { equipoJugadorAlternativos: [equipo.nombreCorto] } : {}),
           ligaEquipoJugador: liga.nombre,
         });
       }

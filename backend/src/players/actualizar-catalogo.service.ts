@@ -6,7 +6,9 @@ import {
 import type { FootballDataPort } from './adapters/football-data/football-data.adapter';
 import {
   EstadisticasJugadorService,
+  resumirMotivosSinMatch,
   type ResultadoEstadisticasLiga,
+  type MotivoSinMatch,
 } from './estadisticas-jugador.service';
 import { PLAYERS_REPOSITORY } from './players.repository';
 import type { PlayersRepository } from './players.repository';
@@ -20,6 +22,7 @@ export interface ResumenEstadisticasRefresh {
   exitosos: number;
   parciales: number;
   fallidos: number;
+  motivoSinMatch: MotivoSinMatch | null;
 }
 
 @Injectable()
@@ -71,6 +74,11 @@ export class ActualizarCatalogoService {
     const parciales = resultados.reduce((total, resultado) => total + resultado.parciales, 0);
     const fallidos = resultados.reduce((total, resultado) => total + resultado.fallidos, 0);
     const persistibles = exitosos + parciales;
+    const motivoSinMatch = resumirMotivosSinMatch(
+      resultados.flatMap((resultado) =>
+        resultado.motivoSinMatch ? [resultado.motivoSinMatch] : [],
+      ),
+    );
     const estadisticas: ResumenEstadisticasRefresh = {
       estado:
         persistibles === 0
@@ -82,6 +90,7 @@ export class ActualizarCatalogoService {
       exitosos,
       parciales,
       fallidos,
+      motivoSinMatch: motivoSinMatch ?? null,
     };
     const tiempoExtraccionMs = Date.now() - inicioExtraccion;
     const { jugadoresProcesados: _jugadoresProcesados, ...resumenPublico } = resumen;

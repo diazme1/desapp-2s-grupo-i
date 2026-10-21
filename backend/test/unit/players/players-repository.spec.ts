@@ -21,6 +21,7 @@ function crearCatalogo() {
     proveedorId: 65,
     ligaId: liga.id,
     nombre: 'Manchester City FC',
+    nombreCorto: 'Man City',
   });
   const jugador = Jugador.crear({
     id: '8f4cf5a8-5b15-4d07-8f89-ecbdeec1f0fc',
@@ -78,6 +79,7 @@ describe('TypeOrmPlayersRepository para estadísticas', () => {
         idJugador: 'jugador-real',
         nombreJugador: 'Cristiano Ronaldo',
         equipoJugador: 'Manchester City FC',
+        equipoJugadorAlternativos: ['Man City'],
         ligaEquipoJugador: 'Premier League',
       },
     ]);

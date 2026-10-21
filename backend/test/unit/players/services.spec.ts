@@ -4,6 +4,7 @@ import { CatalogoJugadoresService } from '../../../src/players/catalogo-jugadore
 import {
   EstadisticasJugadorService,
   ResultadoEstadisticasLiga,
+  resumirMotivosSinMatch,
 } from '../../../src/players/estadisticas-jugador.service';
 import { Equipo } from '../../../src/players/domain/equipo';
 import { Jugador } from '../../../src/players/domain/jugador';
@@ -78,8 +79,16 @@ function resultado(
   exitosos: number,
   parciales: number,
   fallidos: number,
+  motivoSinMatch?: ResultadoEstadisticasLiga['motivoSinMatch'],
 ): ResultadoEstadisticasLiga {
-  return { estado, procesados, exitosos, parciales, fallidos };
+  return {
+    estado,
+    procesados,
+    exitosos,
+    parciales,
+    fallidos,
+    ...(motivoSinMatch ? { motivoSinMatch } : {}),
+  };
 }
 
 describe('Servicios del catálogo de jugadores', () => {
@@ -108,6 +117,7 @@ describe('Servicios del catálogo de jugadores', () => {
         exitosos: 1,
         parciales: 0,
         fallidos: 0,
+        motivoSinMatch: null,
       },
     });
     expect(invocaciones).toHaveBeenCalledWith('Liga Uno', [jugadorProcesado('local-1')]);
@@ -125,7 +135,7 @@ describe('Servicios del catálogo de jugadores', () => {
       jugadoresProcesados: [jugadorProcesado('local-1'), jugadorProcesado('local-2', 'Jugador Dos')],
     });
     const { servicio: estadisticasJugador, invocaciones } = crearServicioEstadisticas([
-      resultado('parcial', 2, 0, 1, 1),
+      resultado('parcial', 2, 0, 1, 1, 'sin_match_equipo'),
     ]);
     const service = new ActualizarCatalogoService(
       { obtenerCatalogo: jest.fn().mockResolvedValue(catalogo()) },
@@ -140,6 +150,7 @@ describe('Servicios del catálogo de jugadores', () => {
         exitosos: 0,
         parciales: 1,
         fallidos: 1,
+        motivoSinMatch: 'sin_match_equipo',
       },
     });
     expect(invocaciones).toHaveBeenCalledTimes(1);
@@ -204,6 +215,12 @@ describe('Servicios del catálogo de jugadores', () => {
       },
     });
     expect(invocaciones).not.toHaveBeenCalled();
+  });
+
+  it('resume motivos distintos como sin_match_completo', () => {
+    expect(
+      resumirMotivosSinMatch(['sin_match_nombre', 'sin_match_equipo']),
+    ).toBe('sin_match_completo');
   });
 
   it('no persiste ni ejecuta estadísticas cuando falla la fuente externa', async () => {
