@@ -138,6 +138,7 @@ describe('Catálogo base de jugadores', () => {
       exitosos: 1,
       parciales: 0,
       fallidos: 1,
+      motivoSinMatch: 'sin_match_equipo',
     });
 
     const response = await request(app)
@@ -151,6 +152,7 @@ describe('Catálogo base de jugadores', () => {
       exitosos: 1,
       parciales: 0,
       fallidos: 1,
+      motivoSinMatch: 'sin_match_equipo',
     });
     const players = await request(app).get('/players').expect(200);
     expect(players.body).toHaveLength(2);
@@ -167,6 +169,7 @@ describe('Catálogo base de jugadores', () => {
       exitosos: 0,
       parciales: 0,
       fallidos: 1,
+      motivoSinMatch: 'sin_match_nombre',
     });
 
     const response = await request(app)
@@ -180,6 +183,7 @@ describe('Catálogo base de jugadores', () => {
       exitosos: 0,
       parciales: 0,
       fallidos: 1,
+      motivoSinMatch: 'sin_match_nombre',
     });
     const players = await request(app).get('/players').expect(200);
     expect(players.body).toHaveLength(1);

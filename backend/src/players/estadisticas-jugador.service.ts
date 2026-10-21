@@ -6,6 +6,12 @@ import type {
   WhoScoredPlayerStats,
 } from './adapters/whoscored/whoscored.types';
 import type { JugadorProcesado } from './players.repository';
+import {
+  cargarAliasesEquipos,
+  normalizarLigaAlias,
+  resolverAliasEquipo,
+  type TeamAliases,
+} from './team-aliases';
 
 export interface EstadisticasJugadorWriterPort {
   guardar(
@@ -21,6 +27,15 @@ export interface WhoScoredLeagueLookupPort {
   ): Promise<WhoScoredLeagueLookupResult>;
 }
 
+export const MOTIVOS_SIN_MATCH = [
+  'sin_match_nombre',
+  'sin_match_liga',
+  'sin_match_equipo',
+  'sin_match_completo',
+] as const;
+
+export type MotivoSinMatch = (typeof MOTIVOS_SIN_MATCH)[number];
+
 export interface ResultadoEstadisticasLiga {
   estado: 'completo' | 'parcial' | 'sin_estadisticas';
   procesados: number;
@@ -28,17 +43,23 @@ export interface ResultadoEstadisticasLiga {
   parciales: number;
   fallidos: number;
   detalle?: string;
+  motivoSinMatch?: MotivoSinMatch;
 }
 
 const DEADLINE = Symbol('deadline');
 
 export class EstadisticasJugadorService {
+  private readonly aliasesEquipos: TeamAliases;
+
   constructor(
     private readonly whoscored: WhoScoredLeagueLookupPort,
     private readonly writer: EstadisticasJugadorWriterPort,
     private readonly reloj: () => number = Date.now,
     private readonly deadlineMs = 30_000,
-  ) {}
+    aliasesEquipos: TeamAliases = cargarAliasesEquipos(),
+  ) {
+    this.aliasesEquipos = aliasesEquipos;
+  }
 
   async actualizarEstadisticasLiga(
     liga: string,
@@ -70,13 +91,24 @@ export class EstadisticasJugadorService {
     }
 
     const usados = new Set<string>();
+    const motivosSinMatch = new Set<MotivoSinMatch>();
     let exitosos = 0;
     let parciales = 0;
     for (const jugador of jugadores) {
-      const coincidencias = resultado.jugadores.filter((item) =>
-        this.coincideJugador(jugador, item, liga),
+      const evaluaciones = resultado.jugadores.map((item) =>
+        this.evaluarCoincidencia(jugador, item, liga),
       );
-      if (coincidencias.length !== 1) continue;
+      const coincidencias = resultado.jugadores.filter(
+        (_item, index) => evaluaciones[index].coincideCompleto,
+      );
+      if (coincidencias.length !== 1) {
+        motivosSinMatch.add(
+          coincidencias.length > 1
+            ? 'sin_match_completo'
+            : this.determinarMotivoSinMatch(evaluaciones),
+        );
+        continue;
+      }
 
       const estadistica = coincidencias[0];
       if (usados.has(jugador.idJugador) || !this.tieneAlgunaMetrica(estadistica.metricas)) continue;
@@ -101,6 +133,7 @@ export class EstadisticasJugadorService {
     }
 
     const fallidos = jugadores.length - exitosos - parciales;
+    const motivoSinMatch = resumirMotivosSinMatch(motivosSinMatch);
     return {
       estado:
         exitosos + parciales === 0
@@ -113,6 +146,7 @@ export class EstadisticasJugadorService {
       parciales,
       fallidos,
       ...(resultado.detalle ? { detalle: resultado.detalle } : {}),
+      ...(motivoSinMatch ? { motivoSinMatch } : {}),
     };
   }
 
@@ -150,16 +184,57 @@ export class EstadisticasJugadorService {
     return Object.values(metricas).every((valor) => valor !== null);
   }
 
-  private coincideJugador(
+  private evaluarCoincidencia(
     jugador: JugadorProcesado,
     estadistica: WhoScoredPlayerStats,
     liga: string,
-  ): boolean {
-    return (
-      normalizarNombre(jugador.nombreJugador) === normalizarNombre(estadistica.nombre) &&
-      normalizarEquipo(jugador.equipoJugador) === normalizarEquipo(estadistica.equipo) &&
-      normalizarLiga(jugador.ligaEquipoJugador) === normalizarLiga(estadistica.liga || liga)
+  ): EvaluacionCoincidencia {
+    const nombresEquipo = [
+      jugador.equipoJugador,
+      ...(jugador.equipoJugadorAlternativos ?? []),
+    ];
+    const coincideNombre = normalizarNombre(jugador.nombreJugador) === normalizarNombre(estadistica.nombre);
+    const coincideEquipo = nombresEquipo.some(
+      (nombreEquipo) =>
+        normalizarEquipo(nombreEquipo, liga, this.aliasesEquipos) ===
+        normalizarEquipo(estadistica.equipo, liga, this.aliasesEquipos),
     );
+    const coincideLiga =
+      normalizarLigaAlias(jugador.ligaEquipoJugador) ===
+      normalizarLigaAlias(estadistica.liga || liga);
+
+    return {
+      coincideNombre,
+      coincideLiga,
+      coincideEquipo,
+      coincideCompleto: coincideNombre && coincideLiga && coincideEquipo,
+    };
+  }
+
+  private determinarMotivoSinMatch(
+    evaluaciones: EvaluacionCoincidencia[],
+  ): MotivoSinMatch {
+    if (!evaluaciones.some((evaluacion) => evaluacion.coincideNombre)) {
+      return 'sin_match_nombre';
+    }
+    if (
+      !evaluaciones.some(
+        (evaluacion) => evaluacion.coincideNombre && evaluacion.coincideLiga,
+      )
+    ) {
+      return 'sin_match_liga';
+    }
+    if (
+      !evaluaciones.some(
+        (evaluacion) =>
+          evaluacion.coincideNombre &&
+          evaluacion.coincideLiga &&
+          evaluacion.coincideEquipo,
+      )
+    ) {
+      return 'sin_match_equipo';
+    }
+    return 'sin_match_completo';
   }
 
   private resumenFallido(procesados: number, detalle?: string): ResultadoEstadisticasLiga {
@@ -172,7 +247,22 @@ export class EstadisticasJugadorService {
       ...(detalle ? { detalle } : {}),
     };
   }
+}
 
+interface EvaluacionCoincidencia {
+  coincideNombre: boolean;
+  coincideLiga: boolean;
+  coincideEquipo: boolean;
+  coincideCompleto: boolean;
+}
+
+export function resumirMotivosSinMatch(
+  motivos: Iterable<MotivoSinMatch>,
+): MotivoSinMatch | undefined {
+  const motivosUnicos = new Set(motivos);
+  if (motivosUnicos.size === 0) return undefined;
+  if (motivosUnicos.size === 1) return [...motivosUnicos][0];
+  return 'sin_match_completo';
 }
 
 function normalizarNombre(value: string): string {
@@ -184,16 +274,6 @@ function normalizarNombre(value: string): string {
     .trim();
 }
 
-function normalizarEquipo(value: string): string {
-  const partes = normalizarNombre(value).split(' ');
-  const sufijos = ['afc', 'fc', 'cf', 'sc', 'ac'];
-  if (sufijos.includes(partes[0])) partes.shift();
-  if (sufijos.includes(partes[partes.length - 1])) partes.pop();
-  return partes.join(' ');
-}
-
-function normalizarLiga(value: string): string {
-  const normalized = normalizarNombre(value);
-  if (['la liga', 'laliga', 'primera division'].includes(normalized)) return 'la liga';
-  return normalized;
+function normalizarEquipo(value: string, liga: string, aliases: TeamAliases): string {
+  return resolverAliasEquipo(value, liga, aliases);
 }
