@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Catálogo base de jugadores",
-    "description": "Pruebas de la Parte 1 del catálogo. Las consultas son locales; el refresh usa Football-Data.org.",
+    "description": "Pruebas del catálogo de jugadores y su historial de cotizaciones. Las consultas son locales; el refresh usa Football-Data.org.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -53,6 +53,23 @@
       "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
         "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
         "pm.test('Devuelve jugador, equipo y liga', () => pm.expect(pm.response.json()).to.have.all.keys('id', 'nombre', 'nombreCompleto', 'posicion', 'fechaNacimiento', 'nacionalidad', 'equipo', 'liga'));"
+      ] } }]
+    },
+    {
+      "name": "Historial de cotizaciones de jugador",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": "{{baseUrl}}/players/{{playerId}}/quotes?page=1&limit=20",
+        "description": "Devuelve el historial del jugador más reciente primero. page inicia en 1; limit es 20 por defecto y admite hasta 100. La respuesta incluye items, page, limit, total y totalPages. Ejecutar después de listar jugadores."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "pm.test('Devuelve el sobre de paginación', () => pm.expect(body).to.have.all.keys('items', 'page', 'limit', 'total', 'totalPages'));",
+        "pm.test('Devuelve una lista de cotizaciones', () => pm.expect(body.items).to.be.an('array'));",
+        "if (body.items.length > 0) pm.test('Incluye datos y procedencia de cotización', () => pm.expect(body.items[0]).to.have.all.keys('id', 'idJugador', 'fechaHora', 'cotizacion', 'tipoEstrategia', 'idVersionEstrategia', 'idRecalculo', 'idEstadistica'));"
       ] } }]
     }
   ]

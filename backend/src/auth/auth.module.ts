@@ -7,14 +7,19 @@ import { AuthService } from './auth.service';
 import { BcryptPasswordHasher } from './strategies/password-hasher';
 import { JwtTokenService } from './strategies/jwt-token.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { CATALOG_REFRESH_API_KEY_CONFIG, CatalogRefreshApiKeyGuard } from './guards/catalog-refresh-api-key.guard';
+import {
+  CATALOG_REFRESH_API_KEY_CONFIG,
+  CatalogRefreshApiKeyGuard,
+} from './guards/catalog-refresh-api-key.guard';
 import { OwnershipService } from './ownership/ownership.service';
+import { SuperadminBootstrapService } from './superadmin-bootstrap.service';
 
 @Module({
   imports: [UsersModule, JwtModule.register({})],
   controllers: [AuthController],
   providers: [
     AuthService,
+    SuperadminBootstrapService,
     BcryptPasswordHasher,
     JwtTokenService,
     JwtAuthGuard,
@@ -22,7 +27,8 @@ import { OwnershipService } from './ownership/ownership.service';
     {
       provide: CATALOG_REFRESH_API_KEY_CONFIG,
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => config.getOrThrow<string>('CATALOG_REFRESH_API_KEY'),
+      useFactory: (config: ConfigService) =>
+        config.getOrThrow<string>('CATALOG_REFRESH_API_KEY'),
     },
     OwnershipService,
   ],

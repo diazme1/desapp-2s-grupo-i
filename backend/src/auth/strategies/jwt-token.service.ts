@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { UserRole } from '../../users/domain/user';
 
 export interface JwtPayload {
   sub: string;
   correo: string;
+  rol?: UserRole;
 }
 
 @Injectable()
@@ -17,7 +19,8 @@ export class JwtTokenService {
     private readonly jwt: JwtService,
     config: ConfigService,
   ) {
-    this.secret = config.get<string>('JWT_SECRET') ?? 'test-only-secret-for-jest';
+    this.secret =
+      config.get<string>('JWT_SECRET') ?? 'test-only-secret-for-jest';
     this.expiresIn = config.get<string>('JWT_EXPIRES_IN') ?? '15m';
     const algorithm = config.get<string>('JWT_ALGORITHM');
     this.algorithm = ['HS256', 'HS384', 'HS512'].includes(algorithm ?? '')
@@ -34,13 +37,19 @@ export class JwtTokenService {
   }
 
   verify(token: string): JwtPayload {
-    return this.jwt.verify<JwtPayload>(token, { secret: this.secret, algorithms: [this.algorithm] });
+    return this.jwt.verify<JwtPayload>(token, {
+      secret: this.secret,
+      algorithms: [this.algorithm],
+    });
   }
 
   expirationSeconds(): number {
     const match = /^(\d+)(s|m|h|d)$/.exec(this.expiresIn);
     if (!match) return 900;
     const value = Number(match[1]);
-    return value * ({ s: 1, m: 60, h: 3600, d: 86400 } as Record<string, number>)[match[2]];
+    return (
+      value *
+      ({ s: 1, m: 60, h: 3600, d: 86400 } as Record<string, number>)[match[2]]
+    );
   }
 }
