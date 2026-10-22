@@ -15,6 +15,7 @@ export class TypeOrmUserRepository implements UserRepository {
       id: user.id,
       correo: user.correo,
       passwordHash: user.passwordHash,
+      rol: user.rol,
       creadoEn: user.creadoEn,
     });
     await this.dataSource.getRepository(UserEntity).save(entity);
@@ -29,7 +30,9 @@ export class TypeOrmUserRepository implements UserRepository {
   }
 
   async findById(id: string): Promise<User | null> {
-    const entity = await this.dataSource.getRepository(UserEntity).findOne({ where: { id } });
+    const entity = await this.dataSource
+      .getRepository(UserEntity)
+      .findOne({ where: { id } });
     return entity ? User.create(entity) : null;
   }
 }

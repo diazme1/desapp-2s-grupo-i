@@ -4,26 +4,42 @@ import { User } from '../../../src/users/domain/user';
 
 describe('AuthService', () => {
   it('inicia sesión y emite un token para credenciales válidas', async () => {
-    const user = User.create({ correo: 'user@example.com', passwordHash: 'hash' });
-    const repository = { findByEmail: jest.fn().mockResolvedValue(user) } as any;
+    const user = User.create({
+      correo: 'user@example.com',
+      passwordHash: 'hash',
+    });
+    const repository = {
+      findByEmail: jest.fn().mockResolvedValue(user),
+    } as any;
     const hasher = { compare: jest.fn().mockResolvedValue(true) } as any;
-    const tokens = { sign: jest.fn().mockReturnValue('jwt'), expirationSeconds: () => 900 } as any;
+    const tokens = {
+      sign: jest.fn().mockReturnValue('jwt'),
+      expirationSeconds: () => 900,
+    } as any;
     const service = new AuthService(repository, hasher, tokens);
-    await expect(service.login({ correo: ' USER@example.com ', password: 'secret123' })).resolves.toEqual({
+    await expect(
+      service.login({ correo: ' USER@example.com ', password: 'secret123' }),
+    ).resolves.toEqual({
       accessToken: 'jwt',
       tokenType: 'Bearer',
       expiresIn: 900,
     });
-    expect(tokens.sign).toHaveBeenCalledWith({ sub: user.id, correo: user.correo });
+    expect(tokens.sign).toHaveBeenCalledWith({
+      sub: user.id,
+      correo: user.correo,
+      rol: 'usuario',
+    });
   });
 
   it('inicia sesión rechaza un correo inexistente con un error uniforme', async () => {
-    const repository = { findByEmail: jest.fn().mockResolvedValue(null) } as any;
+    const repository = {
+      findByEmail: jest.fn().mockResolvedValue(null),
+    } as any;
     const hasher = { compare: jest.fn() } as any;
     const service = new AuthService(repository, hasher, {} as any);
-    await expect(service.login({ correo: 'none@example.com', password: 'secret123' })).rejects.toBeInstanceOf(
-      UnauthorizedException,
-    );
+    await expect(
+      service.login({ correo: 'none@example.com', password: 'secret123' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
     expect(hasher.compare).not.toHaveBeenCalled();
   });
 });
