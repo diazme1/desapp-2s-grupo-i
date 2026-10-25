@@ -1,4 +1,4 @@
-import { Column, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 import { JugadorEntity } from './jugador.entity';
 
 @Entity({ name: 'estadisticas_jugadores' })
@@ -31,4 +31,7 @@ export class EstadisticasJugadorEntity {
 
   @Column({ name: 'rating_whoscored', type: 'double precision', nullable: true })
   ratingWhoScored!: number | null;
+
+  @CreateDateColumn({ name: 'fecha_captura', type: 'timestamptz' })
+  fechaCaptura!: Date;
 }

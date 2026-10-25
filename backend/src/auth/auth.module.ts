@@ -7,6 +7,7 @@ import { AuthService } from './auth.service';
 import { BcryptPasswordHasher } from './strategies/password-hasher';
 import { JwtTokenService } from './strategies/jwt-token.service';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { SuperadminGuard } from './guards/superadmin.guard';
 import {
   CATALOG_REFRESH_API_KEY_CONFIG,
   CatalogRefreshApiKeyGuard,
@@ -23,6 +24,7 @@ import { SuperadminBootstrapService } from './superadmin-bootstrap.service';
     BcryptPasswordHasher,
     JwtTokenService,
     JwtAuthGuard,
+    SuperadminGuard,
     CatalogRefreshApiKeyGuard,
     {
       provide: CATALOG_REFRESH_API_KEY_CONFIG,
@@ -35,6 +37,7 @@ import { SuperadminBootstrapService } from './superadmin-bootstrap.service';
   exports: [
     AuthService,
     JwtAuthGuard,
+    SuperadminGuard,
     CatalogRefreshApiKeyGuard,
     CATALOG_REFRESH_API_KEY_CONFIG,
     JwtTokenService,

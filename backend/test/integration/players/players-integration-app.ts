@@ -19,9 +19,16 @@ import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrat
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { AddUserRoles1790275837000 } from '../../../migrations/1790275837000-AddUserRoles';
 import { CreateHistorialCotizacion1790275838000 } from '../../../migrations/1790275838000-CreateHistorialCotizacion';
+import { CreateCotizacionRecalculos1790275839000 } from '../../../migrations/1790275839000-CreateCotizacionRecalculos';
+import { CreateCotizacionVigente1790275840000 } from '../../../migrations/1790275840000-CreateCotizacionVigente';
+import { CurrentQuotesPerStrategy1790275841000 } from '../../../migrations/1790275841000-CurrentQuotesPerStrategy';
 import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
 import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { VersionEstrategiaCotizacionEntity } from '../../../src/players/persistence/version-estrategia-cotizacion.entity';
+import { RecalculoCotizacionEntity } from '../../../src/players/persistence/recalculo-cotizacion.entity';
+import { RecalculoCotizacionActivoEntity } from '../../../src/players/persistence/recalculo-cotizacion-activo.entity';
+import { CotizacionVigenteEntity } from '../../../src/players/persistence/cotizacion-vigente.entity';
 import { CATALOG_REFRESH_TEST_API_KEY } from '../helpers/integration-app';
 
 export type PlayersIntegrationMode = 'legacy' | 'strict';
@@ -73,6 +80,10 @@ export async function createPlayersIntegrationApp(
       JugadorEntity,
       EstadisticasJugadorEntity,
       HistorialCotizacionEntity,
+      VersionEstrategiaCotizacionEntity,
+      RecalculoCotizacionEntity,
+      RecalculoCotizacionActivoEntity,
+      CotizacionVigenteEntity,
     ],
     migrations: [
       CreateUsuarios1710000000000,
@@ -81,6 +92,9 @@ export async function createPlayersIntegrationApp(
       RenameEntradasAndAllowPerGameStats1790275836000,
       AddUserRoles1790275837000,
       CreateHistorialCotizacion1790275838000,
+      CreateCotizacionRecalculos1790275839000,
+      CreateCotizacionVigente1790275840000,
+      CurrentQuotesPerStrategy1790275841000,
     ],
     dropSchema: true,
     synchronize: false,
@@ -139,7 +153,10 @@ export async function createPlayersIntegrationApp(
       catalogRefreshApiKey: CATALOG_REFRESH_TEST_API_KEY,
       async resetData() {
         await dataSource.query(
-          'TRUNCATE TABLE historial_cotizacion, estadisticas_jugadores, jugadores, equipos, ligas, usuarios',
+          'TRUNCATE TABLE cotizacion_vigente, historial_cotizacion, recalculo_cotizacion_activo, recalculos_cotizacion, versiones_estrategia_cotizacion, estadisticas_jugadores, jugadores, equipos, ligas, usuarios',
+        );
+        await dataSource.query(
+          'INSERT INTO recalculo_cotizacion_activo (id, id_recalculo, tipo_estrategia) VALUES (1, NULL, NULL) ON CONFLICT (id) DO NOTHING',
         );
       },
       async close() {
