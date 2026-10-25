@@ -79,7 +79,6 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
     }).compile();
     const app = module.createNestApplication();
     configureApp(app);
-    app.enableShutdownHooks();
     await app.init();
 
     return {

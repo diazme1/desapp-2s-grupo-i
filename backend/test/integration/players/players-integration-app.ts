@@ -130,7 +130,6 @@ export async function createPlayersIntegrationApp(
         },
       );
     }
-    app.enableShutdownHooks();
     await app.init();
     return {
       app,

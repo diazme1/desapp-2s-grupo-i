@@ -22,10 +22,15 @@ import type { QuoteHistoryRepository } from '../../quotes/quotes.repository';
 export class TypeOrmPlayersRepository
   implements PlayersRepository, QuoteHistoryRepository
 {
+  private shutdownPromise?: Promise<void>;
+
   constructor(private readonly dataSource: DataSource) {}
 
-  async onApplicationShutdown(): Promise<void> {
-    if (this.dataSource.isInitialized) await this.dataSource.destroy();
+  onApplicationShutdown(): Promise<void> {
+    this.shutdownPromise ??= this.dataSource.isInitialized
+      ? this.dataSource.destroy()
+      : Promise.resolve();
+    return this.shutdownPromise;
   }
 
   async guardarCatalogo(

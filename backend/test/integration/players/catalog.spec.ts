@@ -202,7 +202,7 @@ describe('Catálogo base de jugadores', () => {
     expect(integration.estadisticasJugador.actualizarEstadisticasLiga).not.toHaveBeenCalled();
   });
 
-  it('conserva el contrato actual de error de persistencia y no ejecuta estadísticas', async () => {
+  it('rechaza un catálogo externo con relaciones inválidas antes de persistir', async () => {
     const app = integration.app.getHttpServer();
     const token = await autenticar(app, 'catalogo-persistence-error@example.com');
     const invalido = catalogo(1);
@@ -211,9 +211,10 @@ describe('Catálogo base de jugadores', () => {
     await request(app)
       .post('/catalog/refresh')
       .set('Authorization', `Bearer ${token}`)
-      .expect(500);
+      .expect(503);
 
     expect(integration.estadisticasJugador.actualizarEstadisticasLiga).not.toHaveBeenCalled();
+    await request(app).get('/players').expect(200).expect([]);
   });
 
   it('resuelve listado y detalle desde PostgreSQL y devuelve 404 para un id ausente', async () => {
