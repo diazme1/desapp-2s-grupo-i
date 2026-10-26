@@ -21,6 +21,9 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/football_market
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+      MARKET_TOKENIZATION_REQUIRE_STATS: ${MARKET_TOKENIZATION_REQUIRE_STATS:-true}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-this-please-32chars}
       JWT_EXPIRES_IN: 2h
       JWT_ALGORITHM: HS256

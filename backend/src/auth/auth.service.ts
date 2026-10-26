@@ -12,6 +12,7 @@ import { BcryptPasswordHasher } from './strategies/password-hasher';
 import { JwtTokenService } from './strategies/jwt-token.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { Creditos } from '../market/domain/creditos';
 
 export interface PublicUser {
   id: string;
@@ -39,7 +40,9 @@ export class AuthService {
     });
     let saved: User;
     try {
-      saved = await this.users.create(user);
+      saved = await this.users.create(user, {
+        saldoInicial: Creditos.inicial(),
+      });
     } catch (error) {
       if ((error as { code?: string }).code === '23505') {
         throw new ConflictException('El correo ya está registrado.');

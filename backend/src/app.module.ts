@@ -4,6 +4,7 @@ import { validateEnvironment } from './config/environment';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { PlayersModule } from './players/players.module';
+import { MarketModule } from './market/market.module';
 
 @Module({})
 export class AppModule {
@@ -19,6 +20,7 @@ export class AppModule {
         HealthModule,
         AuthModule,
         PlayersModule,
+        MarketModule,
       ],
     };
   }

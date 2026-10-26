@@ -10,15 +10,23 @@ import { CreateEstadisticasJugadores1790275835000 } from '../../../migrations/17
 import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrations/1790275836000-RenameEntradasAndAllowPerGameStats';
 import { AddUserRoles1790275837000 } from '../../../migrations/1790275837000-AddUserRoles';
 import { CreateHistorialCotizacion1790275838000 } from '../../../migrations/1790275838000-CreateHistorialCotizacion';
+import { ExtendHistorialCotizacionForMarketOpening1790275839000 } from '../../../migrations/1790275839000-ExtendHistorialCotizacionForMarketOpening';
+import { CreateSaldosUsuario1790275840000 } from '../../../migrations/1790275840000-CreateSaldosUsuario';
+import { CreateTokens1790275841000 } from '../../../migrations/1790275841000-CreateTokens';
+import { CreateTenenciasJugador1790275842000 } from '../../../migrations/1790275842000-CreateTenenciasJugador';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
 import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
 import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { SaldoUsuarioEntity } from '../../../src/users/persistence/saldo-usuario.entity';
+import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
+import { TenenciaJugadorEntity } from '../../../src/market/persistence/tenencia-jugador.entity';
 
 export interface IntegrationApp {
   app: INestApplication;
+  dataSource: DataSource;
   resetData(): Promise<void>;
   close(): Promise<void>;
 }
@@ -59,6 +67,9 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
         JugadorEntity,
         EstadisticasJugadorEntity,
         HistorialCotizacionEntity,
+        SaldoUsuarioEntity,
+        TokenJugadorEntity,
+        TenenciaJugadorEntity,
       ],
       migrations: [
         CreateUsuarios1710000000000,
@@ -67,6 +78,10 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
         RenameEntradasAndAllowPerGameStats1790275836000,
         AddUserRoles1790275837000,
         CreateHistorialCotizacion1790275838000,
+        ExtendHistorialCotizacionForMarketOpening1790275839000,
+        CreateSaldosUsuario1790275840000,
+        CreateTokens1790275841000,
+        CreateTenenciasJugador1790275842000,
       ],
       dropSchema: true,
       synchronize: false,
@@ -84,9 +99,12 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
 
     return {
       app,
+      dataSource: testDataSource,
       async resetData() {
         if (testDataSource?.isInitialized)
-          await testDataSource.query('TRUNCATE TABLE usuarios');
+          await testDataSource.query(
+            'TRUNCATE TABLE historial_cotizacion, tenencias_jugador, tokens, estadisticas_jugadores, jugadores, equipos, ligas, saldos_usuario, usuarios',
+          );
       },
       async close() {
         try {

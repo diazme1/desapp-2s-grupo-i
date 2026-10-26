@@ -19,9 +19,16 @@ import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrat
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { AddUserRoles1790275837000 } from '../../../migrations/1790275837000-AddUserRoles';
 import { CreateHistorialCotizacion1790275838000 } from '../../../migrations/1790275838000-CreateHistorialCotizacion';
+import { ExtendHistorialCotizacionForMarketOpening1790275839000 } from '../../../migrations/1790275839000-ExtendHistorialCotizacionForMarketOpening';
+import { CreateSaldosUsuario1790275840000 } from '../../../migrations/1790275840000-CreateSaldosUsuario';
+import { CreateTokens1790275841000 } from '../../../migrations/1790275841000-CreateTokens';
+import { CreateTenenciasJugador1790275842000 } from '../../../migrations/1790275842000-CreateTenenciasJugador';
 import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
 import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { SaldoUsuarioEntity } from '../../../src/users/persistence/saldo-usuario.entity';
+import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
+import { TenenciaJugadorEntity } from '../../../src/market/persistence/tenencia-jugador.entity';
 import { CATALOG_REFRESH_TEST_API_KEY } from '../helpers/integration-app';
 
 export type PlayersIntegrationMode = 'legacy' | 'strict';
@@ -41,7 +48,10 @@ export interface PlayersIntegrationApp {
 
 export async function createPlayersIntegrationApp(
   source: jest.Mocked<FootballDataPort>,
-  options: { mode?: PlayersIntegrationMode } = {},
+  options: {
+    mode?: PlayersIntegrationMode;
+    superadmin?: { email: string; password: string };
+  } = {},
 ): Promise<PlayersIntegrationApp> {
   const mode = options.mode ?? 'legacy';
   const previousCatalogRefreshApiKey = process.env.CATALOG_REFRESH_API_KEY;
@@ -60,8 +70,13 @@ export async function createPlayersIntegrationApp(
     .withStartupTimeout(120_000)
     .start();
   process.env.CATALOG_REFRESH_API_KEY = CATALOG_REFRESH_TEST_API_KEY;
-  delete process.env.SUPERADMIN_EMAIL;
-  delete process.env.SUPERADMIN_PASSWORD;
+  if (options.superadmin) {
+    process.env.SUPERADMIN_EMAIL = options.superadmin.email;
+    process.env.SUPERADMIN_PASSWORD = options.superadmin.password;
+  } else {
+    delete process.env.SUPERADMIN_EMAIL;
+    delete process.env.SUPERADMIN_PASSWORD;
+  }
   const databaseUrl = `postgres://postgres:postgres@${container.getHost()}:${container.getMappedPort(POSTGRES_PORT)}/football_market`;
   const dataSource = new DataSource({
     type: 'postgres',
@@ -73,6 +88,9 @@ export async function createPlayersIntegrationApp(
       JugadorEntity,
       EstadisticasJugadorEntity,
       HistorialCotizacionEntity,
+      SaldoUsuarioEntity,
+      TokenJugadorEntity,
+      TenenciaJugadorEntity,
     ],
     migrations: [
       CreateUsuarios1710000000000,
@@ -81,6 +99,10 @@ export async function createPlayersIntegrationApp(
       RenameEntradasAndAllowPerGameStats1790275836000,
       AddUserRoles1790275837000,
       CreateHistorialCotizacion1790275838000,
+      ExtendHistorialCotizacionForMarketOpening1790275839000,
+      CreateSaldosUsuario1790275840000,
+      CreateTokens1790275841000,
+      CreateTenenciasJugador1790275842000,
     ],
     dropSchema: true,
     synchronize: false,
@@ -140,7 +162,7 @@ export async function createPlayersIntegrationApp(
       catalogRefreshApiKey: CATALOG_REFRESH_TEST_API_KEY,
       async resetData() {
         await dataSource.query(
-          'TRUNCATE TABLE historial_cotizacion, estadisticas_jugadores, jugadores, equipos, ligas, usuarios',
+          'TRUNCATE TABLE historial_cotizacion, tenencias_jugador, tokens, estadisticas_jugadores, jugadores, equipos, ligas, saldos_usuario, usuarios',
         );
       },
       async close() {

@@ -14,9 +14,13 @@ export class SuperadminBootstrapService implements OnApplicationBootstrap {
   ) {}
 
   async onApplicationBootstrap(): Promise<void> {
+    await this.ensureSuperadmin();
+  }
+
+  async ensureSuperadmin(): Promise<User | null> {
     const correo = this.config.get<string>('SUPERADMIN_EMAIL');
     const password = this.config.get<string>('SUPERADMIN_PASSWORD');
-    if (!correo && !password) return;
+    if (!correo && !password) return null;
     if (!correo || !password) {
       throw new Error(
         'SUPERADMIN_EMAIL y SUPERADMIN_PASSWORD deben configurarse juntos.',
@@ -30,7 +34,7 @@ export class SuperadminBootstrapService implements OnApplicationBootstrap {
           'SUPERADMIN_EMAIL ya pertenece a una cuenta común; no se promovió automáticamente.',
         );
       }
-      return;
+      return existing;
     }
 
     const superadmin = User.create({
@@ -39,11 +43,12 @@ export class SuperadminBootstrapService implements OnApplicationBootstrap {
       rol: UserRole.SUPERADMIN,
     });
     try {
-      await this.users.create(superadmin);
+      return await this.users.create(superadmin);
     } catch (error) {
       if ((error as { code?: string }).code !== '23505') throw error;
       const racedUser = await this.users.findByEmail(correo);
       if (racedUser?.rol !== UserRole.SUPERADMIN) throw error;
+      return racedUser;
     }
   }
 }

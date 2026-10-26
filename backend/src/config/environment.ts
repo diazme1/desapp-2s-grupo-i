@@ -9,6 +9,7 @@ export function validateEnvironment(config: Record<string, unknown>): {
   JWT_ALGORITHM?: string;
   SUPERADMIN_EMAIL?: string;
   SUPERADMIN_PASSWORD?: string;
+  MARKET_TOKENIZATION_REQUIRE_STATS: boolean;
   FOOTBALL_DATA_API_URL?: string;
   FOOTBALL_DATA_API_TOKEN?: string;
   FOOTBALL_DATA_COMPETITIONS?: string;
@@ -71,6 +72,12 @@ export function validateEnvironment(config: Record<string, unknown>): {
     throw new Error('SUPERADMIN_PASSWORD debe tener al menos 8 caracteres.');
   }
 
+  const requirePlayerStats = parseBooleanConfig(
+    config.MARKET_TOKENIZATION_REQUIRE_STATS,
+    false,
+    'MARKET_TOKENIZATION_REQUIRE_STATS',
+  );
+
   const catalogRefreshApiKey = config.CATALOG_REFRESH_API_KEY;
   const catalogRefreshApiKeyIssue =
     getCatalogRefreshApiKeyConfigurationIssue(catalogRefreshApiKey);
@@ -124,6 +131,7 @@ export function validateEnvironment(config: Record<string, unknown>): {
     ...(superadminPassword !== undefined && {
       SUPERADMIN_PASSWORD: superadminPassword,
     }),
+    MARKET_TOKENIZATION_REQUIRE_STATS: requirePlayerStats,
     JWT_EXPIRES_IN: typeof jwtExpiresIn === 'string' ? jwtExpiresIn : '15m',
     JWT_ALGORITHM: typeof algorithm === 'string' ? algorithm : 'HS256',
     ...(typeof config.FOOTBALL_DATA_API_URL === 'string' && {
@@ -140,6 +148,19 @@ export function validateEnvironment(config: Record<string, unknown>): {
       FOOTBALL_DATA_REQUEST_DELAY_MS: requestDelayMs,
     }),
   };
+}
+
+function parseBooleanConfig(
+  value: unknown,
+  defaultValue: boolean,
+  name: string,
+): boolean {
+  if (value === undefined || (typeof value === 'string' && value.trim() === ''))
+    return defaultValue;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'true') return true;
+  if (normalized === 'false') return false;
+  throw new Error(`${name} debe ser true o false.`);
 }
 
 function optionalTrimmedString(value: unknown): string | undefined {
