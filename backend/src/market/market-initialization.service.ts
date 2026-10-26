@@ -49,7 +49,7 @@ export class MarketInitializationService implements OnApplicationBootstrap {
       requiereEstadisticas
         ? await this.market.listarIdsJugadoresConEstadisticas()
         : await this.market.listarIdsJugadores()
-    ).sort();
+    ).sort((a, b) => a.localeCompare(b));
     for (const jugadorId of jugadorIds)
       await this.inicializarJugadorConReintentos(jugadorId, superadmin);
   }
