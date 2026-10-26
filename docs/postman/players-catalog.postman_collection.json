@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Catálogo base de jugadores",
-    "description": "Pruebas del catálogo de jugadores y su historial de cotizaciones. Las consultas son locales; el refresh usa Football-Data.org.",
+    "name": "Cotizaciones y jugadores",
+    "description": "Ejecutar primero 'Iniciar sesión (superadmin)': guarda accessToken para las requests protegidas. El recálculo crea ambas estrategias; el body selecciona cuál queda activa. El ranking permite consultar cada estrategia sin recalcular.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -11,6 +11,37 @@
     { "key": "playerId", "value": "", "type": "string" }
   ],
   "item": [
+    {
+      "name": "Iniciar sesión (superadmin compartido)",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "noauth" },
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": { "mode": "raw", "raw": "{\n  \"correo\": \"admin@gmail.com\",\n  \"password\": \"admin\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/auth/login",
+        "description": "Credenciales compartidas de desarrollo. El test guarda el JWT en accessToken para usarlo en las requests protegidas."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Login exitoso', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "pm.test('Devuelve un accessToken', () => pm.expect(body.accessToken).to.be.a('string').and.not.empty);",
+        "if (body.accessToken) pm.collectionVariables.set('accessToken', body.accessToken);"
+      ] } }]
+    },
+    {
+      "name": "Verificar usuario autenticado",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+        "header": [],
+        "url": "{{baseUrl}}/auth/me",
+        "description": "Ejecutar después del login; confirma que el token corresponde al superadmin."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Token válido', () => pm.response.to.have.status(200));",
+        "pm.test('La cuenta es superadmin', () => pm.expect(pm.response.json()).to.have.property('rol', 'superadmin'));"
+      ] } }]
+    },
     {
       "name": "Actualizar catálogo base",
       "request": {
@@ -70,6 +101,64 @@
         "pm.test('Devuelve el sobre de paginación', () => pm.expect(body).to.have.all.keys('items', 'page', 'limit', 'total', 'totalPages'));",
         "pm.test('Devuelve una lista de cotizaciones', () => pm.expect(body.items).to.be.an('array'));",
         "if (body.items.length > 0) pm.test('Incluye datos y procedencia de cotización', () => pm.expect(body.items[0]).to.have.all.keys('id', 'idJugador', 'fechaHora', 'cotizacion', 'tipoEstrategia', 'idVersionEstrategia', 'idRecalculo', 'idEstadistica'));"
+      ] } }]
+    },
+    {
+      "name": "Recalcular cotizaciones (superadmin)",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": { "mode": "raw", "raw": "{\n  \"estrategia\": \"ataque_decisivo\"\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/quotes/recalculate",
+        "description": "Calcula ambas estrategias sincrónicamente usando estadísticas locales; el body elige cuál queda activa para compras/ventas. Requiere el JWT de un superadmin; no ejecuta el scraper. Cambiar el filtro del ranking no vuelve a calcular. Pesos (goles/asistencias/tiros/pases clave/regates/rating/faltas): ataque_decisivo 35/25/20/5/5/5/5; creacion_tecnica 5/15/5/30/25/15/5. Las faltas restan."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde después de una corrida exitosa', () => pm.response.to.have.status(200));",
+        "pm.test('Devuelve ambas estrategias y la corrida activa elegida', () => pm.expect(pm.response.json()).to.have.all.keys('idRecalculo', 'estrategia', 'estrategiasCalculadas', 'versionEstrategia', 'fechaHora', 'jugadoresCotizados', 'jugadoresSinEstadisticas'));"
+      ] } }]
+    },
+    {
+      "name": "Ranking por estrategia",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": "{{baseUrl}}/players/ranking?estrategia=ataque_decisivo",
+        "description": "Consulta cotizaciones vigentes por estrategia sin recalcular. Se puede cambiar estrategia por ataque_decisivo o creacion_tecnica; sin filtro usa la estrategia activa."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+        "pm.test('Devuelve estrategia y ranking', () => pm.expect(pm.response.json()).to.have.all.keys('estrategia', 'idRecalculo', 'fechaHora', 'jugadores'));",
+        "pm.test('Cotizaciones descendentes', () => { const jugadores = pm.response.json().jugadores; for (let i = 1; i < jugadores.length; i++) pm.expect(jugadores[i - 1].cotizacion).to.be.at.least(jugadores[i].cotizacion); });"
+      ] } }]
+    },
+    {
+      "name": "Ranking - Creación y técnica",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": "{{baseUrl}}/players/ranking?estrategia=creacion_tecnica",
+        "description": "Consulta el ranking de creación y técnica sin recalcular ni cambiar la estrategia activa."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+        "pm.test('Usa creación y técnica', () => pm.expect(pm.response.json().estrategia).to.eql('creacion_tecnica'));"
+      ] } }]
+    },
+    {
+      "name": "Ranking - Estrategia activa",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "noauth" },
+        "header": [],
+        "url": "{{baseUrl}}/players/ranking",
+        "description": "Consulta la estrategia actualmente seleccionada para compras/ventas."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+        "pm.test('Devuelve una estrategia válida o ninguna si no hay recálculo', () => pm.expect([null, 'ataque_decisivo', 'creacion_tecnica']).to.include(pm.response.json().estrategia));"
       ] } }]
     }
   ]

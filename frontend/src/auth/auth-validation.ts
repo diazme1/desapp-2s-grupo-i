@@ -12,7 +12,6 @@ export function validateLogin(values: LoginFormData): FieldErrors<'correo' | 'pa
   if (!correo) errors.correo = 'Ingresá tu correo electrónico.'
   else if (!emailPattern.test(correo)) errors.correo = 'Ingresá un correo electrónico válido.'
   if (!values.password) errors.password = 'Ingresá tu contraseña.'
-  else if (values.password.length < 8) errors.password = 'La contraseña debe tener al menos 8 caracteres.'
   return errors
 }
 

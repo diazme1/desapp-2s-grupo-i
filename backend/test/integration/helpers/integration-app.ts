@@ -10,12 +10,19 @@ import { CreateEstadisticasJugadores1790275835000 } from '../../../migrations/17
 import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrations/1790275836000-RenameEntradasAndAllowPerGameStats';
 import { AddUserRoles1790275837000 } from '../../../migrations/1790275837000-AddUserRoles';
 import { CreateHistorialCotizacion1790275838000 } from '../../../migrations/1790275838000-CreateHistorialCotizacion';
+import { CreateCotizacionRecalculos1790275839000 } from '../../../migrations/1790275839000-CreateCotizacionRecalculos';
+import { CreateCotizacionVigente1790275840000 } from '../../../migrations/1790275840000-CreateCotizacionVigente';
+import { CurrentQuotesPerStrategy1790275841000 } from '../../../migrations/1790275841000-CurrentQuotesPerStrategy';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
 import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
 import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { VersionEstrategiaCotizacionEntity } from '../../../src/players/persistence/version-estrategia-cotizacion.entity';
+import { RecalculoCotizacionEntity } from '../../../src/players/persistence/recalculo-cotizacion.entity';
+import { RecalculoCotizacionActivoEntity } from '../../../src/players/persistence/recalculo-cotizacion-activo.entity';
+import { CotizacionVigenteEntity } from '../../../src/players/persistence/cotizacion-vigente.entity';
 
 export interface IntegrationApp {
   app: INestApplication;
@@ -59,6 +66,10 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
         JugadorEntity,
         EstadisticasJugadorEntity,
         HistorialCotizacionEntity,
+        VersionEstrategiaCotizacionEntity,
+        RecalculoCotizacionEntity,
+        RecalculoCotizacionActivoEntity,
+        CotizacionVigenteEntity,
       ],
       migrations: [
         CreateUsuarios1710000000000,
@@ -67,6 +78,9 @@ export async function createIntegrationApp(): Promise<IntegrationApp> {
         RenameEntradasAndAllowPerGameStats1790275836000,
         AddUserRoles1790275837000,
         CreateHistorialCotizacion1790275838000,
+        CreateCotizacionRecalculos1790275839000,
+        CreateCotizacionVigente1790275840000,
+        CurrentQuotesPerStrategy1790275841000,
       ],
       dropSchema: true,
       synchronize: false,
