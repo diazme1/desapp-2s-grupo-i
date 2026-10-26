@@ -3,7 +3,7 @@
 ## Convenciones de exactitud
 
 - Los saldos usan unidades mínimas enteras con escala 2: `1 crédito = 100 unidades`.
-- `10.000,00 créditos = 1.000.000 unidades`.
+- `1.000,00 créditos = 100.000 unidades`.
 - Las cantidades de tokens son enteros.
 - Las cotizaciones usan el value object `Cotizacion`, basado en unidades mínimas enteras
   (`bigint`) con escala 2: `1.00 = 100` unidades y `83.75 = 8375` unidades.
@@ -50,7 +50,7 @@ Tabla: `saldos_usuario`.
 | Campo | Tipo lógico | Reglas |
 |---|---|---|
 | `id_usuario` | UUID | PK y FK a `usuarios(id)` con `ON DELETE RESTRICT`. |
-| `creditos_disponibles` | Entero grande | Unidades mínimas, no negativo. `1.000.000` para un usuario nuevo. |
+| `creditos_disponibles` | Entero grande | Unidades mínimas, no negativo. `100.000` para un usuario nuevo. |
 | `creado_en` | Fecha/hora | Obligatoria. |
 | `actualizado_en` | Fecha/hora | Obligatoria; cambia al modificar el saldo en features futuras. |
 

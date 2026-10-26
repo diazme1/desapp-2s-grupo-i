@@ -6,7 +6,7 @@
 
 ## Summary
 
-Extender el registro existente para crear el usuario y su saldo inicial de 10.000 créditos
+Extender el registro existente para crear el usuario y su saldo inicial de 1.000 créditos
 en una única transacción, sin modificar el contrato HTTP ni el bootstrap del superusuario.
 Agregar el fundamento persistente del Mercado con tokens individuales, tenencias agregadas y
 una inicialización interna idempotente que emita exactamente 100 tokens por jugador.
@@ -155,10 +155,10 @@ backend/
 │   │   └── historial-cotizacion.service.ts  # consulta existente sin nuevo endpoint
 │   └── database/data-source.ts
 ├── migrations/
-│   ├── *-ExtendHistorialCotizacionForMarketOpening.ts
-│   ├── *-CreateSaldosUsuario.ts
-│   ├── *-CreateTokens.ts
-│   └── *-CreateTenenciasJugador.ts
+│   ├── 1790275839000-ExtendHistorialCotizacionForMarketOpening.ts
+│   ├── 1790275840000-CreateSaldosUsuario.ts
+│   ├── 1790275841000-CreateTokens.ts
+│   └── 1790275842000-CreateTenenciasJugador.ts
 └── test/
     ├── unit/auth/
     ├── unit/users/
@@ -206,9 +206,5 @@ error del Service, del dominio o de la persistencia, la unidad completa se revie
 
 ## Complexity Tracking
 
-> **Fill ONLY if Constitution Check has violations that must be justified**
-
-| Violation | Why Needed | Simpler Alternative Rejected Because |
-|-----------|------------|-------------------------------------|
 No hay violaciones constitucionales que justificar. La separación de `market` y el DataSource
 compartido del contexto de jugadores son límites del diseño existente, no proyectos nuevos.

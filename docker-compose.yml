@@ -27,8 +27,6 @@ services:
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-this-please-32chars}
       JWT_EXPIRES_IN: 2h
       JWT_ALGORITHM: HS256
-      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-admin@gmail.com}
-      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-admin}
       CATALOG_REFRESH_API_KEY: ${CATALOG_REFRESH_API_KEY:-}
       FOOTBALL_DATA_API_URL: ${FOOTBALL_DATA_API_URL:-https://api.football-data.org/v4}
       FOOTBALL_DATA_API_TOKEN: ${FOOTBALL_DATA_API_TOKEN:-}

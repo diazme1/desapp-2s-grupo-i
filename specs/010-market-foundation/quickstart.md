@@ -32,7 +32,7 @@ sí mismas.
 2. Verificar HTTP 201, rol `usuario`, ausencia de contraseña en la respuesta y contrato
    público sin campos nuevos obligatorios.
 3. Consultar PostgreSQL de forma directa en el entorno de validación y comprobar una sola
-   fila en `saldos_usuario` con `creditos_disponibles = 1000000`.
+   fila en `saldos_usuario` con `creditos_disponibles = 100000`.
 4. Repetir el registro con el mismo correo normalizado y comprobar HTTP 409, una sola cuenta y
    un solo saldo.
 5. Simular un error de persistencia del saldo en un test de repositorio y comprobar rollback

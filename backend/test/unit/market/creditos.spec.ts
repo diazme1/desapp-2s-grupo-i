@@ -2,7 +2,7 @@ import { Creditos } from '../../../src/market/domain/creditos';
 
 describe('Creditos', () => {
   it('representa el saldo en unidades mínimas exactas', () => {
-    expect(Creditos.inicial().toUnidades()).toBe(1_000_000n);
+    expect(Creditos.inicial().toUnidades()).toBe(100_000n);
     expect(Creditos.fromDecimal('10000.00').toDecimalString()).toBe('10000.00');
     expect(Creditos.fromDecimal('1.5').toUnidades()).toBe(150n);
   });

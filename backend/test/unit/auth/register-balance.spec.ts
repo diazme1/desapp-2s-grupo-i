@@ -19,7 +19,7 @@ describe('AuthService.register con saldo inicial', () => {
       expect.anything(),
       { saldoInicial: expect.any(Creditos) },
     );
-    expect(repository.create.mock.calls[0][1].saldoInicial.toUnidades()).toBe(1_000_000n);
+    expect(repository.create.mock.calls[0][1].saldoInicial.toUnidades()).toBe(100_000n);
     expect(result).not.toHaveProperty('saldoInicial');
   });
 });

@@ -175,11 +175,10 @@ export async function createPlayersIntegrationApp(
       catalogRefreshApiKey: CATALOG_REFRESH_TEST_API_KEY,
       async resetData() {
         await dataSource.query(
-          'TRUNCATE TABLE cotizacion_vigente, historial_cotizacion, recalculo_cotizacion_activo, recalculos_cotizacion, versiones_estrategia_cotizacion, estadisticas_jugadores, jugadores, equipos, ligas, usuarios',
+          'TRUNCATE TABLE cotizacion_vigente, historial_cotizacion, tenencias_jugador, tokens, recalculo_cotizacion_activo, recalculos_cotizacion, versiones_estrategia_cotizacion, estadisticas_jugadores, jugadores, equipos, ligas, saldos_usuario, usuarios',
         );
         await dataSource.query(
           'INSERT INTO recalculo_cotizacion_activo (id, id_recalculo, tipo_estrategia) VALUES (1, NULL, NULL) ON CONFLICT (id) DO NOTHING',
-          'TRUNCATE TABLE historial_cotizacion, tenencias_jugador, tokens, estadisticas_jugadores, jugadores, equipos, ligas, saldos_usuario, usuarios',
         );
       },
       async close() {

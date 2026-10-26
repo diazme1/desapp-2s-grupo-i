@@ -6,7 +6,7 @@
 
 **Status**: Draft
 
-**Input**: User description: "Especificar la feature market-foundation de Football Player Market reutilizando autenticación, registro, superusuario, catálogo e historial de cotizaciones. Asignar 10.000 créditos iniciales a cada nuevo usuario, crear tokens individuales, emitir 100 tokens por jugador inicialmente propiedad del superusuario a 1 crédito por token, hacer idempotente la inicialización, separar tokens, cotizaciones y transacciones, y definir saldos y tenencias. Dejar fuera compra, venta, portfolio, historial de operaciones y financiamiento de recompras. Incluir pruebas unitarias y de integración con PostgreSQL sin modificar tests existentes."
+**Input**: User description: "Especificar la feature market-foundation de Football Player Market reutilizando autenticación, registro, superusuario, catálogo e historial de cotizaciones. Asignar 1.000 créditos iniciales a cada nuevo usuario, crear tokens individuales, emitir 100 tokens por jugador inicialmente propiedad del superusuario a 1 crédito por token, hacer idempotente la inicialización, separar tokens, cotizaciones y transacciones, y definir saldos y tenencias. Dejar fuera compra, venta, portfolio, historial de operaciones y financiamiento de recompras. Incluir pruebas unitarias y de integración con PostgreSQL sin modificar tests existentes."
 
 ## Contexto y estado actual
 
@@ -29,21 +29,21 @@ del superusuario.
 ### User Story 1 - Registrar una cuenta con saldo inicial (Priority: P1)
 
 Como persona que se incorpora al mercado, quiero que mi cuenta nueva reciba automáticamente
-10.000 créditos para quedar habilitada para futuras operaciones, sin tener que realizar una
+1.000 créditos para quedar habilitada para futuras operaciones, sin tener que realizar una
 carga manual.
 
 **Why this priority**: El saldo inicial es una condición previa para que una cuenta nueva
 pueda participar del Mercado y debe quedar consistente desde el primer momento.
 
 **Independent Test**: Registrar una cuenta válida mediante el endpoint existente y verificar
-que se crea un único saldo de 10.000 créditos junto con el usuario, sin tocar los flujos de
+que se crea un único saldo de 1.000 créditos junto con el usuario, sin tocar los flujos de
 login ni crear otro endpoint.
 
 **Acceptance Scenarios**:
 
 1. **Given** que no existe el correo normalizado, **When** se usa el registro existente con
    credenciales válidas, **Then** se crea el usuario con rol `usuario` y un saldo disponible
-   de exactamente 10.000 créditos.
+   de exactamente 1.000 créditos.
 2. **Given** un correo ya registrado, **When** se repite el registro con cualquier
    combinación de mayúsculas o espacios equivalentes, **Then** se rechaza el intento, no se
    crea otro usuario y no se acredita ningún saldo adicional.
@@ -158,7 +158,7 @@ necesitan una base de relaciones e invariantes definida desde ahora.
 ### Functional Requirements
 
 - **FR-001**: El sistema MUST extender el flujo existente de registro para acreditar
-  automáticamente 10.000 créditos exactos al nuevo usuario, manteniendo el endpoint,
+  automáticamente 1.000 créditos exactos al nuevo usuario, manteniendo el endpoint,
   autenticación y rol `usuario` ya existentes.
 - **FR-002**: El registro MUST crear la identidad y su saldo como una única operación
   consistente: si cualquiera de los dos estados no puede persistirse, no debe quedar el otro
@@ -190,7 +190,7 @@ necesitan una base de relaciones e invariantes definida desde ahora.
   precio, valor actual ni precio promedio.
 - **FR-011**: El sistema MUST definir y persistir un saldo por usuario, con créditos exactos,
   no negativos y una relación uno a uno con la identidad. El saldo inicial de un usuario
-  registrado será 10.000 créditos; esta feature no define una carga inicial especial para el
+  registrado será 1.000 créditos; esta feature no define una carga inicial especial para el
   superusuario existente.
 - **FR-012**: El sistema MUST definir una tenencia agregada por par usuario-jugador, con
   cantidad de tokens no negativa y una restricción de unicidad por par. La cantidad debe ser
@@ -209,7 +209,7 @@ necesitan una base de relaciones e invariantes definida desde ahora.
   consistencia entre entidades, sin modificar ni eliminar tests existentes.
 - **FR-017**: El contrato público del registro existente MUST conservar su forma actual y
   MUST NOT requerir un endpoint duplicado para informar o consultar el saldo; la asignación
-  de 10.000 créditos se verifica mediante el saldo persistido. No se requiere agregar
+  de 1.000 créditos se verifica mediante el saldo persistido. No se requiere agregar
   endpoints públicos de compra, venta, saldo, tenencias o portfolio en esta feature.
 
 ### Entidades y relaciones
@@ -259,7 +259,7 @@ necesitan una base de relaciones e invariantes definida desde ahora.
 
 ### Incluido
 
-- Extensión del registro existente con saldo inicial de 10.000 créditos.
+- Extensión del registro existente con saldo inicial de 1.000 créditos.
 - Persistencia de tokens individuales y su propietario actual.
 - Inicialización idempotente de 100 tokens por jugador del catálogo.
 - Registro de la cotización de apertura de 1 crédito en el sistema de cotizaciones existente.
@@ -281,7 +281,7 @@ necesitan una base de relaciones e invariantes definida desde ahora.
 ### Measurable Outcomes
 
 - **SC-001**: El 100 % de los registros válidos probados crea exactamente una cuenta de rol
-  `usuario` y un saldo inicial de 10.000 créditos; el 100 % de los registros duplicados o
+  `usuario` y un saldo inicial de 1.000 créditos; el 100 % de los registros duplicados o
   inválidos probados deja cero cuentas y saldos parciales nuevos.
 - **SC-002**: Para el 100 % de los jugadores presentes en el catálogo al momento de la
   inicialización, el suministro final contiene exactamente 100 tokens distintos y no existe
@@ -319,7 +319,7 @@ necesitan una base de relaciones e invariantes definida desde ahora.
 - La cotización de apertura se agrega al historial existente solo cuando no existe la
   apertura equivalente; las cotizaciones previas se conservan y no se reescriben.
 - Los créditos se tratan como una magnitud exacta con dos decimales como mínimo; el valor
-  inicial de 10.000 representa 10.000,00 créditos.
+  inicial de 1.000 representa 1.000,00 créditos.
 - La tenencia agregada es una vista persistida de soporte para futuras operaciones, pero los
   tokens individuales son la fuente de identidad y propietario actual.
 - Las futuras transacciones serán inmutables y append-only, pero esta feature no necesita

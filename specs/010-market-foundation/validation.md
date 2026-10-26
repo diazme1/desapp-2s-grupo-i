@@ -13,12 +13,12 @@ resiliencia de lecturas locales y compatibilidad de los endpoints existentes.
 
 | Verificación | Comando o consulta | Resultado | Evidencia / observaciones |
 |---|---|---|---|
-| Build | `npm run build` desde `backend/` | PASS | Ejecutado después de la implementación; Nest compiló sin errores. |
+| Build | `npm run build` desde `backend/` y `docker compose exec -T api npm run build` | PASS | Nest compiló sin errores dentro y fuera del contenedor. |
 | Lint | `npm run lint` desde `backend/` | PASS | 0 warnings y 0 errors. |
-| Migraciones | Comandos de migración definidos en `backend/package.json` | Pendiente de ejecución | |
-| Tests unitarios | `npm run test:unit` desde `backend/` | PASS parcial | 41 suites pasan (193 tests); permanece un fallo ambiental preexistente de Supertest por `listen EPERM` en `quote-history-openapi.spec.ts`. Las suites nuevas también pasan. |
-| Tests de integración | `npm run test:integration` desde `backend/` | Bloqueado por entorno | Testcontainers no encuentra runtime; las suites contra PostgreSQL local fallan al conectar a `::1/127.0.0.1:5433` con `EPERM`. No se pudo validar la ejecución real de PostgreSQL en este entorno. |
-| Quickstart | Verificaciones de `quickstart.md` | Pendiente de ejecución | |
+| Migraciones | `docker compose up` y `docker compose exec -T api npx typeorm-ts-node-commonjs migration:show -d src/database/data-source.ts` | PASS | Las 13 migraciones figuran aplicadas y no quedan migraciones pendientes. Las tablas de cotizaciones, saldos, tokens y tenencias existen en PostgreSQL. Se conserva como observación la existencia histórica de timestamps duplicados. |
+| Tests unitarios | `npm run test:unit` desde `backend/` | PASS | 46 suites y 206 tests aprobados. |
+| Tests de integración | `npm run test:integration` desde `backend/` | PASS | 19 suites y 61 tests aprobados contra PostgreSQL/Testcontainers. |
+| Quickstart | `docker compose config --quiet`, consultas de migraciones y verificación de PostgreSQL | PASS parcial | Compose es válido y el esquema/migraciones fueron verificados. Queda pendiente la ejecución manual completa de los pasos operativos de registro, concurrencia y reintentos descritos en `quickstart.md`. |
 
 ## Casos obligatorios
 
@@ -32,5 +32,8 @@ resiliencia de lecturas locales y compatibilidad de los endpoints existentes.
 
 ## Estado de cierre
 
-La feature solo puede marcarse como terminada cuando todas las verificaciones tienen resultado
-registrado, los tests existentes permanecen sin modificaciones y no quedan incidencias abiertas.
+La implementación y las suites automatizadas cumplen los resultados esperados. La evidencia
+manual completa del quickstart queda pendiente antes de marcar T044 como cerrada. La
+duplicación histórica de timestamps de migraciones no produjo migraciones pendientes ni
+fallos en la ejecución, pero debe conservarse sin renombrar porque las identidades ya están
+registradas en PostgreSQL.

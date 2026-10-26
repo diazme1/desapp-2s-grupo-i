@@ -7,7 +7,7 @@ describe('SaldoUsuario', () => {
       usuarioId: 'user-id',
       creditosDisponibles: Creditos.inicial(),
     });
-    expect(saldo.debitar(Creditos.fromDecimal('0.25')).creditosDisponibles.toUnidades()).toBe(999975n);
-    expect(saldo.acreditar(Creditos.fromDecimal('0.25')).creditosDisponibles.toUnidades()).toBe(1_000_025n);
+    expect(saldo.debitar(Creditos.fromDecimal('0.25')).creditosDisponibles.toUnidades()).toBe(99_975n);
+    expect(saldo.acreditar(Creditos.fromDecimal('0.25')).creditosDisponibles.toUnidades()).toBe(100_025n);
   });
 });

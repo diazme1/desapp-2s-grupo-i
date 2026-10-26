@@ -48,7 +48,6 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
       useExisting: FootballDataAdapter,
     },
     {
-      provide: TypeOrmPlayersRepository,
       provide: PLAYERS_DATA_SOURCE,
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
@@ -81,7 +80,7 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
       },
     },
     {
-      provide: PLAYERS_REPOSITORY,
+      provide: TypeOrmPlayersRepository,
       inject: [PLAYERS_DATA_SOURCE],
       useFactory: (dataSource: DataSource) =>
         new TypeOrmPlayersRepository(dataSource),

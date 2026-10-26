@@ -74,7 +74,7 @@ describe('lecturas locales sin proveedor externo', () => {
     await integration.dataSource.getRepository(EstadisticasJugadorEntity).save({
       id: 'd4fd866a-1c58-4423-99eb-56e70d745205',
       jugador: { id: 'd4fd866a-1c58-4423-99eb-56e70d745201' },
-      goles: null,
+      goles: 0,
       asistencias: null,
       tiros: null,
       pasesClave: null,

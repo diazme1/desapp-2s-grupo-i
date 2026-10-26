@@ -18,14 +18,14 @@
   - Inyectar un nuevo servicio de saldos en `AuthService`: descartado para esta iteración
     porque exigiría coordinar dos repositorios y rompería la forma de los tests unitarios
     existentes.
-  - Hacer que todo `UserRepository.create` acredite 10.000: descartado porque también se
+  - Hacer que todo `UserRepository.create` acredite 1.000: descartado porque también se
     usa en el bootstrap del superusuario.
 
 ## Decisión 2: Representación exacta de créditos y cotizaciones
 
 - **Decisión**: Persistir saldos y cotizaciones mediante value objects basados en unidades
   mínimas enteras `bigint`, con escala fija de dos decimales. `Creditos` representa
-  `10.000,00` como `1.000.000` unidades y `Cotizacion` representa `1.00` como `100` unidades
+  `1.000,00` como `100.000` unidades y `Cotizacion` representa `1.00` como `100` unidades
   y `83.75` como `8375` unidades.
 - **Decisión de persistencia**: PostgreSQL conserva `numeric(14,2)` para
   `historial_cotizacion.cotizacion`. El transformer recibe el texto decimal exacto de `pg`, lo
@@ -147,7 +147,7 @@
 - **Alternativas consideradas**:
   - Emitir tokens desde la migración: descartado porque no hay garantía de catálogo ni
     superusuario y mezcla DDL con lógica de negocio.
-  - Dar 10.000 créditos a usuarios ya existentes: descartado; la spec limita la asignación a
+  - Dar 1.000 créditos a usuarios ya existentes: descartado; la spec limita la asignación a
     nuevos registros y no define una carga retroactiva.
 
 ## Decisión 8: Tests y soporte existente

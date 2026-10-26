@@ -15,7 +15,7 @@ export class Creditos {
   }
 
   static inicial(): Creditos {
-    return Creditos.fromUnidades(1_000_000n);
+    return Creditos.fromUnidades(100_000n);
   }
 
   toUnidades(): bigint {

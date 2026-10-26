@@ -17,7 +17,7 @@ describe('POST /auth/register y saldo inicial', () => {
   afterEach(async () => integration?.resetData());
   afterAll(async () => integration?.close());
 
-  it('mantiene el contrato HTTP y crea exactamente un saldo de 10.000,00', async () => {
+  it('mantiene el contrato HTTP y crea exactamente un saldo de 1.000,00', async () => {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
       .send({ correo: 'balance@example.com', password: 'secret123' })
@@ -27,7 +27,7 @@ describe('POST /auth/register y saldo inicial', () => {
       'SELECT id_usuario, creditos_disponibles FROM saldos_usuario WHERE id_usuario = $1',
       [response.body.id],
     );
-    expect(rows).toEqual([{ id_usuario: response.body.id, creditos_disponibles: '1000000' }]);
+    expect(rows).toEqual([{ id_usuario: response.body.id, creditos_disponibles: '100000' }]);
   });
 
   it('deja una sola cuenta y un solo saldo ante registros concurrentes del mismo correo', async () => {
@@ -45,6 +45,6 @@ describe('POST /auth/register y saldo inicial', () => {
       ['race@example.com'],
     );
     expect(rows).toHaveLength(1);
-    expect(rows[0].creditos_disponibles).toBe('1000000');
+    expect(rows[0].creditos_disponibles).toBe('100000');
   });
 });

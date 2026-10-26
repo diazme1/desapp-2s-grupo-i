@@ -36,7 +36,7 @@ describe('TypeOrmUserRepository', () => {
     expect(dataSource.transaction).toHaveBeenCalledTimes(1);
     expect(userRepository.save).toHaveBeenCalledTimes(1);
     expect(balanceRepository.save).toHaveBeenCalledWith(
-      expect.objectContaining({ creditosDisponibles: 1_000_000n }),
+      expect.objectContaining({ creditosDisponibles: 100_000n }),
     );
     expect(manager.getRepository).toHaveBeenCalledWith(SaldoUsuarioEntity);
   });

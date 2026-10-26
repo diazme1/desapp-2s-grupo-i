@@ -57,10 +57,10 @@ helpers de integración respetan las nuevas claves foráneas sin tocar los tests
 ## Phase 3: User Story 1 - Registrar una cuenta con saldo inicial (Priority: P1) 🎯 MVP
 
 **Objetivo**: conservar el contrato público de registro y crear usuario más saldo inicial de
-10.000,00 créditos en una única operación atómica.
+1.000,00 créditos en una única operación atómica.
 
 **Prueba independiente**: un registro nuevo devuelve el mismo contrato HTTP, persiste una
-única cuenta con `1.000.000` unidades mínimas y deja cero cambios ante duplicado, error o
+única cuenta con `100.000` unidades mínimas y deja cero cambios ante duplicado, error o
 rollback.
 
 ### Tests para User Story 1
@@ -74,7 +74,7 @@ rollback.
 ### Implementación de User Story 1
 
 - [X] T020 [US1] Extender el puerto de usuarios y `AuthService.register` con una opción interna de saldo inicial, manteniendo el contrato público, la normalización del correo, el rol `usuario` y los códigos HTTP actuales, en `backend/src/users/users.repository.ts` y `backend/src/auth/auth.service.ts` (depende de T018-T019).
-- [X] T021 [US1] Implementar en `TypeOrmUserRepository` la transacción atómica que persiste usuario y `SaldoUsuario` con `1.000.000` unidades, delega invariantes al dominio y deja a PostgreSQL resolver la unicidad de correo; cubrir su rollback unitario sin mezclarlo con el test HTTP, en `backend/src/users/persistence/typeorm-user.repository.ts`, `backend/src/users/persistence/saldo-usuario.entity.ts` y `backend/test/unit/users/typeorm-user.repository.spec.ts` (depende de T020).
+- [X] T021 [US1] Implementar en `TypeOrmUserRepository` la transacción atómica que persiste usuario y `SaldoUsuario` con `100.000` unidades, delega invariantes al dominio y deja a PostgreSQL resolver la unicidad de correo; cubrir su rollback unitario sin mezclarlo con el test HTTP, en `backend/src/users/persistence/typeorm-user.repository.ts`, `backend/src/users/persistence/saldo-usuario.entity.ts` y `backend/test/unit/users/typeorm-user.repository.spec.ts` (depende de T020).
 - [X] T022 [US1] Incorporar `SaldoUsuarioEntity` al DataSource de usuarios y conservar constructores/proveedores compatibles con los tests actuales, en `backend/src/users/users.module.ts` y `backend/src/database/data-source.ts` (depende de T021).
 - [X] T023 [US1] Verificar que `SuperadminBootstrapService` siga creando o reutilizando únicamente el superusuario configurado y no reciba el saldo inicial del registro, sin reimplementar bootstrap ni roles, en `backend/src/auth/superadmin-bootstrap.service.ts`, `backend/src/auth/auth.module.ts` y `backend/test/unit/auth/superadmin-bootstrap-market-balance.spec.ts` (depende de T021-T022; el test de regresión es nuevo y no modifica `backend/test/unit/auth/superadmin-bootstrap.spec.ts`).
 
@@ -156,7 +156,7 @@ sin ampliar el alcance funcional.
 - [X] T041 [P] Agregar una prueba de integración de resiliencia local que deshabilite o simule indisponible el proveedor externo y verifique que las lecturas de jugadores, tokens y cotizaciones ya persistidas continúan funcionando, sin modificar tests existentes, en `backend/test/integration/players/local-resilience.spec.ts` (depende de T038; puede ejecutarse en paralelo con T039 porque T039 solo valida migraciones y ambos cubren superficies independientes).
 - [X] T042 Actualizar la guía operativa con comandos, consultas de verificación, casos de concurrencia, rollback, precisión y resiliencia local, en `specs/010-market-foundation/quickstart.md` (depende de T031 y T039-T041).
 - [X] T043 Revisar trazabilidad entre requisitos, decisiones y tareas, confirmando que no aparezcan tareas de compra, venta, portfolio, historial de operaciones, financiamiento de recompras, creación del superusuario ni endpoints públicos nuevos, en `specs/010-market-foundation/spec.md`, `specs/010-market-foundation/plan.md`, `specs/010-market-foundation/research.md` y `specs/010-market-foundation/tasks.md` (depende de T038-T042).
-- [ ] T044 Ejecutar la validación final de build, lint, migraciones, tests unitarios, tests de integración con PostgreSQL/Testcontainers y verificaciones del quickstart; registrar comandos, resultados, incidencias y evidencia en `specs/010-market-foundation/validation.md`, separado del código fuente y de los tests (depende de T039-T043).
+- [X] T044 Ejecutar la validación final de build, lint, migraciones, tests unitarios, tests de integración con PostgreSQL/Testcontainers y verificaciones del quickstart; registrar comandos, resultados, incidencias y evidencia en `specs/010-market-foundation/validation.md`, separado del código fuente y de los tests (depende de T039-T043).
 
 ## Dependencias y orden de ejecución
 
