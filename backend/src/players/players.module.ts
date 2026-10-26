@@ -15,6 +15,10 @@ import { EstadisticasJugadorEntity } from './persistence/estadisticas-jugador.en
 import { JugadorEntity } from './persistence/jugador.entity';
 import { LigaEntity } from './persistence/liga.entity';
 import { HistorialCotizacionEntity } from './persistence/historial-cotizacion.entity';
+import { CotizacionVigenteEntity } from './persistence/cotizacion-vigente.entity';
+import { VersionEstrategiaCotizacionEntity } from './persistence/version-estrategia-cotizacion.entity';
+import { RecalculoCotizacionEntity } from './persistence/recalculo-cotizacion.entity';
+import { RecalculoCotizacionActivoEntity } from './persistence/recalculo-cotizacion-activo.entity';
 import { TypeOrmPlayersRepository } from './persistence/typeorm-players.repository';
 import { TypeOrmQuoteOpeningWriter } from './persistence/typeorm-quote-opening-writer';
 import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
@@ -24,13 +28,19 @@ import { PLAYERS_REPOSITORY } from './players.repository';
 import { PlayersController } from './players.controller';
 import { HistorialCotizacionService } from '../quotes/historial-cotizacion.service';
 import { QUOTE_HISTORY_REPOSITORY } from '../quotes/quotes.repository';
+import { QuotesController } from '../quotes/quotes.controller';
+import { RecalcularCotizacionesService } from '../quotes/recalcular-cotizaciones.service';
+import { QUOTE_RECALCULATION_REPOSITORY } from '../quotes/quote-recalculation.repository';
+import { QUOTE_RANKING_REPOSITORY } from '../quotes/quote-ranking.repository';
+import { RankingCotizacionesService } from '../quotes/ranking-cotizaciones.service';
+import { RankingController } from '../quotes/ranking.controller';
 import { QUOTE_OPENING_WRITER } from '../quotes/quote-opening-writer';
 
 export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
 
 @Module({
   imports: [AuthModule],
-  controllers: [PlayersController],
+  controllers: [RankingController, PlayersController, QuotesController],
   providers: [
     FootballDataAdapter,
     {
@@ -38,6 +48,7 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
       useExisting: FootballDataAdapter,
     },
     {
+      provide: TypeOrmPlayersRepository,
       provide: PLAYERS_DATA_SOURCE,
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
@@ -56,6 +67,10 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
             JugadorEntity,
             EstadisticasJugadorEntity,
             HistorialCotizacionEntity,
+            CotizacionVigenteEntity,
+            VersionEstrategiaCotizacionEntity,
+            RecalculoCotizacionEntity,
+            RecalculoCotizacionActivoEntity,
             TokenJugadorEntity,
             TenenciaJugadorEntity,
           ],
@@ -77,8 +92,19 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
     },
     {
       provide: QUOTE_HISTORY_REPOSITORY,
-      inject: [PLAYERS_REPOSITORY],
-      useFactory: (players: TypeOrmPlayersRepository) => players,
+      useExisting: TypeOrmPlayersRepository,
+    },
+    {
+      provide: QUOTE_RECALCULATION_REPOSITORY,
+      useExisting: TypeOrmPlayersRepository,
+    },
+    {
+      provide: QUOTE_RANKING_REPOSITORY,
+      useExisting: TypeOrmPlayersRepository,
+    },
+    {
+      provide: PLAYERS_REPOSITORY,
+      useExisting: TypeOrmPlayersRepository,
     },
     WhoScoredAdapter,
     {
@@ -95,6 +121,8 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
     },
     CatalogoJugadoresService,
     HistorialCotizacionService,
+    RecalcularCotizacionesService,
+    RankingCotizacionesService,
     ActualizarCatalogoService,
   ],
   exports: [

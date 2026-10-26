@@ -7,6 +7,10 @@ import { EstadisticasJugadorEntity } from '../players/persistence/estadisticas-j
 import { JugadorEntity } from '../players/persistence/jugador.entity';
 import { LigaEntity } from '../players/persistence/liga.entity';
 import { HistorialCotizacionEntity } from '../players/persistence/historial-cotizacion.entity';
+import { CotizacionVigenteEntity } from '../players/persistence/cotizacion-vigente.entity';
+import { VersionEstrategiaCotizacionEntity } from '../players/persistence/version-estrategia-cotizacion.entity';
+import { RecalculoCotizacionEntity } from '../players/persistence/recalculo-cotizacion.entity';
+import { RecalculoCotizacionActivoEntity } from '../players/persistence/recalculo-cotizacion-activo.entity';
 import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../market/persistence/tenencia-jugador.entity';
 
@@ -21,6 +25,10 @@ export default new DataSource({
     JugadorEntity,
     EstadisticasJugadorEntity,
     HistorialCotizacionEntity,
+    CotizacionVigenteEntity,
+    VersionEstrategiaCotizacionEntity,
+    RecalculoCotizacionEntity,
+    RecalculoCotizacionActivoEntity,
     TokenJugadorEntity,
     TenenciaJugadorEntity,
   ],

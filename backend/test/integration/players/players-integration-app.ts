@@ -19,6 +19,9 @@ import { RenameEntradasAndAllowPerGameStats1790275836000 } from '../../../migrat
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { AddUserRoles1790275837000 } from '../../../migrations/1790275837000-AddUserRoles';
 import { CreateHistorialCotizacion1790275838000 } from '../../../migrations/1790275838000-CreateHistorialCotizacion';
+import { CreateCotizacionRecalculos1790275839000 } from '../../../migrations/1790275839000-CreateCotizacionRecalculos';
+import { CreateCotizacionVigente1790275840000 } from '../../../migrations/1790275840000-CreateCotizacionVigente';
+import { CurrentQuotesPerStrategy1790275841000 } from '../../../migrations/1790275841000-CurrentQuotesPerStrategy';
 import { ExtendHistorialCotizacionForMarketOpening1790275839000 } from '../../../migrations/1790275839000-ExtendHistorialCotizacionForMarketOpening';
 import { CreateSaldosUsuario1790275840000 } from '../../../migrations/1790275840000-CreateSaldosUsuario';
 import { CreateTokens1790275841000 } from '../../../migrations/1790275841000-CreateTokens';
@@ -26,6 +29,10 @@ import { CreateTenenciasJugador1790275842000 } from '../../../migrations/1790275
 import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
 import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { VersionEstrategiaCotizacionEntity } from '../../../src/players/persistence/version-estrategia-cotizacion.entity';
+import { RecalculoCotizacionEntity } from '../../../src/players/persistence/recalculo-cotizacion.entity';
+import { RecalculoCotizacionActivoEntity } from '../../../src/players/persistence/recalculo-cotizacion-activo.entity';
+import { CotizacionVigenteEntity } from '../../../src/players/persistence/cotizacion-vigente.entity';
 import { SaldoUsuarioEntity } from '../../../src/users/persistence/saldo-usuario.entity';
 import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../../../src/market/persistence/tenencia-jugador.entity';
@@ -88,6 +95,10 @@ export async function createPlayersIntegrationApp(
       JugadorEntity,
       EstadisticasJugadorEntity,
       HistorialCotizacionEntity,
+      VersionEstrategiaCotizacionEntity,
+      RecalculoCotizacionEntity,
+      RecalculoCotizacionActivoEntity,
+      CotizacionVigenteEntity,
       SaldoUsuarioEntity,
       TokenJugadorEntity,
       TenenciaJugadorEntity,
@@ -99,6 +110,9 @@ export async function createPlayersIntegrationApp(
       RenameEntradasAndAllowPerGameStats1790275836000,
       AddUserRoles1790275837000,
       CreateHistorialCotizacion1790275838000,
+      CreateCotizacionRecalculos1790275839000,
+      CreateCotizacionVigente1790275840000,
+      CurrentQuotesPerStrategy1790275841000,
       ExtendHistorialCotizacionForMarketOpening1790275839000,
       CreateSaldosUsuario1790275840000,
       CreateTokens1790275841000,
@@ -152,7 +166,6 @@ export async function createPlayersIntegrationApp(
         },
       );
     }
-    app.enableShutdownHooks();
     await app.init();
     return {
       app,
@@ -162,6 +175,10 @@ export async function createPlayersIntegrationApp(
       catalogRefreshApiKey: CATALOG_REFRESH_TEST_API_KEY,
       async resetData() {
         await dataSource.query(
+          'TRUNCATE TABLE cotizacion_vigente, historial_cotizacion, recalculo_cotizacion_activo, recalculos_cotizacion, versiones_estrategia_cotizacion, estadisticas_jugadores, jugadores, equipos, ligas, usuarios',
+        );
+        await dataSource.query(
+          'INSERT INTO recalculo_cotizacion_activo (id, id_recalculo, tipo_estrategia) VALUES (1, NULL, NULL) ON CONFLICT (id) DO NOTHING',
           'TRUNCATE TABLE historial_cotizacion, tenencias_jugador, tokens, estadisticas_jugadores, jugadores, equipos, ligas, saldos_usuario, usuarios',
         );
       },
