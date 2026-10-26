@@ -5,11 +5,19 @@ import { EquipoEntity } from '../players/persistence/equipo.entity';
 import { EstadisticasJugadorEntity } from '../players/persistence/estadisticas-jugador.entity';
 import { JugadorEntity } from '../players/persistence/jugador.entity';
 import { LigaEntity } from '../players/persistence/liga.entity';
+import { HistorialCotizacionEntity } from '../players/persistence/historial-cotizacion.entity';
 
 export default new DataSource({
   type: 'postgres',
   url: process.env.DATABASE_URL,
-  entities: [UserEntity, LigaEntity, EquipoEntity, JugadorEntity, EstadisticasJugadorEntity],
+  entities: [
+    UserEntity,
+    LigaEntity,
+    EquipoEntity,
+    JugadorEntity,
+    EstadisticasJugadorEntity,
+    HistorialCotizacionEntity,
+  ],
   migrations: ['migrations/*.ts'],
   synchronize: false,
 });

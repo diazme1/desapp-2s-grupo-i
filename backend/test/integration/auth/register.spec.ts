@@ -1,6 +1,9 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
-import { createIntegrationApp, IntegrationApp } from '../helpers/integration-app';
+import {
+  createIntegrationApp,
+  IntegrationApp,
+} from '../helpers/integration-app';
 
 describe('POST /auth/register', () => {
   let app: INestApplication;
@@ -18,6 +21,7 @@ describe('POST /auth/register', () => {
       .send({ correo: ' Created@Example.com ', password: 'secret123' })
       .expect(201);
     expect(response.body.correo).toBe('created@example.com');
+    expect(response.body.rol).toBe('usuario');
     expect(response.body.password).toBeUndefined();
     expect(response.body.passwordHash).toBeUndefined();
   });
@@ -45,7 +49,11 @@ describe('POST /auth/register', () => {
   it('rechaza propiedades no permitidas con 422', async () => {
     const response = await request(app.getHttpServer())
       .post('/auth/register')
-      .send({ correo: 'extra@example.com', password: 'secret123', role: 'admin' })
+      .send({
+        correo: 'extra@example.com',
+        password: 'secret123',
+        role: 'admin',
+      })
       .expect(422);
     expect(response.body.statusCode).toBe(422);
   });

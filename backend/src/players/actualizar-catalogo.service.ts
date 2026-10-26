@@ -11,7 +11,7 @@ import {
   type MotivoSinMatch,
 } from './estadisticas-jugador.service';
 import { PLAYERS_REPOSITORY } from './players.repository';
-import type { PlayersRepository } from './players.repository';
+import type { CatalogoBase, PlayersRepository } from './players.repository';
 import { Inject } from '@nestjs/common';
 
 export type EstadoEstadisticasRefresh = 'completo' | 'parcial' | 'sin_estadisticas';
@@ -34,7 +34,7 @@ export class ActualizarCatalogoService {
   ) {}
 
   async ejecutar(ligaCodigo?: string) {
-    let catalogo;
+    let catalogo: CatalogoBase;
     const inicioExtraccion = Date.now();
     try {
       catalogo = await this.source.obtenerCatalogo(ligaCodigo);
@@ -46,6 +46,7 @@ export class ActualizarCatalogoService {
       throw new ServiceUnavailableException(message);
     }
 
+    this.validarCatalogo(catalogo);
     const resumen = await this.players.guardarCatalogo(catalogo);
     const gruposPorLiga = new Map<string, typeof resumen.jugadoresProcesados>();
     for (const jugador of resumen.jugadoresProcesados) {
@@ -106,5 +107,32 @@ export class ActualizarCatalogoService {
 
   private formatearDuracion(milisegundos: number): string {
     return `${(milisegundos / 1000).toFixed(2)} s`;
+  }
+
+  private validarCatalogo(catalogo: CatalogoBase): void {
+    if (
+      !catalogo ||
+      !Array.isArray(catalogo.ligas) ||
+      !Array.isArray(catalogo.equipos) ||
+      !Array.isArray(catalogo.jugadores)
+    ) {
+      throw new ServiceUnavailableException(
+        'Football-Data.org devolvió un catálogo inválido.',
+      );
+    }
+
+    const ligaIds = new Set(catalogo.ligas.map((liga) => liga.id));
+    if (catalogo.equipos.some((equipo) => !ligaIds.has(equipo.ligaId))) {
+      throw new ServiceUnavailableException(
+        'Football-Data.org devolvió un equipo sin liga válida.',
+      );
+    }
+
+    const equipoIds = new Set(catalogo.equipos.map((equipo) => equipo.id));
+    if (catalogo.jugadores.some((jugador) => !equipoIds.has(jugador.equipoId))) {
+      throw new ServiceUnavailableException(
+        'Football-Data.org devolvió un jugador sin equipo válido.',
+      );
+    }
   }
 }

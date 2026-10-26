@@ -48,12 +48,20 @@ npm run start:dev
 - `POST /auth/login` para obtener un JWT Bearer.
 - `GET /auth/me` requiere `Authorization: Bearer <token>`.
 
+Para crear el superadmin inicial, configurá `SUPERADMIN_EMAIL` y `SUPERADMIN_PASSWORD` en el
+`.env` local. Después de aplicar las migraciones, el primer inicio crea la cuenta con la contraseña
+hasheada; los siguientes inicios no la modifican. El registro público siempre crea cuentas con rol
+`usuario` y no permite elegir un rol. Si el correo configurado ya pertenece a un usuario común,
+el backend se niega a promoverlo y no inicia.
+
 ## Catálogo base de jugadores
 
 Después de ejecutar las migraciones, el backend expone:
 
 - `GET /players`: devuelve jugadores persistidos localmente y no consulta proveedores externos.
 - `GET /players/:id`: devuelve el detalle por el UUID interno del jugador.
+- `GET /players/:id/quotes`: devuelve el historial de cotizaciones del jugador, más reciente primero.
+  Acepta `page` (por defecto `1`) y `limit` (por defecto `20`, máximo `100`).
 - `POST /catalog/refresh?ligaCodigo=PL`: requiere un JWT Bearer y `X-API-Key` válidos e importa
   una liga, sus equipos y jugadores base desde Football-Data.org. La API key no se exige en las
   consultas de jugadores ni en los demás endpoints.
