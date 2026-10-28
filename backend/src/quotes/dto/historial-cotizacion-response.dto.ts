@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { QuoteHistoryItem } from '../quotes.repository';
+import { Cotizacion } from '../../market/domain/cotizacion';
 
 export class CotizacionHistorialItemResponseDto {
   @ApiProperty({ format: 'uuid' })
@@ -11,7 +12,10 @@ export class CotizacionHistorialItemResponseDto {
   @ApiProperty({ format: 'date-time' })
   fechaHora!: Date;
 
-  @ApiProperty({ example: 82.5 })
+  @ApiProperty({
+    example: 82.5,
+    description: 'Número JSON de presentación; no se utiliza para cálculos financieros.',
+  })
   cotizacion!: number;
 
   @ApiProperty({ example: 'ataque_decisivo' })
@@ -20,18 +24,21 @@ export class CotizacionHistorialItemResponseDto {
   @ApiProperty({ format: 'uuid' })
   idVersionEstrategia!: string;
 
-  @ApiProperty({ format: 'uuid' })
-  idRecalculo!: string;
+  @ApiProperty({ format: 'uuid', nullable: true })
+  idRecalculo!: string | null;
 
-  @ApiProperty({ format: 'uuid' })
-  idEstadistica!: string;
+  @ApiProperty({ format: 'uuid', nullable: true })
+  idEstadistica!: string | null;
 
   static from(item: QuoteHistoryItem): CotizacionHistorialItemResponseDto {
     const dto = new CotizacionHistorialItemResponseDto();
     dto.id = item.id;
     dto.idJugador = item.jugadorId;
     dto.fechaHora = item.fechaHora;
-    dto.cotizacion = item.cotizacion;
+    dto.cotizacion =
+      item.cotizacion instanceof Cotizacion
+        ? parseFloat(item.cotizacion.toDecimalString())
+        : item.cotizacion;
     dto.tipoEstrategia = item.tipoEstrategia;
     dto.idVersionEstrategia = item.idVersionEstrategia;
     dto.idRecalculo = item.idRecalculo;

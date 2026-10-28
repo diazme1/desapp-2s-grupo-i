@@ -179,11 +179,14 @@ export class TypeOrmPlayersRepository
         id: entity.id,
         jugadorId,
         fechaHora: entity.fechaHora,
+        // PostgreSQL rows are transformed to Cotizacion. The numeric branch
+        // exists only for legacy unit fixtures and does not enter writes or
+        // financial calculations.
         cotizacion: entity.cotizacion,
         tipoEstrategia: entity.tipoEstrategia,
         idVersionEstrategia: entity.idVersionEstrategia,
         idRecalculo: entity.idRecalculo,
-        idEstadistica: entity.estadistica.id,
+        idEstadistica: entity.estadistica?.id ?? null,
       })),
       total,
     };

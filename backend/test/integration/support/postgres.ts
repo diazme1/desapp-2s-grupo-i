@@ -2,6 +2,8 @@ import { GenericContainer, type StartedTestContainer, Wait } from 'testcontainer
 import { DataSource } from 'typeorm';
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
+import { SaldoUsuarioEntity } from '../../../src/users/persistence/saldo-usuario.entity';
+import { CreateSaldosUsuario1790275840000 } from '../../../migrations/1790275840000-CreateSaldosUsuario';
 
 const POSTGRES_IMAGE = 'postgres:16-alpine';
 const POSTGRES_PORT = 5432;
@@ -27,8 +29,8 @@ export async function startTestDatabase(): Promise<TestDatabase> {
   const dataSource = new DataSource({
     type: 'postgres',
     url,
-    entities: [UserEntity],
-    migrations: [CreateUsuarios1710000000000],
+    entities: [UserEntity, SaldoUsuarioEntity],
+    migrations: [CreateUsuarios1710000000000, CreateSaldosUsuario1790275840000],
     synchronize: false,
   });
 

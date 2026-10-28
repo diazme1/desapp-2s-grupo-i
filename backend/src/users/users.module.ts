@@ -4,6 +4,7 @@ import { DataSource } from 'typeorm';
 import { USER_REPOSITORY } from './users.repository';
 import { TypeOrmUserRepository } from './persistence/typeorm-user.repository';
 import { UserEntity } from './persistence/user.entity';
+import { SaldoUsuarioEntity } from './persistence/saldo-usuario.entity';
 
 @Module({
   providers: [
@@ -18,7 +19,7 @@ import { UserEntity } from './persistence/user.entity';
         const dataSource = new DataSource({
           type: 'postgres',
           url,
-          entities: [UserEntity],
+          entities: [UserEntity, SaldoUsuarioEntity],
           synchronize: false,
         });
         await dataSource.initialize();

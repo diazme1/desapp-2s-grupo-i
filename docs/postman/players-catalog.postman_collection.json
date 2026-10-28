@@ -93,14 +93,15 @@
         "auth": { "type": "noauth" },
         "header": [],
         "url": "{{baseUrl}}/players/{{playerId}}/quotes?page=1&limit=20",
-        "description": "Devuelve el historial del jugador más reciente primero. page inicia en 1; limit es 20 por defecto y admite hasta 100. La respuesta incluye items, page, limit, total y totalPages. Ejecutar después de listar jugadores."
+        "description": "Devuelve el historial del jugador más reciente primero. page inicia en 1; limit es 20 por defecto y admite hasta 100. La respuesta incluye items, page, limit, total y totalPages. La apertura de mercado puede tener idRecalculo e idEstadistica nulos; las cotizaciones calculadas conservan ambas referencias. Ejecutar después de listar jugadores."
       },
       "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
         "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
         "const body = pm.response.json();",
         "pm.test('Devuelve el sobre de paginación', () => pm.expect(body).to.have.all.keys('items', 'page', 'limit', 'total', 'totalPages'));",
         "pm.test('Devuelve una lista de cotizaciones', () => pm.expect(body.items).to.be.an('array'));",
-        "if (body.items.length > 0) pm.test('Incluye datos y procedencia de cotización', () => pm.expect(body.items[0]).to.have.all.keys('id', 'idJugador', 'fechaHora', 'cotizacion', 'tipoEstrategia', 'idVersionEstrategia', 'idRecalculo', 'idEstadistica'));"
+        "if (body.items.length > 0) pm.test('Incluye datos y procedencia de cotización', () => pm.expect(body.items[0]).to.have.all.keys('id', 'idJugador', 'fechaHora', 'cotizacion', 'tipoEstrategia', 'idVersionEstrategia', 'idRecalculo', 'idEstadistica'));",
+        "if (body.items.length > 0 && body.items[0].tipoEstrategia === 'apertura_mercado') pm.test('La apertura usa cotización 1.00 y procedencia nula', () => { pm.expect(body.items[0].cotizacion).to.eql(1); pm.expect(body.items[0].idRecalculo).to.eql(null); pm.expect(body.items[0].idEstadistica).to.eql(null); });"
       ] } }]
     },
     {

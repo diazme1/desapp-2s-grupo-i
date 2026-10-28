@@ -8,13 +8,15 @@ import {
 } from 'typeorm';
 import { JugadorEntity } from './jugador.entity';
 import { EstadisticasJugadorEntity } from './estadisticas-jugador.entity';
+import { Cotizacion } from '../../market/domain/cotizacion';
 
 const numericTransformer = {
-  to(value: number): number {
-    return value;
+  to(value: Cotizacion | string | number): string {
+    if (value instanceof Cotizacion) return value.toDecimalString();
+    return Cotizacion.fromDecimal(String(value)).toDecimalString();
   },
-  from(value: string | number): number {
-    return Number(value);
+  from(value: string | number): Cotizacion {
+    return Cotizacion.fromDecimal(String(value));
   },
 };
 
@@ -42,7 +44,10 @@ export class HistorialCotizacionEntity {
     scale: 2,
     transformer: numericTransformer,
   })
-  cotizacion!: number;
+  // `number` is retained only as an input compatibility type for existing
+  // fixtures that persist calculated historical rows. Reads are transformed to
+  // the exact Cotizacion value object before entering the application layer.
+  cotizacion!: Cotizacion | number;
 
   @Column({ name: 'tipo_estrategia', type: 'varchar', length: 60 })
   tipoEstrategia!: string;
@@ -50,13 +55,13 @@ export class HistorialCotizacionEntity {
   @Column({ name: 'id_version_estrategia', type: 'uuid' })
   idVersionEstrategia!: string;
 
-  @Column({ name: 'id_recalculo', type: 'uuid' })
-  idRecalculo!: string;
+  @Column({ name: 'id_recalculo', type: 'uuid', nullable: true })
+  idRecalculo!: string | null;
 
   @ManyToOne(() => EstadisticasJugadorEntity, {
-    nullable: false,
+    nullable: true,
     onDelete: 'RESTRICT',
   })
   @JoinColumn({ name: 'id_estadistica' })
-  estadistica!: EstadisticasJugadorEntity;
+  estadistica!: EstadisticasJugadorEntity | null;
 }

@@ -20,6 +20,10 @@ import { VersionEstrategiaCotizacionEntity } from './persistence/version-estrate
 import { RecalculoCotizacionEntity } from './persistence/recalculo-cotizacion.entity';
 import { RecalculoCotizacionActivoEntity } from './persistence/recalculo-cotizacion-activo.entity';
 import { TypeOrmPlayersRepository } from './persistence/typeorm-players.repository';
+import { TypeOrmQuoteOpeningWriter } from './persistence/typeorm-quote-opening-writer';
+import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
+import { TenenciaJugadorEntity } from '../market/persistence/tenencia-jugador.entity';
+import { UserEntity } from '../users/persistence/user.entity';
 import { PLAYERS_REPOSITORY } from './players.repository';
 import { PlayersController } from './players.controller';
 import { HistorialCotizacionService } from '../quotes/historial-cotizacion.service';
@@ -30,6 +34,9 @@ import { QUOTE_RECALCULATION_REPOSITORY } from '../quotes/quote-recalculation.re
 import { QUOTE_RANKING_REPOSITORY } from '../quotes/quote-ranking.repository';
 import { RankingCotizacionesService } from '../quotes/ranking-cotizaciones.service';
 import { RankingController } from '../quotes/ranking.controller';
+import { QUOTE_OPENING_WRITER } from '../quotes/quote-opening-writer';
+
+export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
 
 @Module({
   imports: [AuthModule],
@@ -41,7 +48,7 @@ import { RankingController } from '../quotes/ranking.controller';
       useExisting: FootballDataAdapter,
     },
     {
-      provide: TypeOrmPlayersRepository,
+      provide: PLAYERS_DATA_SOURCE,
       inject: [ConfigService],
       useFactory: async (config: ConfigService) => {
         const url = config.get<string>('DATABASE_URL');
@@ -53,6 +60,7 @@ import { RankingController } from '../quotes/ranking.controller';
           type: 'postgres',
           url,
           entities: [
+            UserEntity,
             LigaEntity,
             EquipoEntity,
             JugadorEntity,
@@ -62,12 +70,24 @@ import { RankingController } from '../quotes/ranking.controller';
             VersionEstrategiaCotizacionEntity,
             RecalculoCotizacionEntity,
             RecalculoCotizacionActivoEntity,
+            TokenJugadorEntity,
+            TenenciaJugadorEntity,
           ],
           synchronize: false,
         });
         await dataSource.initialize();
-        return new TypeOrmPlayersRepository(dataSource);
+        return dataSource;
       },
+    },
+    {
+      provide: TypeOrmPlayersRepository,
+      inject: [PLAYERS_DATA_SOURCE],
+      useFactory: (dataSource: DataSource) =>
+        new TypeOrmPlayersRepository(dataSource),
+    },
+    {
+      provide: QUOTE_OPENING_WRITER,
+      useClass: TypeOrmQuoteOpeningWriter,
     },
     {
       provide: QUOTE_HISTORY_REPOSITORY,
@@ -106,6 +126,8 @@ import { RankingController } from '../quotes/ranking.controller';
   ],
   exports: [
     PLAYERS_REPOSITORY,
+    PLAYERS_DATA_SOURCE,
+    QUOTE_OPENING_WRITER,
     CatalogoJugadoresService,
     ActualizarCatalogoService,
   ],

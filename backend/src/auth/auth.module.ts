@@ -42,6 +42,7 @@ import { SuperadminBootstrapService } from './superadmin-bootstrap.service';
     CATALOG_REFRESH_API_KEY_CONFIG,
     JwtTokenService,
     OwnershipService,
+    SuperadminBootstrapService,
   ],
 })
 export class AuthModule {}
