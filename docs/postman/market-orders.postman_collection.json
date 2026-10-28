@@ -1,0 +1,89 @@
+{
+  "info": {
+    "name": "Football Player Market - Orders",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "playerId", "value": "" },
+    { "key": "idempotencyKey", "value": "postman-buy-1" }
+  ],
+  "item": [
+    {
+      "name": "Login usuario",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"usuario@example.com\",\n  \"password\": \"password\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comprar tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 2\n}"
+        },
+        "url": "{{baseUrl}}/orders/buy"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('compra confirmada o replay', () => pm.expect([201]).to.include(pm.response.code));",
+              "pm.test('importe y cotización son strings', () => { const body = pm.response.json(); pm.expect(body.cotizacion).to.be.a('string'); pm.expect(body.importe).to.be.a('string'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay de compra",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 2\n}"
+        },
+        "url": "{{baseUrl}}/orders/buy"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('replay idempotente', () => pm.expect(pm.response.code).to.eql(201));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

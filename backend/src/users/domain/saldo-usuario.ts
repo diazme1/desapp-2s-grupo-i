@@ -54,4 +54,8 @@ export class SaldoUsuario {
       actualizadoEn: new Date(),
     });
   }
+
+  tieneCreditosSuficientes(importe: Creditos): boolean {
+    return this.creditosDisponibles.compareTo(importe) >= 0;
+  }
 }

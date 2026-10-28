@@ -56,4 +56,10 @@ export class TokenJugador {
       actualizadoEn: new Date(),
     });
   }
+
+  transferirDesde(propietarioActual: string, usuarioOwnerId: string): TokenJugador {
+    if (this.usuarioOwnerId !== propietarioActual)
+      throw new Error('El token no pertenece al propietario esperado.');
+    return this.transferirA(usuarioOwnerId);
+  }
 }

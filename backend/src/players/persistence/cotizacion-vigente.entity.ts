@@ -1,11 +1,13 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
+import { Cotizacion } from '../../market/domain/cotizacion';
 
 const numericTransformer = {
-  to(value: number): number {
-    return value;
+  to(value: Cotizacion | string | number): string {
+    if (value instanceof Cotizacion) return value.toDecimalString();
+    return Cotizacion.fromDecimal(String(value)).toDecimalString();
   },
-  from(value: string | number): number {
-    return Number(value);
+  from(value: string | number): Cotizacion {
+    return Cotizacion.fromDecimal(String(value));
   },
 };
 
@@ -24,7 +26,7 @@ export class CotizacionVigenteEntity {
     scale: 2,
     transformer: numericTransformer,
   })
-  cotizacion!: number;
+  cotizacion!: Cotizacion;
 
   @Column({ name: 'fecha_hora', type: 'timestamptz' })
   fechaHora!: Date;

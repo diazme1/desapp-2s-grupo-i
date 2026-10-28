@@ -1,0 +1,527 @@
+{
+  "info": {
+    "_postman_id": "8c14adf0-8c87-4e1d-a5cb-4d1e0f2a0b37",
+    "name": "Football Player Market - API completa",
+    "description": "Colección unificada de todos los endpoints públicos del backend. Orden sugerido: registrar o iniciar sesión, listar jugadores para obtener playerId y luego ejecutar las operaciones protegidas. Las requests están organizadas en subcarpetas por dominio.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string",
+      "description": "URL base de la API"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string",
+      "description": "JWT guardado automáticamente por las requests de login"
+    },
+    {
+      "key": "userEmail",
+      "value": "usuario@example.com",
+      "type": "string",
+      "description": "Correo para el flujo de usuario común"
+    },
+    {
+      "key": "userPassword",
+      "value": "secreto123",
+      "type": "string",
+      "description": "Contraseña para el flujo de usuario común"
+    },
+    {
+      "key": "superadminEmail",
+      "value": "admin@gmail.com",
+      "type": "string",
+      "description": "Correo configurado para el superadmin local"
+    },
+    {
+      "key": "superadminPassword",
+      "value": "admin",
+      "type": "string",
+      "description": "Contraseña configurada para el superadmin local"
+    },
+    {
+      "key": "catalogRefreshApiKey",
+      "value": "",
+      "type": "string",
+      "description": "Valor local de CATALOG_REFRESH_API_KEY; no guardar el secreto en el repositorio"
+    },
+    {
+      "key": "playerId",
+      "value": "",
+      "type": "string",
+      "description": "UUID guardado automáticamente al listar jugadores"
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "postman-buy-1",
+      "type": "string",
+      "description": "Clave reutilizable para probar la idempotencia de una compra"
+    }
+  ],
+  "item": [
+    {
+      "name": "00 - Salud",
+      "item": [
+        {
+          "name": "Consultar salud",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [],
+            "url": "{{baseUrl}}/health",
+            "description": "Confirma que el servidor responde; no consulta la base de datos."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve JSON', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/json'));",
+                  "pm.test('Estado exacto sin campos adicionales', () => pm.expect(pm.response.json()).to.deep.equal({status: 'ok'}));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 - Autenticación",
+      "item": [
+        {
+          "name": "Registrar usuario",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/register",
+            "description": "Crea una cuenta de usuario común. La contraseña debe tener al menos 8 caracteres."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Usuario creado', () => pm.expect([201, 409]).to.include(pm.response.code));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Iniciar sesión - usuario",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{userEmail}}\",\n  \"password\": \"{{userPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Inicia sesión como usuario común y guarda el JWT en accessToken."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login exitoso', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve accessToken', () => pm.expect(body.accessToken).to.be.a('string').and.not.empty);",
+                  "if (body.accessToken) pm.collectionVariables.set('accessToken', body.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Iniciar sesión - superadmin",
+          "request": {
+            "method": "POST",
+            "auth": {
+              "type": "noauth"
+            },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"correo\": \"{{superadminEmail}}\",\n  \"password\": \"{{superadminPassword}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": "{{baseUrl}}/auth/login",
+            "description": "Inicia sesión con el superadmin configurado en el entorno y reemplaza accessToken."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Login de superadmin exitoso', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve accessToken', () => pm.expect(body.accessToken).to.be.a('string').and.not.empty);",
+                  "if (body.accessToken) pm.collectionVariables.set('accessToken', body.accessToken);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Obtener usuario autenticado",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/auth/me",
+            "description": "Devuelve la cuenta asociada al JWT guardado en accessToken."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Token válido', () => pm.response.to.have.status(200));",
+                  "pm.test('Devuelve una cuenta', () => pm.expect(pm.response.json()).to.have.property('id'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "02 - Catálogo de jugadores",
+      "item": [
+        {
+          "name": "Lecturas",
+          "item": [
+            {
+              "name": "Listar jugadores",
+              "request": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [],
+                "url": "{{baseUrl}}/players?ligaCodigo=PL",
+                "description": "Lee el catálogo local. ligaCodigo es opcional; se incluye PL como ejemplo. Guarda el primer UUID en playerId."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+                      "const players = pm.response.json();",
+                      "pm.test('Devuelve una lista', () => pm.expect(players).to.be.an('array'));",
+                      "if (players.length > 0) pm.collectionVariables.set('playerId', players[0].id);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Obtener detalle de jugador",
+              "request": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [],
+                "url": "{{baseUrl}}/players/{{playerId}}",
+                "description": "Devuelve el jugador, su equipo, su liga y las estadísticas persistidas. Ejecutar después de listar jugadores."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Devuelve jugador, equipo y liga', () => pm.expect(pm.response.json()).to.have.all.keys('id', 'nombre', 'nombreCompleto', 'posicion', 'fechaNacimiento', 'nacionalidad', 'equipo', 'liga', 'estadisticas'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "Historial de cotizaciones de jugador",
+              "request": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [],
+                "url": "{{baseUrl}}/players/{{playerId}}/quotes?page=1&limit=20",
+                "description": "Devuelve el historial más reciente primero. page inicia en 1; limit admite valores entre 1 y 100. Ejecutar después de listar jugadores."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+                      "const body = pm.response.json();",
+                      "pm.test('Devuelve el sobre de paginación', () => pm.expect(body).to.have.all.keys('items', 'page', 'limit', 'total', 'totalPages'));",
+                      "pm.test('Devuelve una lista de cotizaciones', () => pm.expect(body.items).to.be.an('array'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Administración",
+          "item": [
+            {
+              "name": "Actualizar catálogo",
+              "request": {
+                "method": "POST",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "X-API-Key",
+                    "value": "{{catalogRefreshApiKey}}",
+                    "type": "text"
+                  }
+                ],
+                "url": "{{baseUrl}}/catalog/refresh?ligaCodigo=PL",
+                "description": "Importa una liga desde los proveedores externos. Requiere simultáneamente un JWT de superadmin y X-API-Key."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Actualización exitosa', () => pm.response.to.have.status(200));",
+                      "pm.test('Devuelve resumen del catálogo', () => pm.expect(pm.response.json()).to.have.all.keys('fuente', 'ligas', 'equipos', 'jugadores', 'tiempoExtraccionMs', 'tiempoExtraccion', 'actualizadoEn', 'estadisticas'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "03 - Cotizaciones",
+      "item": [
+        {
+          "name": "Ranking",
+          "item": [
+            {
+              "name": "Ranking por estrategia",
+              "request": {
+                "method": "GET",
+                "auth": {
+                  "type": "noauth"
+                },
+                "header": [],
+                "url": "{{baseUrl}}/players/ranking?estrategia=ataque_decisivo",
+                "description": "Consulta la última cotización vigente de ataque_decisivo. También puede usarse creacion_tecnica o quitar el filtro para consultar la estrategia activa."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Responde HTTP 200', () => pm.response.to.have.status(200));",
+                      "pm.test('Devuelve estrategia y ranking', () => pm.expect(pm.response.json()).to.have.all.keys('estrategia', 'idRecalculo', 'fechaHora', 'jugadores'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "name": "Administración",
+          "item": [
+            {
+              "name": "Recalcular cotizaciones",
+              "request": {
+                "method": "POST",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"estrategia\": \"ataque_decisivo\"\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/quotes/recalculate",
+                "description": "Calcula ambas estrategias con las estadísticas locales y deja activa la estrategia indicada. Requiere JWT de superadmin."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Recálculo exitoso', () => pm.response.to.have.status(200));",
+                      "pm.test('Devuelve ambas estrategias calculadas', () => pm.expect(pm.response.json()).to.have.all.keys('idRecalculo', 'estrategia', 'estrategiasCalculadas', 'versionEstrategia', 'fechaHora', 'jugadoresCotizados', 'jugadoresSinEstadisticas'));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "04 - Mercado",
+      "item": [
+        {
+          "name": "Órdenes",
+          "item": [
+            {
+              "name": "Comprar tokens",
+              "request": {
+                "method": "POST",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{idempotencyKey}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 2\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/orders/buy",
+                "description": "Compra tokens del jugador seleccionado. Requiere JWT de usuario y una Idempotency-Key de 1 a 128 caracteres ASCII. Repetir la request con la misma clave prueba el replay idempotente."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Compra creada o replay idempotente', () => pm.expect(pm.response.code).to.eql(201));",
+                      "const body = pm.response.json();",
+                      "pm.test('Importe y cotización son strings exactos', () => { pm.expect(body.cotizacion).to.be.a('string'); pm.expect(body.importe).to.be.a('string'); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
