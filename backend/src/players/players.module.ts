@@ -24,6 +24,9 @@ import { TypeOrmQuoteOpeningWriter } from './persistence/typeorm-quote-opening-w
 import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../market/persistence/tenencia-jugador.entity';
 import { UserEntity } from '../users/persistence/user.entity';
+import { SaldoUsuarioEntity } from '../users/persistence/saldo-usuario.entity';
+import { OrdenCompraEntity } from '../orders/persistence/orden-compra.entity';
+import { AuditoriaOrdenCompraEntity } from '../orders/persistence/auditoria-orden-compra.entity';
 import { PLAYERS_REPOSITORY } from './players.repository';
 import { PlayersController } from './players.controller';
 import { HistorialCotizacionService } from '../quotes/historial-cotizacion.service';
@@ -61,6 +64,7 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
           url,
           entities: [
             UserEntity,
+            SaldoUsuarioEntity,
             LigaEntity,
             EquipoEntity,
             JugadorEntity,
@@ -72,6 +76,8 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
             RecalculoCotizacionActivoEntity,
             TokenJugadorEntity,
             TenenciaJugadorEntity,
+            OrdenCompraEntity,
+            AuditoriaOrdenCompraEntity,
           ],
           synchronize: false,
         });

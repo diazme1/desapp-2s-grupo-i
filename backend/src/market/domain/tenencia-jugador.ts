@@ -51,4 +51,21 @@ export class TenenciaJugador {
       actualizadoEn: new Date(),
     });
   }
+
+  sumar(cantidadTokens: number): TenenciaJugador {
+    validarCantidadPositiva(cantidadTokens);
+    return this.actualizarCantidad(this.cantidadTokens + cantidadTokens);
+  }
+
+  restar(cantidadTokens: number): TenenciaJugador {
+    validarCantidadPositiva(cantidadTokens);
+    if (cantidadTokens > this.cantidadTokens)
+      throw new Error('La tenencia no puede quedar negativa.');
+    return this.actualizarCantidad(this.cantidadTokens - cantidadTokens);
+  }
+}
+
+function validarCantidadPositiva(cantidadTokens: number): void {
+  if (!Number.isInteger(cantidadTokens) || cantidadTokens <= 0)
+    throw new Error('La cantidad a modificar debe ser positiva.');
 }
