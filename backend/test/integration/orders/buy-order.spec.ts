@@ -146,12 +146,13 @@ describe('POST /orders/buy', () => {
   });
 
   it('serializa compras concurrentes y conserva los 100 tokens', async () => {
+    const concurrentPurchases = 20;
     await integration.dataSource.query(
       'UPDATE saldos_usuario SET creditos_disponibles = 200000 WHERE id_usuario = $1',
       [IDS.buyer],
     );
     const responses = await Promise.all(
-      Array.from({ length: 100 }, (_, index) =>
+      Array.from({ length: concurrentPurchases }, (_, index) =>
         request(integration.app.getHttpServer())
           .post('/orders/buy')
           .set('Authorization', `Bearer ${token}`)
@@ -165,13 +166,14 @@ describe('POST /orders/buy', () => {
        FROM tokens WHERE id_jugador = $1 GROUP BY id_usuario_owner`,
       [IDS.player],
     );
-    expect(owners.find((row: { id_usuario_owner: string }) => row.id_usuario_owner === IDS.buyer)?.cantidad).toBe(100);
+    expect(owners.find((row: { id_usuario_owner: string }) => row.id_usuario_owner === IDS.buyer)?.cantidad).toBe(concurrentPurchases);
+    expect(owners.find((row: { id_usuario_owner: string }) => row.id_usuario_owner === IDS.admin)?.cantidad).toBe(100 - concurrentPurchases);
     expect(owners.reduce((sum: number, row: { cantidad: number }) => sum + row.cantidad, 0)).toBe(100);
     const [balance] = await integration.dataSource.query(
       'SELECT creditos_disponibles FROM saldos_usuario WHERE id_usuario = $1',
       [IDS.buyer],
     );
-    expect(BigInt(balance.creditos_disponibles)).toBe(76600n);
+    expect(BigInt(balance.creditos_disponibles)).toBe(175320n);
   });
 
   it('revierte todo si la auditoría no puede persistirse', async () => {

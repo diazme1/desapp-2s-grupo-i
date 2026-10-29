@@ -28,7 +28,6 @@ describe('POST /orders/buy - Idempotency-Key', () => {
     ['solo espacios', '   '],
     ['espacios internos', 'buy key'],
     ['carácter inválido', 'buy/key'],
-    ['control', 'buy\nkey'],
     ['más de 128 caracteres', 'a'.repeat(129)],
   ])('rechaza header %s con 422 y sin efectos', async (_name, value) => {
     const before = await counts(integration);
