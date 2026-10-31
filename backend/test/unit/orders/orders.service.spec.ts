@@ -10,6 +10,7 @@ import { SaldoUsuario } from '../../../src/users/domain/saldo-usuario';
 import { OrdersService } from '../../../src/orders/orders.service';
 import type {
   LockedBuyContext,
+  LockedSellContext,
   OrdersRepository,
   OrdersUnitOfWork,
 } from '../../../src/orders/orders.repository';
@@ -73,14 +74,24 @@ function context(overrides: Partial<LockedBuyContext> = {}): LockedBuyContext {
 function setup(initial: LockedBuyContext = context()) {
   const unitOfWork: OrdersUnitOfWork = {
     bloquearYcargarCompra: jest.fn().mockResolvedValue(initial),
+    bloquearYcargarVenta: jest
+      .fn()
+      .mockResolvedValue(initial as LockedSellContext),
     resolverCotizacionVigente: jest.fn(),
     persistirCompra: jest.fn().mockResolvedValue(undefined),
+    persistirVenta: jest.fn().mockResolvedValue(undefined),
   };
   const repository: OrdersRepository = {
     enTransaccion: jest.fn(async (work) => work(unitOfWork)),
   };
-  const config = { get: jest.fn().mockReturnValue(seller.correo) } as unknown as ConfigService;
-  return { service: new OrdersService(repository, config), repository, unitOfWork };
+  const config = {
+    get: jest.fn().mockReturnValue(seller.correo),
+  } as unknown as ConfigService;
+  return {
+    service: new OrdersService(repository, config),
+    repository,
+    unitOfWork,
+  };
 }
 
 describe('OrdersService', () => {
@@ -105,7 +116,11 @@ describe('OrdersService', () => {
     const setupData = setup(context({ jugador: null }));
 
     await expect(
-      setupData.service.comprar(buyer.id, { idJugador: player.id, cantidadTokens: 1 }, 'buy-2'),
+      setupData.service.comprar(
+        buyer.id,
+        { idJugador: player.id, cantidadTokens: 1 },
+        'buy-2',
+      ),
     ).rejects.toBeInstanceOf(NotFoundException);
     expect(setupData.unitOfWork.persistirCompra).not.toHaveBeenCalled();
   });
@@ -121,8 +136,51 @@ describe('OrdersService', () => {
     );
 
     await expect(
-      setupData.service.comprar(buyer.id, { idJugador: player.id, cantidadTokens: 1 }, 'buy-3'),
+      setupData.service.comprar(
+        buyer.id,
+        { idJugador: player.id, cantidadTokens: 1 },
+        'buy-3',
+      ),
     ).rejects.toBeInstanceOf(ConflictException);
     expect(setupData.unitOfWork.persistirCompra).not.toHaveBeenCalled();
+  });
+
+  it('coordina la UoW de venta y no exige saldo disponible del superadmin', async () => {
+    const base = context();
+    const saleContext: LockedBuyContext = {
+      ...base,
+      comprador: seller,
+      vendedor: buyer,
+      saldoComprador: null,
+      saldoVendedor: SaldoUsuario.crear({
+        usuarioId: buyer.id,
+        creditosDisponibles: Creditos.fromDecimal('0.00'),
+      }),
+      tokensJugador: base.tokensJugador.map((token) =>
+        token.transferirA(buyer.id),
+      ),
+      tenenciaComprador: null,
+      tenenciaVendedor: TenenciaJugador.crear({
+        usuarioId: buyer.id,
+        jugadorId: player.id,
+        cantidadTokens: 1,
+      }),
+    };
+    const setupData = setup(saleContext);
+
+    const response = await setupData.service.vender(
+      buyer.id,
+      { idJugador: player.id, cantidadTokens: 1 },
+      'sell-1',
+    );
+
+    expect(setupData.unitOfWork.bloquearYcargarVenta).toHaveBeenCalledWith(
+      expect.objectContaining({
+        vendedorId: buyer.id,
+        claveIdempotencia: 'sell-1',
+      }),
+    );
+    expect(setupData.unitOfWork.persistirVenta).toHaveBeenCalledTimes(1);
+    expect(response.importe).toBe('12.34');
   });
 });

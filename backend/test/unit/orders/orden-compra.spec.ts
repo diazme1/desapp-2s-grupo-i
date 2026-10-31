@@ -35,7 +35,9 @@ const quote = {
   fechaHora: new Date('2026-01-01T00:00:00.000Z'),
 };
 
-function input(overrides: Partial<Parameters<typeof OrdenCompra.ejecutar>[0]> = {}) {
+function input(
+  overrides: Partial<Parameters<typeof OrdenCompra.ejecutar>[0]> = {},
+) {
   const tokens = Array.from({ length: 5 }, (_, index) =>
     TokenJugador.emitir({
       idToken: `00000000-0000-4000-8000-0000000001${index}`,
@@ -74,14 +76,23 @@ describe('OrdenCompra', () => {
     const resultado = OrdenCompra.ejecutar(input());
 
     expect(resultado.tipo).toBe('confirmada');
+    expect(resultado.orden.tipo).toBe('COMPRA');
     expect(resultado.orden.cotizacion.toDecimalString()).toBe('12.34');
     expect(resultado.orden.importeCreditos).toBe(2468n);
     expect(resultado.tokensTransferidos).toHaveLength(2);
-    expect(resultado.tokensTransferidos.every((token) => token.usuarioOwnerId === comprador.id)).toBe(true);
+    expect(
+      resultado.tokensTransferidos.every(
+        (token) => token.usuarioOwnerId === comprador.id,
+      ),
+    ).toBe(true);
     expect(resultado.tenenciaComprador?.cantidadTokens).toBe(2);
     expect(resultado.tenenciaVendedor?.cantidadTokens).toBe(3);
-    expect(resultado.saldoComprador?.creditosDisponibles.toUnidades()).toBe(7532n);
-    expect(resultado.saldoVendedor?.creditosDisponibles.toUnidades()).toBe(2468n);
+    expect(resultado.saldoComprador?.creditosDisponibles.toUnidades()).toBe(
+      7532n,
+    );
+    expect(resultado.saldoVendedor?.creditosDisponibles.toUnidades()).toBe(
+      2468n,
+    );
     expect(Object.isFrozen(resultado)).toBe(true);
   });
 
@@ -91,9 +102,28 @@ describe('OrdenCompra', () => {
     ['jugador ausente', { jugador: null }, 'JUGADOR_INVALIDO'],
     ['cotización ausente', { quote: null }, 'COTIZACION_INVALIDA'],
     ['cantidad inválida', { cantidadTokens: 0 }, 'CANTIDAD_INVALIDA'],
-    ['saldo insuficiente', { saldoComprador: SaldoUsuario.crear({ usuarioId: comprador.id, creditosDisponibles: Creditos.fromDecimal('1.00') }) }, 'SALDO_INSUFICIENTE'],
+    [
+      'saldo insuficiente',
+      {
+        saldoComprador: SaldoUsuario.crear({
+          usuarioId: comprador.id,
+          creditosDisponibles: Creditos.fromDecimal('1.00'),
+        }),
+      },
+      'SALDO_INSUFICIENTE',
+    ],
     ['tokens insuficientes', { cantidadTokens: 6 }, 'TOKENS_INSUFICIENTES'],
-    ['tenencia inconsistente', { tenenciaVendedor: TenenciaJugador.crear({ usuarioId: vendedor.id, jugadorId: jugador.id, cantidadTokens: 4 }) }, 'TENENCIAS_INCONSISTENTES'],
+    [
+      'tenencia inconsistente',
+      {
+        tenenciaVendedor: TenenciaJugador.crear({
+          usuarioId: vendedor.id,
+          jugadorId: jugador.id,
+          cantidadTokens: 4,
+        }),
+      },
+      'TENENCIAS_INCONSISTENTES',
+    ],
     ['partes iguales', { comprador: vendedor }, 'COMPRADOR_INVALIDO'],
   ] as const)('rechaza %s en el dominio', (_name, overrides, code) => {
     expect(() => OrdenCompra.ejecutar(input(overrides))).toThrow(

@@ -89,10 +89,14 @@ describe('POST /orders/buy', () => {
       { id_usuario: IDS.buyer, cantidad_tokens: 2 },
     ]);
     expect(
-      await integration.dataSource.query('SELECT count(*)::int AS count FROM ordenes_compra'),
+      await integration.dataSource.query(
+        'SELECT count(*)::int AS count FROM transacciones_mercado',
+      ),
     ).toEqual([{ count: 1 }]);
     expect(
-      await integration.dataSource.query('SELECT count(*)::int AS count FROM auditorias_orden_compra'),
+      await integration.dataSource.query(
+        'SELECT count(*)::int AS count FROM auditorias_transaccion',
+      ),
     ).toEqual([{ count: 1 }]);
   });
 
@@ -113,7 +117,9 @@ describe('POST /orders/buy', () => {
 
     expect(second.body).toEqual(first.body);
     expect(
-      await integration.dataSource.query('SELECT count(*)::int AS count FROM ordenes_compra'),
+      await integration.dataSource.query(
+        'SELECT count(*)::int AS count FROM transacciones_mercado',
+      ),
     ).toEqual([{ count: 1 }]);
     expect(
       await integration.dataSource.query(
@@ -166,9 +172,24 @@ describe('POST /orders/buy', () => {
        FROM tokens WHERE id_jugador = $1 GROUP BY id_usuario_owner`,
       [IDS.player],
     );
-    expect(owners.find((row: { id_usuario_owner: string }) => row.id_usuario_owner === IDS.buyer)?.cantidad).toBe(concurrentPurchases);
-    expect(owners.find((row: { id_usuario_owner: string }) => row.id_usuario_owner === IDS.admin)?.cantidad).toBe(100 - concurrentPurchases);
-    expect(owners.reduce((sum: number, row: { cantidad: number }) => sum + row.cantidad, 0)).toBe(100);
+    expect(
+      owners.find(
+        (row: { id_usuario_owner: string }) =>
+          row.id_usuario_owner === IDS.buyer,
+      )?.cantidad,
+    ).toBe(concurrentPurchases);
+    expect(
+      owners.find(
+        (row: { id_usuario_owner: string }) =>
+          row.id_usuario_owner === IDS.admin,
+      )?.cantidad,
+    ).toBe(100 - concurrentPurchases);
+    expect(
+      owners.reduce(
+        (sum: number, row: { cantidad: number }) => sum + row.cantidad,
+        0,
+      ),
+    ).toBe(100);
     const [balance] = await integration.dataSource.query(
       'SELECT creditos_disponibles FROM saldos_usuario WHERE id_usuario = $1',
       [IDS.buyer],
@@ -184,7 +205,7 @@ describe('POST /orders/buy', () => {
     `);
     await integration.dataSource.query(`
       CREATE TRIGGER trg_rechazar_auditoria_orden_prueba
-      BEFORE INSERT ON auditorias_orden_compra
+      BEFORE INSERT ON auditorias_transaccion
       FOR EACH ROW EXECUTE FUNCTION rechazar_auditoria_orden_prueba()
     `);
     try {
@@ -196,7 +217,7 @@ describe('POST /orders/buy', () => {
         .expect(500);
     } finally {
       await integration.dataSource.query(
-        'DROP TRIGGER IF EXISTS trg_rechazar_auditoria_orden_prueba ON auditorias_orden_compra',
+        'DROP TRIGGER IF EXISTS trg_rechazar_auditoria_orden_prueba ON auditorias_transaccion',
       );
       await integration.dataSource.query(
         'DROP FUNCTION IF EXISTS rechazar_auditoria_orden_prueba()',
@@ -215,7 +236,9 @@ describe('POST /orders/buy', () => {
       ),
     ).toEqual([{ count: 0 }]);
     expect(
-      await integration.dataSource.query('SELECT count(*)::int AS count FROM ordenes_compra'),
+      await integration.dataSource.query(
+        'SELECT count(*)::int AS count FROM transacciones_mercado',
+      ),
     ).toEqual([{ count: 0 }]);
   });
 
@@ -236,7 +259,10 @@ describe('POST /orders/buy', () => {
       .post('/orders/buy')
       .set('Authorization', `Bearer ${token}`)
       .set('Idempotency-Key', 'missing-player')
-      .send({ idJugador: '00000000-0000-4000-8000-000000000010', cantidadTokens: 1 })
+      .send({
+        idJugador: '00000000-0000-4000-8000-000000000010',
+        cantidadTokens: 1,
+      })
       .expect(404);
     await request(app)
       .post('/orders/buy')

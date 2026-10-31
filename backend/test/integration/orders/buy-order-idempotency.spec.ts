@@ -49,8 +49,8 @@ async function counts(integration: OrdersIntegrationApp) {
     'tokens',
     'tenencias_jugador',
     'saldos_usuario',
-    'ordenes_compra',
-    'auditorias_orden_compra',
+    'transacciones_mercado',
+    'auditorias_transaccion',
   ];
   const result: Record<string, number> = {};
   for (const table of tables) {

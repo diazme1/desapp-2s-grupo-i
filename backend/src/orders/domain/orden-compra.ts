@@ -7,6 +7,10 @@ import { Jugador } from '../../players/domain/jugador';
 import type { ActiveQuoteSnapshot, ExistingBuyOrder } from '../orders.repository';
 import { User, UserRole } from '../../users/domain/user';
 import { SaldoUsuario } from '../../users/domain/saldo-usuario';
+import type {
+  AuditoriaTransaccionSnapshot,
+  TransaccionMercadoSnapshot,
+} from './transaccion-mercado';
 
 export type OrdenCompraErrorCode =
   | 'COMPRADOR_INVALIDO'
@@ -31,23 +35,15 @@ export class OrdenCompraDomainError extends Error {
   }
 }
 
-export interface OrdenCompraSnapshot {
-  idOperacion: string;
-  claveIdempotencia: string;
-  compradorId: string;
-  vendedorId: string;
-  jugadorId: string;
-  cantidadTokens: number;
-  cotizacion: Cotizacion;
-  importeCreditos: bigint;
-  estrategia: string;
-  idVersionEstrategia: string;
-  idRecalculo: string;
-  fechaHora: Date;
+export interface OrdenCompraSnapshot
+  extends Omit<TransaccionMercadoSnapshot, 'tipo'> {
+  tipo: 'COMPRA';
 }
 
-export interface AuditoriaOrdenCompraSnapshot extends OrdenCompraSnapshot {
+export interface AuditoriaOrdenCompraSnapshot
+  extends Omit<AuditoriaTransaccionSnapshot, 'tipo'> {
   idAuditoria: string;
+  tipo: 'COMPRA';
 }
 
 export interface EjecutarOrdenCompraInput {
@@ -163,12 +159,14 @@ export class OrdenCompra {
     const saldoVendedor = (input.saldoVendedor ??
       SaldoUsuario.crear({
         usuarioId: vendedor.id,
+        rol: vendedor.rol,
         creditosDisponibles: Creditos.fromUnidades(0n),
       })).acreditar(importe);
     const saldoCompradorActualizado = saldoComprador.debitar(importe);
     const ahora = input.ahora ?? new Date();
     const orden = new OrdenCompra({
       idOperacion: randomUUID(),
+      tipo: 'COMPRA',
       claveIdempotencia: input.claveIdempotencia,
       compradorId: comprador.id,
       vendedorId: vendedor.id,
@@ -207,6 +205,7 @@ function resolverIdempotencia(
   existente: ExistingBuyOrder,
 ): BuyOrderResult {
   const coincide =
+    existente.tipo === 'COMPRA' &&
     existente.claveIdempotencia === input.claveIdempotencia &&
     existente.compradorId === input.comprador?.id &&
     existente.jugadorId === input.jugador?.id &&
@@ -216,7 +215,10 @@ function resolverIdempotencia(
       'IDEMPOTENCIA_CONFLICTIVA',
       'La clave de idempotencia ya fue utilizada con otro contenido.',
     );
-  const snapshot: OrdenCompraSnapshot = Object.freeze({ ...existente });
+  const snapshot: OrdenCompraSnapshot = Object.freeze({
+    ...existente,
+    tipo: 'COMPRA',
+  });
   return Object.freeze({
     tipo: 'replay',
     orden: snapshot,

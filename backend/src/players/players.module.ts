@@ -25,8 +25,8 @@ import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../market/persistence/tenencia-jugador.entity';
 import { UserEntity } from '../users/persistence/user.entity';
 import { SaldoUsuarioEntity } from '../users/persistence/saldo-usuario.entity';
-import { OrdenCompraEntity } from '../orders/persistence/orden-compra.entity';
-import { AuditoriaOrdenCompraEntity } from '../orders/persistence/auditoria-orden-compra.entity';
+import { TransaccionMercadoEntity } from '../orders/persistence/transaccion-mercado.entity';
+import { AuditoriaTransaccionEntity } from '../orders/persistence/auditoria-transaccion.entity';
 import { PLAYERS_REPOSITORY } from './players.repository';
 import { PlayersController } from './players.controller';
 import { HistorialCotizacionService } from '../quotes/historial-cotizacion.service';
@@ -76,8 +76,8 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
             RecalculoCotizacionActivoEntity,
             TokenJugadorEntity,
             TenenciaJugadorEntity,
-            OrdenCompraEntity,
-            AuditoriaOrdenCompraEntity,
+            TransaccionMercadoEntity,
+            AuditoriaTransaccionEntity,
           ],
           synchronize: false,
         });
