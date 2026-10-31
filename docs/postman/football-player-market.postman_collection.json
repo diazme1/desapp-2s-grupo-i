@@ -25,6 +25,12 @@
       "description": "Correo para el flujo de usuario común"
     },
     {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "UUID del usuario autenticado, guardado por la request /auth/me"
+    },
+    {
       "key": "userPassword",
       "value": "secreto123",
       "type": "string",
@@ -59,6 +65,12 @@
       "value": "postman-buy-1",
       "type": "string",
       "description": "Clave reutilizable para probar la idempotencia de una compra"
+    },
+    {
+      "key": "sellIdempotencyKey",
+      "value": "postman-sell-1",
+      "type": "string",
+      "description": "Clave reutilizable para probar la idempotencia de una venta"
     }
   ],
   "item": [
@@ -240,7 +252,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Token válido', () => pm.response.to.have.status(200));",
-                  "pm.test('Devuelve una cuenta', () => pm.expect(pm.response.json()).to.have.property('id'));"
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve una cuenta', () => pm.expect(body).to.have.property('id'));",
+                  "if (body.id) pm.collectionVariables.set('userId', body.id);"
                 ]
               }
             }
@@ -518,6 +532,98 @@
                   }
                 }
               ]
+            },
+            {
+              "name": "Vender tokens",
+              "request": {
+                "method": "POST",
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{accessToken}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "header": [
+                  {
+                    "key": "Idempotency-Key",
+                    "value": "{{sellIdempotencyKey}}",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 1\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": "{{baseUrl}}/orders/sell",
+                "description": "Vende tokens propios al superadmin. Requiere JWT de usuario común y una Idempotency-Key de 1 a 128 caracteres ASCII. Repetir la request con la misma clave prueba el replay idempotente."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('Venta creada o replay idempotente', () => pm.expect(pm.response.code).to.eql(201));",
+                      "const body = pm.response.json();",
+                      "pm.test('Identifica comprador y vendedor', () => { pm.expect(body.idComprador).to.exist; pm.expect(body.idVendedor).to.exist; });",
+                      "pm.test('Importe y cotización son strings exactos', () => { pm.expect(body.cotizacion).to.match(/^\\d+\\.\\d{2}$/); pm.expect(body.importe).to.match(/^\\d+\\.\\d{2}$/); });"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Portfolio",
+      "item": [
+        {
+          "name": "Consultar portfolio",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}/portfolio",
+            "description": "Consulta el portfolio valorizado del usuario autenticado. Ejecutar antes /auth/me para guardar userId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Portfolio consultado', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve usuario y posiciones', () => pm.expect(body).to.have.all.keys('usuarioId', 'posiciones'));",
+                  "pm.test('Posiciones ordenadas por idJugador', () => { const ids = body.posiciones.map((position) => position.idJugador); pm.expect(ids).to.eql([...ids].sort()); });",
+                  "body.posiciones.forEach((position) => { pm.expect(position.cotizacionVigente).to.match(/^-?\\d+\\.\\d{2}$/); pm.expect(position.valorActual).to.match(/^-?\\d+\\.\\d{2}$/); if (position.precioPromedioCompra !== null) pm.expect(position.precioPromedioCompra).to.match(/^-?\\d+\\.\\d{2}$/); if (position.gananciaPerdida !== null) pm.expect(position.gananciaPerdida).to.match(/^-?\\d+\\.\\d{2}$/); });"
+                ]
+              }
             }
           ]
         }

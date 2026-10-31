@@ -13,8 +13,8 @@ import { RecalculoCotizacionEntity } from '../players/persistence/recalculo-coti
 import { RecalculoCotizacionActivoEntity } from '../players/persistence/recalculo-cotizacion-activo.entity';
 import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../market/persistence/tenencia-jugador.entity';
-import { OrdenCompraEntity } from '../orders/persistence/orden-compra.entity';
-import { AuditoriaOrdenCompraEntity } from '../orders/persistence/auditoria-orden-compra.entity';
+import { TransaccionMercadoEntity } from '../orders/persistence/transaccion-mercado.entity';
+import { AuditoriaTransaccionEntity } from '../orders/persistence/auditoria-transaccion.entity';
 
 export default new DataSource({
   type: 'postgres',
@@ -33,8 +33,8 @@ export default new DataSource({
     RecalculoCotizacionActivoEntity,
     TokenJugadorEntity,
     TenenciaJugadorEntity,
-    OrdenCompraEntity,
-    AuditoriaOrdenCompraEntity,
+    TransaccionMercadoEntity,
+    AuditoriaTransaccionEntity,
   ],
   migrations: ['migrations/*.ts'],
   synchronize: false,

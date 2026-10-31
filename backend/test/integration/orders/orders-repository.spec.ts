@@ -1,4 +1,7 @@
-import { ORDERS_REPOSITORY, type OrdersRepository } from '../../../src/orders/orders.repository';
+import {
+  ORDERS_REPOSITORY,
+  type OrdersRepository,
+} from '../../../src/orders/orders.repository';
 import {
   createOrdersIntegrationApp,
   type OrdersIntegrationApp,
@@ -35,8 +38,8 @@ describe('persistencia transaccional de órdenes', () => {
 
   it('mantiene las tablas de órdenes sin escrituras si no se persiste un resultado', async () => {
     const rows = await integration.dataSource.query(
-      `SELECT count(*)::int AS orders FROM ordenes_compra
-       CROSS JOIN (SELECT count(*) FROM auditorias_orden_compra) auditorias`,
+      `SELECT count(*)::int AS orders FROM transacciones_mercado
+       CROSS JOIN (SELECT count(*) FROM auditorias_transaccion) auditorias`,
     );
     expect(rows[0].orders).toBe(0);
   });

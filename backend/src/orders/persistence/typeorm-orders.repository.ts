@@ -1,31 +1,46 @@
 import { DataSource, EntityManager } from 'typeorm';
 import { Cotizacion } from '../../market/domain/cotizacion';
-import { Creditos } from '../../market/domain/creditos';
 import { TokenJugador } from '../../market/domain/token-jugador';
 import { TenenciaJugador } from '../../market/domain/tenencia-jugador';
 import { Jugador } from '../../players/domain/jugador';
 import { JugadorEntity } from '../../players/persistence/jugador.entity';
 import { RecalculoCotizacionActivoEntity } from '../../players/persistence/recalculo-cotizacion-activo.entity';
 import { SaldoUsuario } from '../../users/domain/saldo-usuario';
-import { User } from '../../users/domain/user';
+import { SaldoExacto } from '../../users/domain/saldo-exacto';
+import { User, UserRole } from '../../users/domain/user';
 import { SaldoUsuarioEntity } from '../../users/persistence/saldo-usuario.entity';
 import { UserEntity } from '../../users/persistence/user.entity';
 import {
   ActiveQuoteSnapshot,
-  ExistingBuyOrder,
+  ExistingMarketTransaction,
+  LoadBuyContextInput,
+  LoadSellContextInput,
   LockedBuyContext,
+  LockedSellContext,
   OrdersRepository,
   OrdersUnitOfWork,
 } from '../orders.repository';
-import {
-  AuditoriaOrdenCompraSnapshot,
-  BuyOrderResult,
-  OrdenCompraSnapshot,
-} from '../domain/orden-compra';
-import { AuditoriaOrdenCompraEntity } from './auditoria-orden-compra.entity';
-import { OrdenCompraEntity } from './orden-compra.entity';
+import type { BuyOrderResult } from '../domain/orden-compra';
+import type { SellOrderResult } from '../domain/orden-venta';
+import type {
+  AuditoriaTransaccionSnapshot,
+  TransaccionMercadoSnapshot,
+} from '../domain/transaccion-mercado';
+import { AuditoriaTransaccionEntity } from './auditoria-transaccion.entity';
+import { TransaccionMercadoEntity } from './transaccion-mercado.entity';
 import { TokenJugadorEntity } from '../../market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../../market/persistence/tenencia-jugador.entity';
+
+type LoadMarketOperationInput = {
+  compradorId?: string;
+  compradorEmail?: string;
+  vendedorId?: string;
+  vendedorEmail?: string;
+  jugadorId: string;
+  claveIdempotencia: string;
+};
+
+type MarketOrderResult = BuyOrderResult | SellOrderResult;
 
 export class TypeOrmOrdersRepository implements OrdersRepository {
   constructor(private readonly dataSource: DataSource) {}
@@ -36,7 +51,9 @@ export class TypeOrmOrdersRepository implements OrdersRepository {
       : Promise.resolve();
   }
 
-  enTransaccion<T>(work: (unitOfWork: OrdersUnitOfWork) => Promise<T>): Promise<T> {
+  enTransaccion<T>(
+    work: (unitOfWork: OrdersUnitOfWork) => Promise<T>,
+  ): Promise<T> {
     return this.dataSource.transaction(async (manager) =>
       work(this.unitOfWork(manager)),
     );
@@ -46,94 +63,130 @@ export class TypeOrmOrdersRepository implements OrdersRepository {
     return {
       resolverCotizacionVigente: (jugadorId) =>
         this.resolverCotizacionVigente(manager, jugadorId),
-      bloquearYcargarCompra: async (input) => {
-        await manager.query(
-          'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
-          [input.claveIdempotencia],
-        );
-        const ordenExistente = await this.cargarOrden(manager, input.claveIdempotencia);
-        const activo = await this.bloquearEstrategiaActiva(manager);
-        const jugadorEntity = await manager
-          .getRepository(JugadorEntity)
-          .createQueryBuilder('jugador')
-          .innerJoinAndSelect('jugador.equipo', 'equipo')
-          .where('jugador.id = :jugadorId', { jugadorId: input.jugadorId })
-          .setLock('pessimistic_write')
-          .getOne();
-        const jugador = jugadorEntity ? mapJugador(jugadorEntity) : null;
-        const quote = await this.cargarCotizacionVigente(
-          manager,
-          input.jugadorId,
-          activo,
-        );
+      bloquearYcargarCompra: (input: LoadBuyContextInput) =>
+        this.bloquearYcargarOperacion(manager, {
+          compradorId: input.compradorId,
+          vendedorEmail: input.vendedorEmail,
+          jugadorId: input.jugadorId,
+          claveIdempotencia: input.claveIdempotencia,
+        }),
+      bloquearYcargarVenta: (input: LoadSellContextInput) =>
+        this.bloquearYcargarOperacion(manager, {
+          vendedorId: input.vendedorId,
+          compradorEmail: input.compradorEmail,
+          jugadorId: input.jugadorId,
+          claveIdempotencia: input.claveIdempotencia,
+        }),
+      persistirCompra: (resultado) => this.persistirMercado(manager, resultado),
+      persistirVenta: (resultado) => this.persistirMercado(manager, resultado),
+    };
+  }
 
-        const [buyerEntity, sellerEntity] = await Promise.all([
-          manager.getRepository(UserEntity).findOne({ where: { id: input.compradorId } }),
-          manager.getRepository(UserEntity).findOne({
-            where: { correo: input.vendedorEmail.trim().toLowerCase() },
-          }),
-        ]);
-        const userIds = [buyerEntity?.id, sellerEntity?.id]
-          .filter((id): id is string => Boolean(id))
-          .sort((a, b) => a.localeCompare(b));
-        const lockedUsers = new Map<string, UserEntity>();
-        for (const userId of userIds) {
-          const entity = await manager.getRepository(UserEntity).findOne({
-            where: { id: userId },
-            lock: { mode: 'pessimistic_write' },
-          });
-          if (entity) lockedUsers.set(entity.id, entity);
-        }
-        const comprador = buyerEntity
-          ? mapUser(lockedUsers.get(buyerEntity.id) ?? buyerEntity)
-          : null;
-        const vendedor = sellerEntity
-          ? mapUser(lockedUsers.get(sellerEntity.id) ?? sellerEntity)
-          : null;
+  private async bloquearYcargarOperacion(
+    manager: EntityManager,
+    input: LoadMarketOperationInput,
+  ): Promise<LockedBuyContext & LockedSellContext> {
+    await manager.query(
+      'SELECT pg_advisory_xact_lock(hashtextextended($1, 0))',
+      [input.claveIdempotencia],
+    );
+    const ordenExistente = await this.cargarOrden(
+      manager,
+      input.claveIdempotencia,
+    );
+    const activo = await this.bloquearEstrategiaActiva(manager);
+    const jugadorEntity = await manager
+      .getRepository(JugadorEntity)
+      .createQueryBuilder('jugador')
+      .innerJoinAndSelect('jugador.equipo', 'equipo')
+      .where('jugador.id = :jugadorId', { jugadorId: input.jugadorId })
+      .setLock('pessimistic_write')
+      .getOne();
+    const jugador = jugadorEntity ? mapJugador(jugadorEntity) : null;
+    const quote = await this.cargarCotizacionVigente(
+      manager,
+      input.jugadorId,
+      activo,
+    );
 
-        const orderedUserIds = userIds;
-        const balances = new Map<string, SaldoUsuario | null>();
-        for (const userId of orderedUserIds) {
-          const row = await manager.getRepository(SaldoUsuarioEntity).findOne({
-            where: { usuarioId: userId },
-            lock: { mode: 'pessimistic_write' },
-          });
-          balances.set(userId, row ? mapSaldo(row) : null);
-        }
+    const [buyerEntity, sellerEntity] = await Promise.all([
+      input.compradorId
+        ? manager.getRepository(UserEntity).findOne({
+            where: { id: input.compradorId },
+          })
+        : input.compradorEmail
+          ? manager.getRepository(UserEntity).findOne({
+              where: { correo: input.compradorEmail.trim().toLowerCase() },
+            })
+          : Promise.resolve(null),
+      input.vendedorId
+        ? manager.getRepository(UserEntity).findOne({
+            where: { id: input.vendedorId },
+          })
+        : input.vendedorEmail
+          ? manager.getRepository(UserEntity).findOne({
+              where: { correo: input.vendedorEmail.trim().toLowerCase() },
+            })
+          : Promise.resolve(null),
+    ]);
+    const userIds = [buyerEntity?.id, sellerEntity?.id]
+      .filter((id): id is string => Boolean(id))
+      .sort((a, b) => a.localeCompare(b));
+    const lockedUsers = new Map<string, UserEntity>();
+    for (const userId of userIds) {
+      const entity = await manager.getRepository(UserEntity).findOne({
+        where: { id: userId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      if (entity) lockedUsers.set(entity.id, entity);
+    }
+    const comprador = buyerEntity
+      ? mapUser(lockedUsers.get(buyerEntity.id) ?? buyerEntity)
+      : null;
+    const vendedor = sellerEntity
+      ? mapUser(lockedUsers.get(sellerEntity.id) ?? sellerEntity)
+      : null;
 
-        const tokenRows = await manager.getRepository(TokenJugadorEntity).find({
-          where: { jugadorId: input.jugadorId },
-          order: { numeroEmision: 'ASC' },
-          lock: { mode: 'pessimistic_write' },
-        });
-        const tokensJugador = tokenRows.map(mapToken);
-        const tenencias = new Map<string, TenenciaJugador | null>();
-        for (const userId of orderedUserIds) {
-          const row = await manager.getRepository(TenenciaJugadorEntity).findOne({
-            where: { usuarioId: userId, jugadorId: input.jugadorId },
-            lock: { mode: 'pessimistic_write' },
-          });
-          tenencias.set(userId, row ? mapTenencia(row) : null);
-        }
+    const balances = new Map<string, SaldoUsuario | null>();
+    for (const userId of userIds) {
+      const row = await manager.getRepository(SaldoUsuarioEntity).findOne({
+        where: { usuarioId: userId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      balances.set(
+        userId,
+        row ? mapSaldo(row, lockedUsers.get(userId)?.rol) : null,
+      );
+    }
 
-        return {
-          comprador,
-          vendedor,
-          jugador,
-          quote,
-          saldoComprador: comprador ? balances.get(comprador.id) ?? null : null,
-          saldoVendedor: vendedor ? balances.get(vendedor.id) ?? null : null,
-          tokensJugador,
-          tenenciaComprador: comprador
-            ? tenencias.get(comprador.id) ?? null
-            : null,
-          tenenciaVendedor: vendedor
-            ? tenencias.get(vendedor.id) ?? null
-            : null,
-          ordenExistente,
-        } satisfies LockedBuyContext;
-      },
-      persistirCompra: (resultado) => this.persistirCompra(manager, resultado),
+    const tokenRows = await manager.getRepository(TokenJugadorEntity).find({
+      where: { jugadorId: input.jugadorId },
+      order: { numeroEmision: 'ASC' },
+      lock: { mode: 'pessimistic_write' },
+    });
+    const tokensJugador = tokenRows.map(mapToken);
+    const tenencias = new Map<string, TenenciaJugador | null>();
+    for (const userId of userIds) {
+      const row = await manager.getRepository(TenenciaJugadorEntity).findOne({
+        where: { usuarioId: userId, jugadorId: input.jugadorId },
+        lock: { mode: 'pessimistic_write' },
+      });
+      tenencias.set(userId, row ? mapTenencia(row) : null);
+    }
+
+    return {
+      comprador,
+      vendedor,
+      jugador,
+      quote,
+      saldoComprador: comprador ? (balances.get(comprador.id) ?? null) : null,
+      saldoVendedor: vendedor ? (balances.get(vendedor.id) ?? null) : null,
+      tokensJugador,
+      tenenciaComprador: comprador
+        ? (tenencias.get(comprador.id) ?? null)
+        : null,
+      tenenciaVendedor: vendedor ? (tenencias.get(vendedor.id) ?? null) : null,
+      ordenExistente,
     };
   }
 
@@ -192,21 +245,19 @@ export class TypeOrmOrdersRepository implements OrdersRepository {
   private async cargarOrden(
     manager: EntityManager,
     claveIdempotencia: string,
-  ): Promise<ExistingBuyOrder | null> {
-    const row = await manager.getRepository(OrdenCompraEntity).findOne({
+  ): Promise<ExistingMarketTransaction | null> {
+    const row = await manager.getRepository(TransaccionMercadoEntity).findOne({
       where: { claveIdempotencia },
       lock: { mode: 'pessimistic_write' },
     });
     return row ? mapOrden(row) : null;
   }
 
-  private async persistirCompra(
+  private async persistirMercado(
     manager: EntityManager,
-    resultado: BuyOrderResult,
+    resultado: MarketOrderResult,
   ): Promise<void> {
     if (resultado.tipo === 'replay') return;
-    const ordenRepository = manager.getRepository(OrdenCompraEntity);
-    const snapshot = resultado.orden;
     await manager.getRepository(TokenJugadorEntity).save(
       resultado.tokensTransferidos.map((token) => ({
         idToken: token.idToken,
@@ -218,32 +269,29 @@ export class TypeOrmOrdersRepository implements OrdersRepository {
         actualizadoEn: token.actualizadoEn,
       })),
     );
-    if (resultado.tenenciaVendedor) {
-      await manager.getRepository(TenenciaJugadorEntity).save(
-        mapTenenciaEntity(resultado.tenenciaVendedor),
-      );
-    }
-    if (resultado.tenenciaComprador) {
-      await manager.getRepository(TenenciaJugadorEntity).save(
-        mapTenenciaEntity(resultado.tenenciaComprador),
-      );
-    }
-    if (resultado.saldoComprador) {
-      await manager.getRepository(SaldoUsuarioEntity).save(
-        mapSaldoEntity(resultado.saldoComprador),
-      );
-    }
-    if (resultado.saldoVendedor) {
-      await manager.getRepository(SaldoUsuarioEntity).save(
-        mapSaldoEntity(resultado.saldoVendedor),
-      );
-    }
-    await ordenRepository.insert(mapOrdenEntity(snapshot));
-    if (resultado.auditoria) {
-      await manager.getRepository(AuditoriaOrdenCompraEntity).insert(
-        mapAuditoriaEntity(resultado.auditoria),
-      );
-    }
+    if (resultado.tenenciaVendedor)
+      await manager
+        .getRepository(TenenciaJugadorEntity)
+        .save(mapTenenciaEntity(resultado.tenenciaVendedor));
+    if (resultado.tenenciaComprador)
+      await manager
+        .getRepository(TenenciaJugadorEntity)
+        .save(mapTenenciaEntity(resultado.tenenciaComprador));
+    if (resultado.saldoComprador)
+      await manager
+        .getRepository(SaldoUsuarioEntity)
+        .save(mapSaldoEntity(resultado.saldoComprador));
+    if (resultado.saldoVendedor)
+      await manager
+        .getRepository(SaldoUsuarioEntity)
+        .save(mapSaldoEntity(resultado.saldoVendedor));
+    await manager
+      .getRepository(TransaccionMercadoEntity)
+      .insert(mapTransaccionEntity(resultado.orden));
+    if (resultado.auditoria)
+      await manager
+        .getRepository(AuditoriaTransaccionEntity)
+        .insert(mapAuditoriaEntity(resultado.auditoria));
   }
 }
 
@@ -264,13 +312,15 @@ function mapJugador(entity: JugadorEntity): Jugador {
   });
 }
 
-function mapSaldo(entity: SaldoUsuarioEntity): SaldoUsuario {
+function mapSaldo(
+  entity: SaldoUsuarioEntity,
+  rol: UserRole = UserRole.USER,
+): SaldoUsuario {
   return SaldoUsuario.crear({
     id: entity.usuarioId,
     usuarioId: entity.usuarioId,
-    creditosDisponibles: Creditos.fromUnidades(
-      BigInt(entity.creditosDisponibles),
-    ),
+    rol,
+    creditosDisponibles: SaldoExacto.fromUnidades(entity.creditosDisponibles),
     creadoEn: entity.creadoEn,
     actualizadoEn: entity.actualizadoEn,
   });
@@ -299,9 +349,10 @@ function mapTenencia(entity: TenenciaJugadorEntity): TenenciaJugador {
   });
 }
 
-function mapOrden(entity: OrdenCompraEntity): ExistingBuyOrder {
+function mapOrden(entity: TransaccionMercadoEntity): ExistingMarketTransaction {
   return {
     idOperacion: entity.idOperacion,
+    tipo: entity.tipo,
     claveIdempotencia: entity.claveIdempotencia,
     compradorId: entity.compradorId,
     vendedorId: entity.vendedorId,
@@ -316,9 +367,12 @@ function mapOrden(entity: OrdenCompraEntity): ExistingBuyOrder {
   };
 }
 
-function mapOrdenEntity(snapshot: OrdenCompraSnapshot): Partial<OrdenCompraEntity> {
+function mapTransaccionEntity(
+  snapshot: TransaccionMercadoSnapshot,
+): Partial<TransaccionMercadoEntity> {
   return {
     idOperacion: snapshot.idOperacion,
+    tipo: snapshot.tipo,
     claveIdempotencia: snapshot.claveIdempotencia,
     compradorId: snapshot.compradorId,
     vendedorId: snapshot.vendedorId,
@@ -335,11 +389,12 @@ function mapOrdenEntity(snapshot: OrdenCompraSnapshot): Partial<OrdenCompraEntit
 }
 
 function mapAuditoriaEntity(
-  snapshot: AuditoriaOrdenCompraSnapshot,
-): Partial<AuditoriaOrdenCompraEntity> {
+  snapshot: AuditoriaTransaccionSnapshot,
+): Partial<AuditoriaTransaccionEntity> {
   return {
     idAuditoria: snapshot.idAuditoria,
     idOperacion: snapshot.idOperacion,
+    tipo: snapshot.tipo,
     compradorId: snapshot.compradorId,
     vendedorId: snapshot.vendedorId,
     jugadorId: snapshot.jugadorId,
@@ -348,6 +403,7 @@ function mapAuditoriaEntity(
     importeCreditos: snapshot.importeCreditos,
     tipoEstrategia: snapshot.estrategia,
     idVersionEstrategia: snapshot.idVersionEstrategia,
+    idRecalculo: snapshot.idRecalculo,
     fechaHora: snapshot.fechaHora,
     claveIdempotencia: snapshot.claveIdempotencia,
   };

@@ -78,7 +78,7 @@ describe('compra y recálculo concurrentes', () => {
     const [order] = await integration.dataSource.query(
       `SELECT id_recalculo AS "idRecalculo", tipo_estrategia AS estrategia,
               cotizacion::text AS cotizacion, importe_creditos AS importe
-       FROM ordenes_compra`,
+       FROM transacciones_mercado`,
     );
     const [active] = await integration.dataSource.query(
       `SELECT id_recalculo AS "idRecalculo", tipo_estrategia AS estrategia
@@ -91,8 +91,12 @@ describe('compra y recálculo concurrentes', () => {
       [IDS.player, active.estrategia],
     );
     expect(order.estrategia).toBe('ataque_decisivo');
-    expect([IDS.recalc, recalcResponse.body.idRecalculo]).toContain(order.idRecalculo);
-    expect(BigInt(order.importe)).toBe(BigInt(Math.round(Number(order.cotizacion) * 100)));
+    expect([IDS.recalc, recalcResponse.body.idRecalculo]).toContain(
+      order.idRecalculo,
+    );
+    expect(BigInt(order.importe)).toBe(
+      BigInt(Math.round(Number(order.cotizacion) * 100)),
+    );
     if (order.idRecalculo === active.idRecalculo) {
       expect(currentQuote.idRecalculo).toBe(order.idRecalculo);
       expect(currentQuote.cotizacion).toBe(order.cotizacion);
@@ -116,10 +120,15 @@ describe('compra y recálculo concurrentes', () => {
     const balances = await integration.dataSource.query(
       'SELECT creditos_disponibles FROM saldos_usuario',
     );
-    expect(balances.every((row: { creditos_disponibles: string }) => BigInt(row.creditos_disponibles) >= 0n)).toBe(true);
+    expect(
+      balances.every(
+        (row: { creditos_disponibles: string }) =>
+          BigInt(row.creditos_disponibles) >= 0n,
+      ),
+    ).toBe(true);
     expect(
       await integration.dataSource.query(
-        'SELECT count(*)::int AS count FROM ordenes_compra',
+        'SELECT count(*)::int AS count FROM transacciones_mercado',
       ),
     ).toEqual([{ count: 1 }]);
   });
@@ -159,7 +168,12 @@ async function seed(integration: OrdersIntegrationApp): Promise<void> {
   await db.query(
     `INSERT INTO versiones_estrategia_cotizacion (id, tipo_estrategia, numero_version, pesos)
      VALUES ($1, 'ataque_decisivo', 1, $2::jsonb)`,
-    [IDS.version, JSON.stringify(EstrategiaCotizacion.versionInicial('ataque_decisivo').pesos)],
+    [
+      IDS.version,
+      JSON.stringify(
+        EstrategiaCotizacion.versionInicial('ataque_decisivo').pesos,
+      ),
+    ],
   );
   await db.query(
     `INSERT INTO recalculos_cotizacion
@@ -180,7 +194,10 @@ async function seed(integration: OrdersIntegrationApp): Promise<void> {
     [IDS.player, IDS.version, IDS.recalc, IDS.stats],
   );
   const tokens = Array.from({ length: 100 }, (_, index) => [
-    randomUUID(), IDS.player, IDS.admin, index + 1,
+    randomUUID(),
+    IDS.player,
+    IDS.admin,
+    index + 1,
     '10000000-0000-4000-8000-000000000099',
   ]);
   for (const token of tokens)

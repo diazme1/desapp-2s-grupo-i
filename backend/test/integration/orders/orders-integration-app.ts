@@ -18,8 +18,8 @@ import { RecalculoCotizacionActivoEntity } from '../../../src/players/persistenc
 import { CotizacionVigenteEntity } from '../../../src/players/persistence/cotizacion-vigente.entity';
 import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../../../src/market/persistence/tenencia-jugador.entity';
-import { OrdenCompraEntity } from '../../../src/orders/persistence/orden-compra.entity';
-import { AuditoriaOrdenCompraEntity } from '../../../src/orders/persistence/auditoria-orden-compra.entity';
+import { TransaccionMercadoEntity } from '../../../src/orders/persistence/transaccion-mercado.entity';
+import { AuditoriaTransaccionEntity } from '../../../src/orders/persistence/auditoria-transaccion.entity';
 import { CreateUsuarios1710000000000 } from '../../../migrations/1710000000000-CreateUsuarios';
 import { CreateCatalogoJugadores1727000000000 } from '../../../migrations/1727000000000-CreateCatalogoJugadores';
 import { CreateEstadisticasJugadores1790275835000 } from '../../../migrations/1790275835000-CreateEstadisticasJugadores';
@@ -34,6 +34,7 @@ import { CurrentQuotesPerStrategy1790275841000 } from '../../../migrations/17902
 import { CreateTokens1790275841000 } from '../../../migrations/1790275841000-CreateTokens';
 import { CreateTenenciasJugador1790275842000 } from '../../../migrations/1790275842000-CreateTenenciasJugador';
 import { CreateOrdenesCompra1790275843000 } from '../../../migrations/1790275843000-CreateOrdenesCompra';
+import { CreateTransaccionesMercado1790275844000 } from '../../../migrations/1790275844000-CreateTransaccionesMercado';
 
 const POSTGRES_IMAGE = 'postgres:16-alpine';
 const POSTGRES_PORT = 5432;
@@ -95,8 +96,8 @@ export async function createOrdersIntegrationApp(
       CotizacionVigenteEntity,
       TokenJugadorEntity,
       TenenciaJugadorEntity,
-      OrdenCompraEntity,
-      AuditoriaOrdenCompraEntity,
+      TransaccionMercadoEntity,
+      AuditoriaTransaccionEntity,
     ],
     migrations: [
       CreateUsuarios1710000000000,
@@ -113,6 +114,7 @@ export async function createOrdersIntegrationApp(
       CreateTokens1790275841000,
       CreateTenenciasJugador1790275842000,
       CreateOrdenesCompra1790275843000,
+      CreateTransaccionesMercado1790275844000,
     ],
     dropSchema: true,
     synchronize: false,
@@ -134,7 +136,7 @@ export async function createOrdersIntegrationApp(
       superadminEmail: superadmin.email,
       async resetData() {
         await dataSource.query(
-          `TRUNCATE TABLE auditorias_orden_compra, ordenes_compra,
+          `TRUNCATE TABLE auditorias_transaccion, transacciones_mercado,
            cotizacion_vigente, historial_cotizacion, tenencias_jugador, tokens,
            recalculo_cotizacion_activo, recalculos_cotizacion,
            versiones_estrategia_cotizacion, estadisticas_jugadores, jugadores,

@@ -1,6 +1,7 @@
 import { Column, JoinColumn, ManyToOne } from 'typeorm';
 import { JugadorEntity } from '../../players/persistence/jugador.entity';
 import { UserEntity } from '../../users/persistence/user.entity';
+import type { TipoTransaccionMercado } from '../domain/transaccion-mercado';
 
 const bigintTransformer = {
   to(value: bigint | string): string {
@@ -20,7 +21,10 @@ const numericTransformer = {
   },
 };
 
-export abstract class OrdenCompraRegistroEntity {
+export abstract class TransaccionMercadoRegistroEntity {
+  @Column({ name: 'tipo', type: 'varchar', length: 10 })
+  tipo!: TipoTransaccionMercado;
+
   @Column({ name: 'id_usuario_comprador', type: 'uuid' })
   compradorId!: string;
 
@@ -54,7 +58,11 @@ export abstract class OrdenCompraRegistroEntity {
   })
   cotizacion!: string;
 
-  @Column({ name: 'importe_creditos', type: 'bigint', transformer: bigintTransformer })
+  @Column({
+    name: 'importe_creditos',
+    type: 'bigint',
+    transformer: bigintTransformer,
+  })
   importeCreditos!: bigint;
 
   @Column({ name: 'tipo_estrategia', type: 'varchar', length: 60 })
@@ -62,6 +70,9 @@ export abstract class OrdenCompraRegistroEntity {
 
   @Column({ name: 'id_version_estrategia', type: 'uuid' })
   idVersionEstrategia!: string;
+
+  @Column({ name: 'id_recalculo', type: 'uuid' })
+  idRecalculo!: string;
 
   @Column({ name: 'fecha_hora', type: 'timestamptz' })
   fechaHora!: Date;

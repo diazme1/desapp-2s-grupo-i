@@ -8,16 +8,11 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  BuyOrderResult,
-  OrdenCompra,
-  OrdenCompraDomainError,
-} from './domain/orden-compra';
+import { BuyOrderResult, OrdenCompra } from './domain/orden-compra';
+import { OrdenVenta, SellOrderResult } from './domain/orden-venta';
+import { OrdenMercadoDomainError } from './domain/orden-mercado-reglas';
 import { Creditos } from '../market/domain/creditos';
-import {
-  ORDERS_REPOSITORY,
-  type OrdersRepository,
-} from './orders.repository';
+import { ORDERS_REPOSITORY, type OrdersRepository } from './orders.repository';
 import type { BuyOrderDto } from './dto/buy-order.dto';
 
 const MAX_RETRIES = 3;
@@ -36,33 +31,83 @@ export class OrdersService {
   ) {
     const vendedorEmail = this.config.get<string>('SUPERADMIN_EMAIL');
     if (!vendedorEmail)
-      throw new ForbiddenException('El superadmin del mercado no está configurado.');
+      throw new ForbiddenException(
+        'El superadmin del mercado no está configurado.',
+      );
 
     for (let intento = 1; intento <= MAX_RETRIES; intento += 1) {
       try {
-        const resultado = await this.orders.enTransaccion(async (unitOfWork) => {
-          const context = await unitOfWork.bloquearYcargarCompra({
-            compradorId,
-            vendedorEmail,
-            jugadorId: input.idJugador,
-            claveIdempotencia,
-          });
-          this.validarAusencias(context);
-          const resultado = OrdenCompra.ejecutar({
-            claveIdempotencia,
-            cantidadTokens: input.cantidadTokens,
-            ...context,
-          });
-          await unitOfWork.persistirCompra(resultado);
-          return resultado;
-        });
+        const resultado = await this.orders.enTransaccion(
+          async (unitOfWork) => {
+            const context = await unitOfWork.bloquearYcargarCompra({
+              compradorId,
+              vendedorEmail,
+              jugadorId: input.idJugador,
+              claveIdempotencia,
+            });
+            this.validarAusencias(context);
+            const resultado = OrdenCompra.ejecutar({
+              claveIdempotencia,
+              cantidadTokens: input.cantidadTokens,
+              ...context,
+            });
+            await unitOfWork.persistirCompra(resultado);
+            return resultado;
+          },
+        );
         return this.respuesta(resultado);
       } catch (error) {
-        if (esReintentable(error) && intento < MAX_RETRIES) continue;
+        if (esReintentable(error)) {
+          if (intento < MAX_RETRIES) continue;
+          throw new ConflictException('No se pudo serializar la compra.');
+        }
         throw this.mapearError(error);
       }
     }
     throw new ConflictException('No se pudo serializar la compra.');
+  }
+
+  async vender(
+    vendedorId: string,
+    input: BuyOrderDto,
+    claveIdempotencia: string,
+  ) {
+    const compradorEmail = this.config.get<string>('SUPERADMIN_EMAIL');
+    if (!compradorEmail)
+      throw new ForbiddenException(
+        'El superadmin del mercado no está configurado.',
+      );
+
+    for (let intento = 1; intento <= MAX_RETRIES; intento += 1) {
+      try {
+        const resultado = await this.orders.enTransaccion(
+          async (unitOfWork) => {
+            const context = await unitOfWork.bloquearYcargarVenta({
+              vendedorId,
+              compradorEmail,
+              jugadorId: input.idJugador,
+              claveIdempotencia,
+            });
+            this.validarAusenciasVenta(context);
+            const resultado = OrdenVenta.ejecutar({
+              claveIdempotencia,
+              cantidadTokens: input.cantidadTokens,
+              ...context,
+            });
+            await unitOfWork.persistirVenta(resultado);
+            return resultado;
+          },
+        );
+        return this.respuesta(resultado);
+      } catch (error) {
+        if (esReintentable(error)) {
+          if (intento < MAX_RETRIES) continue;
+          throw new ConflictException('No se pudo serializar la venta.');
+        }
+        throw this.mapearError(error);
+      }
+    }
+    throw new ConflictException('No se pudo serializar la venta.');
   }
 
   private validarAusencias(context: {
@@ -77,23 +122,51 @@ export class OrdersService {
     if (!context.comprador)
       throw new ForbiddenException('El usuario autenticado no existe.');
     if (context.ordenExistente) {
-      if (!context.jugador) throw new NotFoundException('Jugador no encontrado.');
+      if (!context.jugador)
+        throw new NotFoundException('Jugador no encontrado.');
       return;
     }
     if (!context.vendedor)
       throw new ForbiddenException('El superadmin del mercado no existe.');
     if (!context.jugador) throw new NotFoundException('Jugador no encontrado.');
     if (!context.quote)
-      throw new ConflictException('No existe una cotización vigente para el jugador.');
+      throw new ConflictException(
+        'No existe una cotización vigente para el jugador.',
+      );
     if (!context.saldoComprador)
       throw new ConflictException('El comprador no tiene un saldo disponible.');
     if (!context.tenenciaVendedor)
-      throw new ConflictException('La tenencia del vendedor no está disponible.');
+      throw new ConflictException(
+        'La tenencia del vendedor no está disponible.',
+      );
+  }
+
+  private validarAusenciasVenta(context: {
+    vendedor: unknown;
+    comprador: unknown;
+    jugador: unknown;
+    quote: unknown;
+    ordenExistente: unknown;
+  }): void {
+    if (!context.vendedor)
+      throw new ForbiddenException('El usuario autenticado no existe.');
+    if (context.ordenExistente) {
+      if (!context.jugador)
+        throw new NotFoundException('Jugador no encontrado.');
+      return;
+    }
+    if (!context.comprador)
+      throw new ForbiddenException('El superadmin del mercado no existe.');
+    if (!context.jugador) throw new NotFoundException('Jugador no encontrado.');
+    if (!context.quote)
+      throw new ConflictException(
+        'No existe una cotización vigente para el jugador.',
+      );
   }
 
   private mapearError(error: unknown): Error {
     if (error instanceof HttpException) return error;
-    if (error instanceof OrdenCompraDomainError) {
+    if (error instanceof OrdenMercadoDomainError) {
       switch (error.code) {
         case 'COMPRADOR_INVALIDO':
         case 'VENDEDOR_INVALIDO':
@@ -104,7 +177,6 @@ export class OrdersService {
         case 'CANTIDAD_INVALIDA':
           return new UnprocessableEntityException(error.message);
         case 'COTIZACION_INVALIDA':
-          return new ConflictException(error.message);
         case 'IMPORTE_INVALIDO':
         case 'SALDO_INSUFICIENTE':
         case 'TOKENS_INSUFICIENTES':
@@ -113,10 +185,12 @@ export class OrdersService {
           return new ConflictException(error.message);
       }
     }
-    return error instanceof Error ? error : new Error('Error al procesar la compra.');
+    return error instanceof Error
+      ? error
+      : new Error('Error al procesar la operación de mercado.');
   }
 
-  private respuesta(resultado: BuyOrderResult) {
+  private respuesta(resultado: BuyOrderResult | SellOrderResult) {
     return {
       idOperacion: resultado.orden.idOperacion,
       idJugador: resultado.orden.jugadorId,
