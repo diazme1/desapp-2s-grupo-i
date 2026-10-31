@@ -25,6 +25,12 @@
       "description": "Correo para el flujo de usuario común"
     },
     {
+      "key": "userId",
+      "value": "",
+      "type": "string",
+      "description": "UUID del usuario autenticado, guardado por la request /auth/me"
+    },
+    {
       "key": "userPassword",
       "value": "secreto123",
       "type": "string",
@@ -246,7 +252,9 @@
                 "type": "text/javascript",
                 "exec": [
                   "pm.test('Token válido', () => pm.response.to.have.status(200));",
-                  "pm.test('Devuelve una cuenta', () => pm.expect(pm.response.json()).to.have.property('id'));"
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve una cuenta', () => pm.expect(body).to.have.property('id'));",
+                  "if (body.id) pm.collectionVariables.set('userId', body.id);"
                 ]
               }
             }
@@ -577,6 +585,45 @@
                   }
                 }
               ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "05 - Portfolio",
+      "item": [
+        {
+          "name": "Consultar portfolio",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}/portfolio",
+            "description": "Consulta el portfolio valorizado del usuario autenticado. Ejecutar antes /auth/me para guardar userId."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Portfolio consultado', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve usuario y posiciones', () => pm.expect(body).to.have.all.keys('usuarioId', 'posiciones'));",
+                  "pm.test('Posiciones ordenadas por idJugador', () => { const ids = body.posiciones.map((position) => position.idJugador); pm.expect(ids).to.eql([...ids].sort()); });",
+                  "body.posiciones.forEach((position) => { pm.expect(position.cotizacionVigente).to.match(/^-?\\d+\\.\\d{2}$/); pm.expect(position.valorActual).to.match(/^-?\\d+\\.\\d{2}$/); if (position.precioPromedioCompra !== null) pm.expect(position.precioPromedioCompra).to.match(/^-?\\d+\\.\\d{2}$/); if (position.gananciaPerdida !== null) pm.expect(position.gananciaPerdida).to.match(/^-?\\d+\\.\\d{2}$/); });"
+                ]
+              }
             }
           ]
         }
