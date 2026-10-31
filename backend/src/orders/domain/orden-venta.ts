@@ -1,5 +1,4 @@
 import { randomUUID } from 'node:crypto';
-import { Cotizacion } from '../../market/domain/cotizacion';
 import { Creditos } from '../../market/domain/creditos';
 import { TenenciaJugador } from '../../market/domain/tenencia-jugador';
 import { TokenJugador } from '../../market/domain/token-jugador';
@@ -14,29 +13,18 @@ import type {
   AuditoriaTransaccionSnapshot,
   TransaccionMercadoSnapshot,
 } from './transaccion-mercado';
-
-export type OrdenVentaErrorCode =
-  | 'VENDEDOR_INVALIDO'
-  | 'COMPRADOR_INVALIDO'
-  | 'PARTES_IGUALES'
-  | 'JUGADOR_INVALIDO'
-  | 'CANTIDAD_INVALIDA'
-  | 'COTIZACION_INVALIDA'
-  | 'IMPORTE_INVALIDO'
-  | 'SALDO_INSUFICIENTE'
-  | 'TOKENS_INSUFICIENTES'
-  | 'TENENCIAS_INCONSISTENTES'
-  | 'IDEMPOTENCIA_CONFLICTIVA';
-
-export class OrdenVentaDomainError extends Error {
-  constructor(
-    readonly code: OrdenVentaErrorCode,
-    message: string,
-  ) {
-    super(message);
-    this.name = 'OrdenVentaDomainError';
-  }
-}
+import {
+  calcularImporte,
+  exigirCotizacion,
+  exigirJugador,
+  OrdenMercadoDomainError as OrdenVentaDomainError,
+  prepararTransferencia,
+  validarCantidad,
+  validarIdempotencia,
+  validarPartesDistintas,
+} from './orden-mercado-reglas';
+export { OrdenMercadoDomainError as OrdenVentaDomainError } from './orden-mercado-reglas';
+export type { OrdenMercadoErrorCode as OrdenVentaErrorCode } from './orden-mercado-reglas';
 
 export interface OrdenVentaSnapshot extends Omit<
   TransaccionMercadoSnapshot,
@@ -44,7 +32,6 @@ export interface OrdenVentaSnapshot extends Omit<
 > {
   tipo: 'VENTA';
 }
-
 export interface AuditoriaOrdenVentaSnapshot extends Omit<
   AuditoriaTransaccionSnapshot,
   'tipo'
@@ -52,7 +39,6 @@ export interface AuditoriaOrdenVentaSnapshot extends Omit<
   idAuditoria: string;
   tipo: 'VENTA';
 }
-
 export interface EjecutarOrdenVentaInput {
   claveIdempotencia: string;
   cantidadTokens: number;
@@ -86,11 +72,7 @@ export class OrdenVenta {
   static ejecutar(input: EjecutarOrdenVentaInput): SellOrderResult {
     const vendedor = exigirVendedor(input.vendedor);
     const comprador = exigirComprador(input.comprador);
-    if (comprador.id === vendedor.id)
-      throw new OrdenVentaDomainError(
-        'PARTES_IGUALES',
-        'El comprador no puede ser el vendedor.',
-      );
+    validarPartesDistintas(comprador, vendedor);
     if (input.ordenExistente)
       return resolverIdempotencia(input, input.ordenExistente);
 
@@ -98,9 +80,7 @@ export class OrdenVenta {
     const quote = exigirCotizacion(input.quote);
     validarCantidad(input.cantidadTokens);
 
-    const importe = Creditos.fromUnidades(
-      quote.cotizacion.toUnidades() * BigInt(input.cantidadTokens),
-    );
+    const importe = calcularImporte(quote, input.cantidadTokens);
     const saldoVendedor = input.saldoVendedor;
     if (
       !saldoVendedor ||
@@ -116,53 +96,18 @@ export class OrdenVenta {
         'SALDO_INSUFICIENTE',
         'El saldo del usuario común es insuficiente.',
       );
-    if (importe.toUnidades() < 0n)
-      throw new OrdenVentaDomainError(
-        'IMPORTE_INVALIDO',
-        'El importe calculado no es válido.',
-      );
-
-    const tokens = input.tokensJugador
-      .filter((token) => token.jugadorId === jugador.id)
-      .sort((a, b) => a.numeroEmision - b.numeroEmision);
-    const porPropietario = contarTokens(tokens);
-    const tokensVendedor = tokens.filter(
-      (token) => token.usuarioOwnerId === vendedor.id,
-    );
-    if (tokensVendedor.length < input.cantidadTokens)
-      throw new OrdenVentaDomainError(
-        'TOKENS_INSUFICIENTES',
-        'El usuario no dispone de suficientes tokens.',
-      );
-    validarTenencia(
-      input.tenenciaVendedor,
-      vendedor.id,
-      jugador.id,
-      porPropietario.get(vendedor.id) ?? 0,
-    );
-    validarTenencia(
-      input.tenenciaComprador,
-      comprador.id,
-      jugador.id,
-      porPropietario.get(comprador.id) ?? 0,
-      true,
-    );
-
-    const transferidos = tokensVendedor.slice(0, input.cantidadTokens);
-    const tokensActualizados = transferidos.map((token) =>
-      token.transferirDesde(vendedor.id, comprador.id),
-    );
-    const tenenciaVendedor = exigirTenencia(input.tenenciaVendedor).restar(
-      input.cantidadTokens,
-    );
-    const tenenciaComprador = (
-      input.tenenciaComprador ??
-      TenenciaJugador.crear({
-        usuarioId: comprador.id,
+    const { tokensActualizados, tenenciaVendedor, tenenciaComprador } =
+      prepararTransferencia({
+        tokensJugador: input.tokensJugador,
         jugadorId: jugador.id,
-        cantidadTokens: 0,
-      })
-    ).sumar(input.cantidadTokens);
+        vendedor,
+        comprador,
+        cantidadTokens: input.cantidadTokens,
+        tenenciaVendedor: input.tenenciaVendedor,
+        tenenciaComprador: input.tenenciaComprador,
+        mensajeTokensInsuficientes:
+          'El usuario no dispone de suficientes tokens.',
+      });
 
     if (
       input.saldoComprador &&
@@ -223,18 +168,14 @@ function resolverIdempotencia(
   input: EjecutarOrdenVentaInput,
   existente: ExistingMarketTransaction,
 ): SellOrderResult {
-  const coincide =
-    existente.tipo === 'VENTA' &&
-    existente.claveIdempotencia === input.claveIdempotencia &&
-    existente.vendedorId === input.vendedor?.id &&
-    existente.compradorId === input.comprador?.id &&
-    existente.jugadorId === input.jugador?.id &&
-    existente.cantidadTokens === input.cantidadTokens;
-  if (!coincide)
-    throw new OrdenVentaDomainError(
-      'IDEMPOTENCIA_CONFLICTIVA',
-      'La clave de idempotencia ya fue utilizada con otro contenido.',
-    );
+  validarIdempotencia(existente, {
+    tipo: 'VENTA',
+    claveIdempotencia: input.claveIdempotencia,
+    compradorId: input.comprador?.id,
+    vendedorId: input.vendedor?.id,
+    jugadorId: input.jugador?.id,
+    cantidadTokens: input.cantidadTokens,
+  });
   const snapshot: OrdenVentaSnapshot = Object.freeze({
     ...existente,
     tipo: 'VENTA',
@@ -267,77 +208,4 @@ function exigirComprador(comprador: User | null): User {
       'El comprador debe ser el superadmin.',
     );
   return comprador;
-}
-
-function exigirJugador(jugador: Jugador | null): Jugador {
-  if (!jugador)
-    throw new OrdenVentaDomainError(
-      'JUGADOR_INVALIDO',
-      'El jugador no existe.',
-    );
-  return jugador;
-}
-
-function exigirCotizacion(
-  quote: ActiveQuoteSnapshot | null,
-): ActiveQuoteSnapshot {
-  if (
-    !quote ||
-    !quote.estrategia ||
-    !quote.idVersionEstrategia ||
-    !quote.idRecalculo ||
-    !(quote.cotizacion instanceof Cotizacion)
-  )
-    throw new OrdenVentaDomainError(
-      'COTIZACION_INVALIDA',
-      'No existe una cotización vigente aplicable.',
-    );
-  return quote;
-}
-
-function validarCantidad(cantidad: number): void {
-  if (!Number.isInteger(cantidad) || cantidad <= 0)
-    throw new OrdenVentaDomainError(
-      'CANTIDAD_INVALIDA',
-      'La cantidad de tokens debe ser positiva.',
-    );
-}
-
-function validarTenencia(
-  tenencia: TenenciaJugador | null,
-  usuarioId: string,
-  jugadorId: string,
-  cantidadEsperada: number,
-  permitirAusencia = false,
-): void {
-  if (!tenencia && permitirAusencia && cantidadEsperada === 0) return;
-  if (
-    !tenencia ||
-    tenencia.usuarioId !== usuarioId ||
-    tenencia.jugadorId !== jugadorId ||
-    tenencia.cantidadTokens !== cantidadEsperada
-  )
-    throw new OrdenVentaDomainError(
-      'TENENCIAS_INCONSISTENTES',
-      'Las tenencias no coinciden con los tokens individuales.',
-    );
-}
-
-function exigirTenencia(tenencia: TenenciaJugador | null): TenenciaJugador {
-  if (!tenencia)
-    throw new OrdenVentaDomainError(
-      'TENENCIAS_INCONSISTENTES',
-      'La tenencia del vendedor es obligatoria.',
-    );
-  return tenencia;
-}
-
-function contarTokens(tokens: TokenJugador[]): Map<string, number> {
-  const cantidades = new Map<string, number>();
-  for (const token of tokens)
-    cantidades.set(
-      token.usuarioOwnerId,
-      (cantidades.get(token.usuarioOwnerId) ?? 0) + 1,
-    );
-  return cantidades;
 }

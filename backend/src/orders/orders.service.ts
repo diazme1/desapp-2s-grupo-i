@@ -8,16 +8,9 @@ import {
   UnprocessableEntityException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import {
-  BuyOrderResult,
-  OrdenCompra,
-  OrdenCompraDomainError,
-} from './domain/orden-compra';
-import {
-  OrdenVenta,
-  OrdenVentaDomainError,
-  SellOrderResult,
-} from './domain/orden-venta';
+import { BuyOrderResult, OrdenCompra } from './domain/orden-compra';
+import { OrdenVenta, SellOrderResult } from './domain/orden-venta';
+import { OrdenMercadoDomainError } from './domain/orden-mercado-reglas';
 import { Creditos } from '../market/domain/creditos';
 import { ORDERS_REPOSITORY, type OrdersRepository } from './orders.repository';
 import type { BuyOrderDto } from './dto/buy-order.dto';
@@ -173,27 +166,7 @@ export class OrdersService {
 
   private mapearError(error: unknown): Error {
     if (error instanceof HttpException) return error;
-    if (error instanceof OrdenCompraDomainError) {
-      switch (error.code) {
-        case 'COMPRADOR_INVALIDO':
-        case 'VENDEDOR_INVALIDO':
-        case 'PARTES_IGUALES':
-          return new ForbiddenException(error.message);
-        case 'JUGADOR_INVALIDO':
-          return new NotFoundException(error.message);
-        case 'CANTIDAD_INVALIDA':
-          return new UnprocessableEntityException(error.message);
-        case 'COTIZACION_INVALIDA':
-          return new ConflictException(error.message);
-        case 'IMPORTE_INVALIDO':
-        case 'SALDO_INSUFICIENTE':
-        case 'TOKENS_INSUFICIENTES':
-        case 'TENENCIAS_INCONSISTENTES':
-        case 'IDEMPOTENCIA_CONFLICTIVA':
-          return new ConflictException(error.message);
-      }
-    }
-    if (error instanceof OrdenVentaDomainError) {
+    if (error instanceof OrdenMercadoDomainError) {
       switch (error.code) {
         case 'COMPRADOR_INVALIDO':
         case 'VENDEDOR_INVALIDO':
