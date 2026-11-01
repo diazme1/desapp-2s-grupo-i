@@ -5,6 +5,9 @@ import { ApiError } from '../shared/http-client'
 import { obtenerJugador } from './players-api'
 import { PlayerStatsPanel } from './PlayerStatsPanel'
 import type { EstadoDetalle, JugadorCatalogo } from './player-types'
+import { listarHistorialCotizaciones, listarRanking, type EstrategiaCotizacion, type HistorialCotizacion } from '../market/market-api'
+import { QuoteHistoryPanel } from '../market/QuoteHistoryPanel'
+import { TradeDialog } from '../market/TradeDialog'
 import './players.css'
 
 export function PlayerStatsPage() {
@@ -14,6 +17,12 @@ export function PlayerStatsPage() {
   const [estado, setEstado] = useState<EstadoDetalle>('cargando')
   const [jugador, setJugador] = useState<JugadorCatalogo | null>(null)
   const [mensajeError, setMensajeError] = useState('')
+  const [historial, setHistorial] = useState<HistorialCotizacion[]>([])
+  const [estrategiaActiva, setEstrategiaActiva] = useState<EstrategiaCotizacion | null>(null)
+  const [cotizacion, setCotizacion] = useState<string | null>(null)
+  const [tokensDisponibles, setTokensDisponibles] = useState(0)
+  const [errorCotizacion, setErrorCotizacion] = useState('')
+  const [comprando, setComprando] = useState(false)
 
   useEffect(() => {
     let activo = true
@@ -47,11 +56,33 @@ export function PlayerStatsPage() {
     }
   }, [id, session?.accessToken])
 
+  useEffect(() => {
+    let activo = true
+    if (!session?.accessToken || !id) return
+    void Promise.all([
+      listarHistorialCotizaciones(session.accessToken, id),
+      listarRanking(session.accessToken),
+    ]).then(([quotes, ranking]) => {
+      if (!activo) return
+      setHistorial(quotes.items)
+      setEstrategiaActiva(ranking.estrategia)
+      const precio = ranking.jugadores.find((item) => item.id === id)?.cotizacion
+      const mercado = ranking.jugadores.find((item) => item.id === id)
+      setCotizacion(typeof precio === 'number' && Number.isFinite(precio) ? precio.toFixed(2) : null)
+      setTokensDisponibles(mercado?.tokensDisponibles ?? 0)
+      setErrorCotizacion('')
+    }).catch((error) => {
+      if (!activo) return
+      setErrorCotizacion(error instanceof ApiError ? error.message : 'No se pudo cargar el historial de cotizaciones.')
+    })
+    return () => { activo = false }
+  }, [id, session?.accessToken])
+
   return (
     <main className="players-page stats-page">
       <header className="players-header stats-header">
         <div>
-          <p className="eyebrow">PlayerMarket</p>
+          <p className="eyebrow">Valor 90</p>
           <h1>Detalle del jugador</h1>
           <p className="players-intro">Consultá el rendimiento disponible para este jugador.</p>
         </div>
@@ -76,6 +107,13 @@ export function PlayerStatsPage() {
             <h2>{jugador.nombre}</h2>
             <p>{jugador.equipo.nombre} · {jugador.liga.nombre}</p>
             {jugador.posicion && <span>{jugador.posicion}</span>}
+            <div className="detail-quote">
+              <span>Cotización vigente</span>
+              <strong>{cotizacion ? `${Number(cotizacion).toFixed(2).replace('.', ',')} cr` : 'Sin cotización'}</strong>
+            </div>
+            <button className="primary-button detail-buy-button" type="button" disabled={!cotizacion || tokensDisponibles === 0} onClick={() => setComprando(true)}>
+              Comprar tokens
+            </button>
           </article>
           {estado === 'con_estadisticas' && jugador.estadisticas.length > 0 ? (
             <PlayerStatsPanel estadisticas={jugador.estadisticas[jugador.estadisticas.length - 1]} />
@@ -87,6 +125,22 @@ export function PlayerStatsPage() {
             </section>
           )}
         </section>
+      )}
+      {(estado === 'con_estadisticas' || estado === 'sin_estadisticas') && jugador && (
+        <section className="detail-market-sections">
+          {errorCotizacion && <p className="market-inline-error" role="status">{errorCotizacion}</p>}
+          <QuoteHistoryPanel items={historial} estrategiaActiva={estrategiaActiva} />
+        </section>
+      )}
+      {comprando && jugador && cotizacion && (
+        <TradeDialog
+          jugadorId={jugador.id}
+          nombreJugador={jugador.nombre}
+          cotizacion={cotizacion}
+          cantidadMaxima={tokensDisponibles}
+          lado="compra"
+          onClose={() => setComprando(false)}
+        />
       )}
     </main>
   )

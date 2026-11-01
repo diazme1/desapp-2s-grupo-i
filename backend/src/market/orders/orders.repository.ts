@@ -30,7 +30,7 @@ export type ExistingBuyOrder = ExistingMarketTransaction;
 
 export interface LoadBuyContextInput {
   compradorId: string;
-  vendedorEmail: string;
+  vendedorEmail?: string;
   jugadorId: string;
   claveIdempotencia: string;
 }
@@ -50,7 +50,7 @@ export interface LockedBuyContext {
 
 export interface LoadSellContextInput {
   vendedorId: string;
-  compradorEmail: string;
+  compradorEmail?: string;
   jugadorId: string;
   claveIdempotencia: string;
 }

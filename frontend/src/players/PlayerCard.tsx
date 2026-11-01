@@ -4,6 +4,9 @@ import type { JugadorCatalogo } from './player-types'
 
 interface PlayerCardProps {
   jugador: JugadorCatalogo
+  cotizacion: string | null
+  tokensDisponibles: number | null
+  onBuy: (jugador: JugadorCatalogo, cotizacion: string, tokensDisponibles: number) => void
 }
 
 function iniciales(nombre: string): string {
@@ -15,7 +18,7 @@ function iniciales(nombre: string): string {
     .join('')
 }
 
-export function PlayerCard({ jugador }: PlayerCardProps) {
+export function PlayerCard({ jugador, cotizacion, tokensDisponibles, onBuy }: PlayerCardProps) {
   const navigate = useNavigate()
   const [imagenFallida, setImagenFallida] = useState(false)
   const [escudoFallido, setEscudoFallido] = useState(false)
@@ -90,22 +93,38 @@ export function PlayerCard({ jugador }: PlayerCardProps) {
             </div>
           )}
         </dl>
+        <div className="player-card-price">
+          <div>
+            <span>Cotización vigente</span>
+            <strong>{cotizacion ? `${Number(cotizacion).toFixed(2).replace('.', ',')} cr` : 'Sin cotización'}</strong>
+          </div>
+          <small>{tokensDisponibles ?? '—'} disponibles</small>
+        </div>
         <div className="player-card-footer">
-          <span>Ver detalles</span>
-          <span className="player-card-arrow" aria-hidden="true">→</span>
+          <button
+            className="player-card-detail"
+            type="button"
+            onClick={() => navigate(`/app/players/${encodeURIComponent(jugador.id)}/estadisticas`)}
+          >
+            <span>{puedeVerEstadisticas ? 'Ver estadísticas' : 'Ver ficha'}</span>
+            <span className="player-card-arrow" aria-hidden="true">→</span>
+          </button>
+          <button
+            className="player-card-buy"
+            type="button"
+            disabled={!cotizacion || !tokensDisponibles}
+            onClick={() => cotizacion && tokensDisponibles && onBuy(jugador, cotizacion, tokensDisponibles)}
+          >
+            Comprar
+          </button>
         </div>
       </div>
     </>
   )
 
   return (
-    <button
-      className="player-card player-card-action"
-      type="button"
-      onClick={() => navigate(`/app/players/${encodeURIComponent(jugador.id)}/estadisticas`)}
-      aria-label={puedeVerEstadisticas ? `Ver estadísticas de ${jugador.nombre}` : `Ver ficha de ${jugador.nombre}`}
-    >
+    <article className="player-card player-card-action">
       {contenido}
-    </button>
+    </article>
   )
 }

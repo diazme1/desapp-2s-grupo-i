@@ -109,25 +109,27 @@ export class TypeOrmOrdersRepository implements OrdersRepository {
       activo,
     );
 
+    const usersRepository = manager.getRepository(UserEntity);
+    const findSuperadmin = () =>
+      usersRepository.findOne({
+        where: { rol: UserRole.SUPERADMIN },
+        order: { creadoEn: 'ASC', id: 'ASC' },
+      });
     const [buyerEntity, sellerEntity] = await Promise.all([
       input.compradorId
-        ? manager.getRepository(UserEntity).findOne({
-            where: { id: input.compradorId },
-          })
+        ? usersRepository.findOne({ where: { id: input.compradorId } })
         : input.compradorEmail
-          ? manager.getRepository(UserEntity).findOne({
+          ? usersRepository.findOne({
               where: { correo: input.compradorEmail.trim().toLowerCase() },
             })
-          : Promise.resolve(null),
+          : findSuperadmin(),
       input.vendedorId
-        ? manager.getRepository(UserEntity).findOne({
-            where: { id: input.vendedorId },
-          })
+        ? usersRepository.findOne({ where: { id: input.vendedorId } })
         : input.vendedorEmail
-          ? manager.getRepository(UserEntity).findOne({
+          ? usersRepository.findOne({
               where: { correo: input.vendedorEmail.trim().toLowerCase() },
             })
-          : Promise.resolve(null),
+          : findSuperadmin(),
     ]);
     const userIds = [buyerEntity?.id, sellerEntity?.id]
       .filter((id): id is string => Boolean(id))

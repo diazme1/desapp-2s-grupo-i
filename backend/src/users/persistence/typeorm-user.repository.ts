@@ -1,5 +1,5 @@
 import { DataSource } from 'typeorm';
-import { User } from '../domain/user';
+import { User, UserRole } from '../domain/user';
 import { Creditos } from '../../market/domain/creditos';
 import { SaldoUsuario } from '../domain/saldo-usuario';
 import { UserRepository } from '../users.repository';
@@ -57,6 +57,14 @@ export class TypeOrmUserRepository implements UserRepository {
     const entity = await this.dataSource
       .getRepository(UserEntity)
       .findOne({ where: { id } });
+    return entity ? User.create(entity) : null;
+  }
+
+  async findByRole(rol: UserRole): Promise<User | null> {
+    const entity = await this.dataSource.getRepository(UserEntity).findOne({
+      where: { rol },
+      order: { creadoEn: 'ASC', id: 'ASC' },
+    });
     return entity ? User.create(entity) : null;
   }
 }

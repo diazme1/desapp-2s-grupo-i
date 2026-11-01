@@ -30,10 +30,6 @@ export class OrdersService {
     claveIdempotencia: string,
   ) {
     const vendedorEmail = this.config.get<string>('SUPERADMIN_EMAIL');
-    if (!vendedorEmail)
-      throw new ForbiddenException(
-        'El superadmin del mercado no está configurado.',
-      );
 
     for (let intento = 1; intento <= MAX_RETRIES; intento += 1) {
       try {
@@ -73,10 +69,6 @@ export class OrdersService {
     claveIdempotencia: string,
   ) {
     const compradorEmail = this.config.get<string>('SUPERADMIN_EMAIL');
-    if (!compradorEmail)
-      throw new ForbiddenException(
-        'El superadmin del mercado no está configurado.',
-      );
 
     for (let intento = 1; intento <= MAX_RETRIES; intento += 1) {
       try {

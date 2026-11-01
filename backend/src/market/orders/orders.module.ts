@@ -5,10 +5,12 @@ import { OrdersController } from './orders.controller';
 import { ORDERS_REPOSITORY } from './orders.repository';
 import { OrdersService } from './orders.service';
 import { TypeOrmOrdersRepository } from './persistence/typeorm-orders.repository';
+import { PortfolioController } from './portfolio.controller';
+import { PortfolioService } from './portfolio.service';
 
 @Module({
   imports: [AuthModule, PlayersModule],
-  controllers: [OrdersController],
+  controllers: [OrdersController, PortfolioController],
   providers: [
     {
       provide: ORDERS_REPOSITORY,
@@ -17,6 +19,7 @@ import { TypeOrmOrdersRepository } from './persistence/typeorm-orders.repository
         new TypeOrmOrdersRepository(dataSource),
     },
     OrdersService,
+    PortfolioService,
   ],
 })
 export class OrdersModule {}

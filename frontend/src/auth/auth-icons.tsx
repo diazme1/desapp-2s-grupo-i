@@ -4,13 +4,7 @@ type IconProps = {
 
 export function BrandMark({ className }: IconProps) {
   return (
-    <svg className={className} viewBox="0 0 56 56" aria-hidden="true">
-      <path d="M7 45V28a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v17H7Z" fill="currentColor" />
-      <path d="M22 45V17a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v28H22Z" fill="currentColor" />
-      <path d="M37 45V8a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v37H37Z" fill="currentColor" />
-      <circle cx="40.5" cy="12.5" r="9.5" fill="var(--logo-ball, #fff)" stroke="currentColor" strokeWidth="2" />
-      <path d="m40.5 7.5 2 3 3.5.7-2.4 2.7.4 3.5-3.5-1.4-3.3 1.4.4-3.5-2.4-2.7 3.5-.7 2-3Z" fill="currentColor" />
-    </svg>
+    <img className={className} src="/valor90-mark.svg" alt="" aria-hidden="true" />
   )
 }
 

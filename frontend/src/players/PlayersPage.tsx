@@ -6,6 +6,9 @@ import { obtenerOpcionesEquipo, obtenerOpcionesLiga, filtrarJugadores } from './
 import { PlayerCard } from './PlayerCard'
 import { PlayerFilters } from './PlayerFilters'
 import { filtrosCatalogoIniciales, type EstadoCatalogo, type FiltrosCatalogo, type JugadorCatalogo } from './player-types'
+import { AdminQuotePanel } from '../market/AdminQuotePanel'
+import { TradeDialog } from '../market/TradeDialog'
+import { listarRanking, type RankingCotizaciones } from '../market/market-api'
 import './players.css'
 
 const JUGADORES_POR_PAGINA = 50
@@ -23,17 +26,16 @@ function construirPaginasVisibles(actual: number, total: number): ElementoPagina
   })
 }
 
-interface PlayersPageProps {
-  onLogout: () => void
-}
-
-export function PlayersPage({ onLogout }: PlayersPageProps) {
+export function PlayersPage() {
   const { session, user } = useAuth()
   const [jugadores, setJugadores] = useState<JugadorCatalogo[]>([])
   const [estado, setEstado] = useState<EstadoCatalogo>('cargando')
   const [mensajeError, setMensajeError] = useState('')
   const [filtros, setFiltros] = useState<FiltrosCatalogo>(filtrosCatalogoIniciales)
   const [paginaActual, setPaginaActual] = useState(1)
+  const [ranking, setRanking] = useState<RankingCotizaciones | null>(null)
+  const [errorCotizaciones, setErrorCotizaciones] = useState('')
+  const [jugadorParaComprar, setJugadorParaComprar] = useState<{ jugador: JugadorCatalogo; cotizacion: string; disponibles: number } | null>(null)
 
   const cargarJugadores = useCallback(async () => {
     if (!session?.accessToken) return
@@ -52,6 +54,20 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
   useEffect(() => {
     void cargarJugadores()
   }, [cargarJugadores])
+
+  const cargarCotizaciones = useCallback(async () => {
+    if (!session?.accessToken) return
+    setErrorCotizaciones('')
+    try {
+      setRanking(await listarRanking(session.accessToken))
+    } catch (error) {
+      setErrorCotizaciones(error instanceof ApiError ? error.message : 'No se pudieron cargar las cotizaciones.')
+    }
+  }, [session?.accessToken])
+
+  useEffect(() => {
+    void cargarCotizaciones()
+  }, [cargarCotizaciones])
 
   const jugadoresVisibles = useMemo(() => filtrarJugadores(jugadores, filtros), [jugadores, filtros])
   const opcionesLiga = useMemo(() => obtenerOpcionesLiga(jugadores), [jugadores])
@@ -103,11 +119,29 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
             </div>
           </div>
           <div className="players-header-actions">
-            <span className="user-label">{user?.correo}</span>
-            <button className="text-button" type="button" onClick={onLogout}>Cerrar sesión</button>
+            {ranking?.estrategia && (
+              <span className="active-strategy-badge">
+                Cotización activa: {ranking.estrategia === 'ataque_decisivo' ? 'Ataque decisivo' : 'Creación técnica'}
+              </span>
+            )}
           </div>
         </div>
       </header>
+
+      {user?.rol === 'superadmin' && (
+        <AdminQuotePanel
+          estrategiaActiva={ranking?.estrategia ?? null}
+          fechaActualizacion={ranking?.fechaHora ?? null}
+          onComplete={cargarCotizaciones}
+        />
+      )}
+
+      {errorCotizaciones && (
+        <div className="quote-load-message" role="status">
+          <span>No se pudieron cargar las cotizaciones. {errorCotizaciones}</span>
+          <button type="button" onClick={() => void cargarCotizaciones()}>Reintentar</button>
+        </div>
+      )}
 
       {estado === 'cargado' && (
         <PlayerFilters
@@ -154,7 +188,20 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
               <span className="results-order">MOSTRANDO {primerResultado}–{ultimoResultado} · ORDENADOS POR NOMBRE</span>
             </div>
             <div className="players-grid">
-              {jugadoresPagina.map((jugador) => <PlayerCard key={jugador.id} jugador={jugador} />)}
+              {jugadoresPagina.map((jugador) => {
+                const datoMercado = ranking?.jugadores.find((item) => item.id === jugador.id)
+                const precio = datoMercado?.cotizacion
+                const cotizacion = typeof precio === 'number' && Number.isFinite(precio) ? precio.toFixed(2) : null
+                return (
+                  <PlayerCard
+                    key={jugador.id}
+                    jugador={jugador}
+                    cotizacion={cotizacion}
+                    tokensDisponibles={datoMercado?.tokensDisponibles ?? null}
+                    onBuy={(seleccionado, valor, disponibles) => setJugadorParaComprar({ jugador: seleccionado, cotizacion: valor, disponibles })}
+                  />
+                )
+              })}
             </div>
             {cantidadPaginas > 1 && (
               <nav className="players-pagination" aria-label="Paginación del catálogo">
@@ -195,6 +242,16 @@ export function PlayersPage({ onLogout }: PlayersPageProps) {
           </>
         )}
       </section>
+      {jugadorParaComprar && (
+        <TradeDialog
+          jugadorId={jugadorParaComprar.jugador.id}
+          nombreJugador={jugadorParaComprar.jugador.nombre}
+          cotizacion={jugadorParaComprar.cotizacion}
+          cantidadMaxima={jugadorParaComprar.disponibles}
+          lado="compra"
+          onClose={() => setJugadorParaComprar(null)}
+        />
+      )}
     </main>
   )
 }

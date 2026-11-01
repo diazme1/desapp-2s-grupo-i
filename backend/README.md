@@ -77,6 +77,21 @@ Después de ejecutar las migraciones, el backend expone:
 - `POST /catalog/refresh?ligaCodigo=PL`: requiere un JWT Bearer y `X-API-Key` válidos e importa
   una liga, sus equipos y jugadores base desde Football-Data.org. La API key no se exige en las
   consultas de jugadores ni en los demás endpoints.
+- `POST /orders/buy` y `POST /orders/sell`: requieren JWT Bearer, `Idempotency-Key` y un body
+  `{ "idJugador": "<uuid>", "cantidadTokens": 1 }`. La compra transfiere tokens del superadmin
+  al usuario; la venta los devuelve al superadmin. Ambas operaciones actualizan tokens,
+  tenencias, saldos y auditoría de manera atómica.
+- `GET /users/me/portfolio`: devuelve el saldo exacto, posiciones con costo promedio y valuación
+  vigente, rendimiento estimado y las diez operaciones recientes. El usuario se identifica desde
+  el JWT y no desde un ID enviado por el cliente.
+
+La venta al superadmin requiere que este tenga créditos disponibles para recomprar; una venta no
+crea créditos cuando el fondo no alcanza. La migración `1790275844000-CreateOrdenesVenta` crea las
+tablas append-only de órdenes y auditorías de venta. La migración
+`1790275845000-BackfillSaldoInicialUsuarios` acredita 1.000 créditos a usuarios comunes antiguos
+que todavía no tengan una fila de saldo; `1790275846000-RepairInitialSaldoWithoutOperations`
+repara saldos en cero de usuarios sin operaciones previas. Ninguna de las migraciones acredita al
+superadmin ni vuelve a cargar cuentas con compras o ventas registradas.
 
 Para actualizar el catálogo, configurá `FOOTBALL_DATA_API_TOKEN` en el `.env` raíz. La URL,
 las competencias y el intervalo entre requests se pueden revisar en `.env.example`. La
