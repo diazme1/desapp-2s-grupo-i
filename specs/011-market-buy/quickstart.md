@@ -17,9 +17,9 @@ Desde `backend/`:
 
 ```bash
 npm run build
-npm test -- --runInBand --testPathPatterns=test/unit/orders
-npm test -- --runInBand --testPathPatterns=test/integration/orders
-npm test -- --runInBand test/unit/documentation/orders-openapi.spec.ts
+npm test -- --runInBand --testPathPatterns=test/unit/market/orders
+npm test -- --runInBand --testPathPatterns=test/integration/market/orders
+npm test -- --runInBand test/unit/documentation/market/orders-openapi.spec.ts
 ```
 
 Los tests de integración levantan PostgreSQL 16 en Testcontainers, ejecutan las migraciones

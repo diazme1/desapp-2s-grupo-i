@@ -6,7 +6,7 @@
 
 - **Decisión**: agregar un módulo `transactions` con Controller, Service, Repository y DTO propio;
   reutilizar los tipos de transacción y aritmética existentes en vez de crear un dominio paralelo.
-- **Evidencia**: `backend/src/portfolio/` ya implementa `Controller -> Service -> Repository`,
+- **Evidencia**: `backend/src/market/portfolio/` ya implementa `Controller -> Service -> Repository`,
   reutiliza `AuthModule`/`PlayersModule` y aplica `OwnershipService` en el Service.
 - **Racional**: mantiene el alcance separado de la valorización del portfolio y evita que un
   endpoint de historial herede cálculos o datos no solicitados, sin agregar una capa innecesaria.
@@ -58,7 +58,7 @@
 - **Decisión**: agregar unit tests para la proyección, integración con el helper de órdenes que
   levanta PostgreSQL/Testcontainers y HTTP con Supertest; agregar prueba OpenAPI y una carpeta de
   historial en la colección Postman existente.
-- **Evidencia**: `backend/test/integration/orders/orders-integration-app.ts` ya registra la
+- **Evidencia**: `backend/test/integration/market/orders/orders-integration-app.ts` ya registra la
   migración `CreateTransaccionesMercado1790275844000`; portfolio cuenta con pruebas unitarias,
   de integración y OpenAPI; la colección Postman ya tiene una carpeta de portfolio.
 - **Racional**: prueba el acceso real a ambas partes de la transacción, la lectura sin escritura,

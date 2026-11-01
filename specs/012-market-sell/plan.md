@@ -72,7 +72,7 @@ specs/012-market-sell/
 ├── contracts/sell-order.md
 └── tasks.md
 
-backend/src/orders/
+backend/src/market/orders/
 ├── orders.controller.ts
 ├── orders.service.ts
 ├── orders.repository.ts
@@ -83,9 +83,9 @@ backend/src/orders/
 backend/migrations/
 └── 1790275844000-CreateTransaccionesMercado.ts
 
-backend/test/unit/orders/
-backend/test/integration/orders/
-backend/test/unit/documentation/
+backend/test/unit/market/orders/
+backend/test/integration/market/orders/
+backend/test/unit/documentation/market/
 docs/postman/market-orders.postman_collection.json
 ```
 

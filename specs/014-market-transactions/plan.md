@@ -82,8 +82,9 @@ specs/014-market-transactions/
 ```text
 backend/
 ├── src/
-│   ├── app.module.ts                         # importa TransactionsModule
-│   └── transactions/
+│   ├── app.module.ts                         # importa MarketModule
+│   ├── market/market.module.ts                # agrega los módulos del contexto Mercado
+│   └── market/transactions/
 │       ├── transactions.module.ts
 │       ├── transactions.controller.ts        # GET /users/:id/transactions
 │       ├── transactions.service.ts           # ownership, existencia y errores
@@ -92,9 +93,9 @@ backend/
 │       └── persistence/
 │           └── typeorm-transactions.repository.ts
 └── test/
-    ├── unit/transactions/
-    ├── unit/documentation/transactions-openapi.spec.ts
-    └── integration/transactions/
+    ├── unit/market/transactions/
+    ├── unit/documentation/market/transactions-openapi.spec.ts
+    └── integration/market/transactions/
         ├── transactions.spec.ts
         ├── transactions-errors.spec.ts
         └── transactions-read-only.spec.ts
@@ -102,12 +103,17 @@ backend/
 docs/postman/football-player-market.postman_collection.json
 ```
 
-**Structure Decision**: Se agrega un módulo de lectura `transactions` paralelo a `portfolio`,
-reutilizando `AuthModule`, `PlayersModule`/`PLAYERS_DATA_SOURCE`, `OwnershipService`,
+**Structure Decision**: Se agrega un módulo de lectura `transactions` dentro del agregado
+conceptual `MarketModule`, junto con `OrdersModule` y `PortfolioModule`, reutilizando
+`AuthModule`, `PlayersModule`/`PLAYERS_DATA_SOURCE`, `OwnershipService`,
 `TransaccionMercadoSnapshot`, `TipoTransaccionMercado`, `Cotizacion` y `Creditos`. No se crea una
 entidad, dominio nuevo ni migración: la persistencia se consulta mediante la misma fuente y tabla
 que usan las operaciones de Mercado. La respuesta pública se modela en DTOs propios porque el
 mapper de órdenes expone datos internos que este endpoint debe excluir.
+
+`AppModule` registra `MarketModule` como punto de composición del contexto; los módulos
+especializados conservan sus propios Controllers, Services y Repositories, sin fusionar casos de
+uso ni cambiar rutas.
 
 **Post-design Constitution Check**: PASS. El diseño conserva la separación de capas, la lectura
 `READ ONLY`, la aritmética exacta, los tests requeridos, la documentación obligatoria y la

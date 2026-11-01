@@ -71,7 +71,7 @@ specs/013-portfolio-usuario/
 ### Source Code
 
 ```text
-backend/src/portfolio/
+backend/src/market/portfolio/
 ├── portfolio.module.ts
 ├── portfolio.controller.ts
 ├── portfolio.service.ts
@@ -83,9 +83,9 @@ backend/src/portfolio/
 backend/src/app.module.ts            # registrar PortfolioModule
 backend/src/quotes/                  # compartir solo el lector de cotización activa si hace falta
 
-backend/test/unit/portfolio/portfolio.spec.ts
-backend/test/unit/documentation/portfolio-openapi.spec.ts
-backend/test/integration/portfolio/portfolio.spec.ts
+backend/test/unit/market/portfolio/portfolio.spec.ts
+backend/test/unit/documentation/market/portfolio-openapi.spec.ts
+backend/test/integration/market/portfolio/portfolio.spec.ts
 docs/postman/football-player-market.postman_collection.json
 ```
 
@@ -93,7 +93,7 @@ docs/postman/football-player-market.postman_collection.json
 consulta combina datos de usuarios y mercado; el módulo importa `AuthModule` y `PlayersModule`,
 consume `PLAYERS_DATA_SOURCE` y evita un ciclo entre `UsersModule` y `PlayersModule`. No agrega
 entidades TypeORM ni modifica módulos de compra o venta salvo el registro del nuevo módulo en
-`AppModule`.
+`MarketModule`.
 
 ## Design Decisions
 
@@ -173,7 +173,7 @@ detallado queda en [contracts/portfolio.md](contracts/portfolio.md).
 - Unitarios: `Portfolio.calcular` para promedio ponderado, exactitud, signos, ausencia de compras,
   portfolio vacío y desalineación de tokens.
 - Integración y HTTP: reutilizar `createOrdersIntegrationApp` y su Testcontainer/migraciones
-  existentes, agregando solo `backend/test/integration/portfolio/portfolio.spec.ts`. El archivo
+  existentes, agregando solo `backend/test/integration/market/portfolio/portfolio.spec.ts`. El archivo
   debe cubrir acceso autorizado, ownership, UUID/usuario inexistente, portfolio vacío, cálculos,
   cotización faltante, tenencia inconsistente, cotización activa frente a histórica y snapshots
   sin escrituras.

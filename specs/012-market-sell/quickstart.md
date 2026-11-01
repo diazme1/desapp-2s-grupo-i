@@ -13,7 +13,7 @@ Desde `backend/`:
 ```bash
 npm run build
 npm run test:unit
-npm run test:integration -- --testPathPatterns=test/integration/orders
+npm run test:integration -- --testPathPatterns=test/integration/market/orders
 npm run lint
 ```
 

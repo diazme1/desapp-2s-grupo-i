@@ -12,8 +12,8 @@ Desde `backend/`:
 
 ```bash
 npm run build
-npm test -- --runInBand test/unit/portfolio test/unit/documentation/portfolio-openapi.spec.ts
-npm test -- --runInBand test/integration/portfolio/portfolio.spec.ts
+npm test -- --runInBand test/unit/market/portfolio test/unit/documentation/market/portfolio-openapi.spec.ts
+npm test -- --runInBand test/integration/market/portfolio/portfolio.spec.ts
 ```
 
 También importar `docs/postman/football-player-market.postman_collection.json`, iniciar sesión

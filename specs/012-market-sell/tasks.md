@@ -22,8 +22,8 @@ historial público, frontend ni tipos de transacción distintos de `COMPRA` y `V
 
 **Purpose**: Preparar los tipos y entidades comunes sin alterar todavía el comportamiento HTTP.
 
-- [X] T001 [P] Definir `TipoTransaccionMercado` limitado a `COMPRA` y `VENTA` y el snapshot inmutable compartido en `backend/src/orders/domain/transaccion-mercado.ts`, incluyendo partes, jugador, cantidad, cotización, estrategia, versión, `idRecalculo`, importe, fecha y clave normalizada.
-- [X] T002 [P] Crear las entidades de persistencia comunes en `backend/src/orders/persistence/transaccion-mercado-registro.entity.ts`, `backend/src/orders/persistence/transaccion-mercado.entity.ts` y `backend/src/orders/persistence/auditoria-transaccion.entity.ts`, con FKs, unicidades, índices y auditoría append-only.
+- [X] T001 [P] Definir `TipoTransaccionMercado` limitado a `COMPRA` y `VENTA` y el snapshot inmutable compartido en `backend/src/market/orders/domain/transaccion-mercado.ts`, incluyendo partes, jugador, cantidad, cotización, estrategia, versión, `idRecalculo`, importe, fecha y clave normalizada.
+- [X] T002 [P] Crear las entidades de persistencia comunes en `backend/src/market/orders/persistence/transaccion-mercado-registro.entity.ts`, `backend/src/market/orders/persistence/transaccion-mercado.entity.ts` y `backend/src/market/orders/persistence/auditoria-transaccion.entity.ts`, con FKs, unicidades, índices y auditoría append-only.
 
 ---
 
@@ -36,16 +36,16 @@ historial público, frontend ni tipos de transacción distintos de `COMPRA` y `V
 - [X] T003 Crear `backend/migrations/1790275844000-CreateTransaccionesMercado.ts` para crear `transacciones_mercado` y `auditorias_transaccion`, copiar `ordenes_compra` y `auditorias_orden_compra` con `tipo = COMPRA`, conservar snapshots/fechas/claves, agregar FKs/índices/unicidades/triggers append-only y crear el trigger `trg_saldos_usuario_rol_integridad` que consulte el rol relacionado: debe rechazar con error de integridad todo saldo negativo de un usuario común y permitirlo para el superadmin. Reemplazar o adaptar el `CHECK` global que impide cualquier saldo negativo y retirar las tablas antiguas solo después de copiar los datos.
 - [X] T004 Registrar las entidades comunes y retirar las referencias de entidades antiguas en `backend/src/database/data-source.ts` y `backend/src/players/players.module.ts`, manteniendo únicamente los tipos `COMPRA` y `VENTA`.
 - [X] T005 Implementar el value object exacto con signo en `backend/src/users/domain/saldo-exacto.ts` y adaptar `backend/src/users/domain/saldo-usuario.ts` y `backend/src/users/persistence/saldo-usuario.entity.ts` para rechazar únicamente el saldo insuficiente del usuario común, permitir saldo inexistente/cero/negativo del superadmin y crear su saldo ausente dentro de la venta. El dominio debe conservar esta regla y el trigger de T003 debe actuar como protección persistente complementaria.
-- [X] T006 Extender `backend/src/orders/orders.repository.ts` con contextos y operaciones de UoW para transacciones comunes, compra y venta, incluyendo snapshot de cotización activa, transacción existente y el orden único de locks.
-- [X] T007 Refactorizar `backend/src/orders/persistence/typeorm-orders.repository.ts` para leer/escribir las tablas comunes, reutilizar el resolver de cotización activa sin historial ni fallback, mapear `COMPRA`/`VENTA` y limitar el repository a cargar, bloquear y persistir sin decisiones de negocio.
-- [X] T008 Adaptar `backend/src/orders/domain/orden-compra.ts` para producir el snapshot común `COMPRA` y conservar exactamente el contrato y las reglas existentes de compra.
-- [X] T009 Actualizar `backend/test/integration/orders/orders-integration-app.ts` para registrar las entidades nuevas, aplicar el esquema migrado y truncar las tablas comunes en el orden correcto sin tocar apps de integración ajenas a Mercado.
-- [X] T010 [P] Adaptar, con autorización de esta feature, `backend/test/integration/orders/buy-order.spec.ts` para consultar `transacciones_mercado` y `auditorias_transaccion`, conservando las pruebas de compra, rollback y ausencia de efectos.
-- [X] T011 [P] Adaptar, con autorización de esta feature, `backend/test/integration/orders/buy-order-idempotency.spec.ts` y `backend/test/integration/orders/orders-repository.spec.ts` a la clave común y al registro `tipo = COMPRA`, sin eliminar cobertura.
-- [X] T012 [P] Adaptar, con autorización de esta feature, `backend/test/integration/orders/quote-recalculation-concurrency.spec.ts` y `backend/test/integration/orders/schema-constraints.spec.ts` para validar locks, snapshot de cotización, constraints y triggers sobre las tablas comunes.
-- [X] T013 [P] Adaptar, con autorización de esta feature, `backend/test/unit/orders/orden-compra.spec.ts` y `backend/test/unit/orders/orders.service.spec.ts` al snapshot/UoW común, preservando comportamiento y aserciones de compra.
+- [X] T006 Extender `backend/src/market/orders/orders.repository.ts` con contextos y operaciones de UoW para transacciones comunes, compra y venta, incluyendo snapshot de cotización activa, transacción existente y el orden único de locks.
+- [X] T007 Refactorizar `backend/src/market/orders/persistence/typeorm-orders.repository.ts` para leer/escribir las tablas comunes, reutilizar el resolver de cotización activa sin historial ni fallback, mapear `COMPRA`/`VENTA` y limitar el repository a cargar, bloquear y persistir sin decisiones de negocio.
+- [X] T008 Adaptar `backend/src/market/orders/domain/orden-compra.ts` para producir el snapshot común `COMPRA` y conservar exactamente el contrato y las reglas existentes de compra.
+- [X] T009 Actualizar `backend/test/integration/market/orders/orders-integration-app.ts` para registrar las entidades nuevas, aplicar el esquema migrado y truncar las tablas comunes en el orden correcto sin tocar apps de integración ajenas a Mercado.
+- [X] T010 [P] Adaptar, con autorización de esta feature, `backend/test/integration/market/orders/buy-order.spec.ts` para consultar `transacciones_mercado` y `auditorias_transaccion`, conservando las pruebas de compra, rollback y ausencia de efectos.
+- [X] T011 [P] Adaptar, con autorización de esta feature, `backend/test/integration/market/orders/buy-order-idempotency.spec.ts` y `backend/test/integration/market/orders/orders-repository.spec.ts` a la clave común y al registro `tipo = COMPRA`, sin eliminar cobertura.
+- [X] T012 [P] Adaptar, con autorización de esta feature, `backend/test/integration/market/orders/quote-recalculation-concurrency.spec.ts` y `backend/test/integration/market/orders/schema-constraints.spec.ts` para validar locks, snapshot de cotización, constraints y triggers sobre las tablas comunes.
+- [X] T013 [P] Adaptar, con autorización de esta feature, `backend/test/unit/market/orders/orden-compra.spec.ts` y `backend/test/unit/market/orders/orders.service.spec.ts` al snapshot/UoW común, preservando comportamiento y aserciones de compra.
 - [X] T014 [P] Cubrir el saldo firmado y la excepción exclusiva del superadmin en `backend/test/unit/users/saldo-exacto.spec.ts` y `backend/test/unit/users/saldo-usuario.spec.ts`, sin borrar casos existentes.
-- [X] T015 [P] Agregar pruebas PostgreSQL/Testcontainers en `backend/test/integration/orders/saldo-superadmin-integrity.spec.ts` para permitir saldo negativo al superadmin y rechazar con error de integridad el saldo negativo de usuarios comunes, verificando que el trigger consulte el rol relacionado.
+- [X] T015 [P] Agregar pruebas PostgreSQL/Testcontainers en `backend/test/integration/market/orders/saldo-superadmin-integrity.spec.ts` para permitir saldo negativo al superadmin y rechazar con error de integridad el saldo negativo de usuarios comunes, verificando que el trigger consulte el rol relacionado.
 
 **Checkpoint**: La migración conserva compras existentes, el repository usa una única persistencia
 común, el saldo protege la excepción del superadmin y los tests de `market-buy` adaptados siguen
@@ -65,16 +65,16 @@ tenencias, saldo del usuario, saldo posiblemente negativo del superadmin y regis
 
 ### Tests for User Story 1
 
-- [X] T016 [P] [US1] Crear tests unitarios del modelo de venta en `backend/test/unit/orders/orden-venta.spec.ts` para venta parcial/total, importe exacto, transferencia determinista de tokens, tenencias, snapshot activo, replay y débito negativo del superadmin.
-- [X] T017 [P] [US1] Crear la única tarea que modifica `backend/test/integration/orders/sell-order.spec.ts`: prueba PostgreSQL/Testcontainers y Supertest del flujo válido, venta parcial/total, venta válida sin saldo suficiente del superadmin —incluido saldo ausente o cero—, acreditación/debito exactos, respuesta exacta de `buy`, identificación de comprador/vendedor, transferencia única por token y suma total de 100.
-- [X] T018 [US1] Extender `backend/test/unit/orders/orders.service.spec.ts` con el caso `vender`, verificando carga de usuario/superadmin/jugador, cotización activa, reintentos serializables y mapeo de errores sin colocar reglas de dominio en el Service.
+- [X] T016 [P] [US1] Crear tests unitarios del modelo de venta en `backend/test/unit/market/orders/orden-venta.spec.ts` para venta parcial/total, importe exacto, transferencia determinista de tokens, tenencias, snapshot activo, replay y débito negativo del superadmin.
+- [X] T017 [P] [US1] Crear la única tarea que modifica `backend/test/integration/market/orders/sell-order.spec.ts`: prueba PostgreSQL/Testcontainers y Supertest del flujo válido, venta parcial/total, venta válida sin saldo suficiente del superadmin —incluido saldo ausente o cero—, acreditación/debito exactos, respuesta exacta de `buy`, identificación de comprador/vendedor, transferencia única por token y suma total de 100.
+- [X] T018 [US1] Extender `backend/test/unit/market/orders/orders.service.spec.ts` con el caso `vender`, verificando carga de usuario/superadmin/jugador, cotización activa, reintentos serializables y mapeo de errores sin colocar reglas de dominio en el Service.
 
 ### Implementation for User Story 1
 
-- [X] T019 [US1] Implementar `OrdenVenta` en `backend/src/orders/domain/orden-venta.ts` con invariantes de vendedor común, comprador superadmin, cantidad, tenencia individual, importe exacto, transferencia, saldos, idempotencia y snapshot `VENTA`, sin conocer NestJS, HTTP ni PostgreSQL.
-- [X] T020 [US1] Implementar en `backend/src/orders/persistence/typeorm-orders.repository.ts` la carga bloqueada y persistencia de venta: usuario vendedor, superadmin, jugador, cotización activa, tokens por `numero_emision`, tenencias, saldos y transacción/auditoría comunes.
-- [X] T021 [US1] Agregar `vender` a `backend/src/orders/orders.service.ts` para orquestar la UoW, reutilizar autenticación/configuración, cotización activa e `Idempotency-Key`, reintentar solo `40001`/`40P01` hasta tres veces y mapear errores HTTP.
-- [X] T022 [US1] Agregar `POST /orders/sell` en `backend/src/orders/orders.controller.ts` reutilizando `JwtAuthGuard`, `BuyOrderDto`, `IdempotencyKeyPipe` y `BuyOrderResponseDto`; el Controller solo debe delegar y documentar el contrato Swagger.
+- [X] T019 [US1] Implementar `OrdenVenta` en `backend/src/market/orders/domain/orden-venta.ts` con invariantes de vendedor común, comprador superadmin, cantidad, tenencia individual, importe exacto, transferencia, saldos, idempotencia y snapshot `VENTA`, sin conocer NestJS, HTTP ni PostgreSQL.
+- [X] T020 [US1] Implementar en `backend/src/market/orders/persistence/typeorm-orders.repository.ts` la carga bloqueada y persistencia de venta: usuario vendedor, superadmin, jugador, cotización activa, tokens por `numero_emision`, tenencias, saldos y transacción/auditoría comunes.
+- [X] T021 [US1] Agregar `vender` a `backend/src/market/orders/orders.service.ts` para orquestar la UoW, reutilizar autenticación/configuración, cotización activa e `Idempotency-Key`, reintentar solo `40001`/`40P01` hasta tres veces y mapear errores HTTP.
+- [X] T022 [US1] Agregar `POST /orders/sell` en `backend/src/market/orders/orders.controller.ts` reutilizando `JwtAuthGuard`, `BuyOrderDto`, `IdempotencyKeyPipe` y `BuyOrderResponseDto`; el Controller solo debe delegar y documentar el contrato Swagger.
 
 **Checkpoint**: El MVP permite una venta válida completa y verificable sin agregar endpoints de
 lectura, autenticación nueva ni tipos de transacción nuevos.
@@ -91,13 +91,13 @@ código documentado, sin mutar tokens, tenencias, saldos, transacciones ni audit
 
 ### Tests for User Story 2
 
-- [X] T023 [US2] Agregar casos unitarios de cantidad, jugador, usuario, superadmin, tenencia, cotización y clave incompatible en `backend/test/unit/orders/orden-venta.spec.ts` y `backend/test/unit/orders/orders.service.spec.ts`.
-- [X] T024 [P] [US2] Verificar en `backend/test/unit/orders/idempotency-key.pipe.spec.ts` las reglas compartidas de normalización y reutilización para `sell`, manteniendo el header obligatorio y sin duplicar un pipe nuevo.
-- [X] T025 [US2] Crear `backend/test/integration/orders/sell-order-errors.spec.ts` con Supertest para JWT ausente/inválido, superadmin vendedor, jugador inexistente, body/cantidad inválidos, `Idempotency-Key` inválido, tenencia insuficiente, cotización ausente y ausencia de efectos parciales, sin duplicar casos de la suite de venta válida.
+- [X] T023 [US2] Agregar casos unitarios de cantidad, jugador, usuario, superadmin, tenencia, cotización y clave incompatible en `backend/test/unit/market/orders/orden-venta.spec.ts` y `backend/test/unit/market/orders/orders.service.spec.ts`.
+- [X] T024 [P] [US2] Verificar en `backend/test/unit/market/orders/idempotency-key.pipe.spec.ts` las reglas compartidas de normalización y reutilización para `sell`, manteniendo el header obligatorio y sin duplicar un pipe nuevo.
+- [X] T025 [US2] Crear `backend/test/integration/market/orders/sell-order-errors.spec.ts` con Supertest para JWT ausente/inválido, superadmin vendedor, jugador inexistente, body/cantidad inválidos, `Idempotency-Key` inválido, tenencia insuficiente, cotización ausente y ausencia de efectos parciales, sin duplicar casos de la suite de venta válida.
 
 ### Implementation for User Story 2
 
-- [X] T026 [US2] Ajustar `backend/src/orders/orders.service.ts`, `backend/src/orders/domain/orden-venta.ts`, `backend/src/orders/pipes/idempotency-key.pipe.ts`, `backend/src/orders/dto/buy-order.dto.ts` y `backend/src/orders/persistence/typeorm-orders.repository.ts` para separar validación de entrada, existencia/orquestación e invariantes: rechazar únicamente si el saldo del usuario común es insuficiente, nunca validar ni exigir saldo del superadmin, permitir que no exista/sea cero/negativo y acreditar/debitar siempre el importe exacto en una venta válida, sin consultar cotizaciones históricas como fallback.
+- [X] T026 [US2] Ajustar `backend/src/market/orders/orders.service.ts`, `backend/src/market/orders/domain/orden-venta.ts`, `backend/src/market/orders/pipes/idempotency-key.pipe.ts`, `backend/src/market/orders/dto/buy-order.dto.ts` y `backend/src/market/orders/persistence/typeorm-orders.repository.ts` para separar validación de entrada, existencia/orquestación e invariantes: rechazar únicamente si el saldo del usuario común es insuficiente, nunca validar ni exigir saldo del superadmin, permitir que no exista/sea cero/negativo y acreditar/debitar siempre el importe exacto en una venta válida, sin consultar cotizaciones históricas como fallback.
 
 **Checkpoint**: Los errores de venta están cubiertos por HTTP y dominio, y toda petición rechazada
 deja intacto el estado persistido.
@@ -115,14 +115,14 @@ tenencias consistentes, registros únicos y ausencia de cambios parciales.
 
 ### Tests for User Story 3
 
-- [X] T027 [P] [US3] Crear `backend/test/integration/orders/sell-order-idempotency.spec.ts` con replay de venta confirmada, conflicto por payload/actor/tipo y conflicto entre una clave de compra y una venta, sin duplicar transacción ni auditoría.
-- [X] T028 [P] [US3] Crear `backend/test/integration/orders/sell-order-rollback.spec.ts` con fallas inyectadas en token, tenencia, saldo, transacción y auditoría, verificando rollback total y posibilidad de reintento.
-- [X] T029 [P] [US3] Crear `backend/test/integration/orders/sell-order-concurrency.spec.ts` con PostgreSQL/Testcontainers para ventas concurrentes, compra/venta sobre el mismo jugador y venta/recálculo con snapshot activo; comprobar locks, suministro, saldos y tenencias.
+- [X] T027 [P] [US3] Crear `backend/test/integration/market/orders/sell-order-idempotency.spec.ts` con replay de venta confirmada, conflicto por payload/actor/tipo y conflicto entre una clave de compra y una venta, sin duplicar transacción ni auditoría.
+- [X] T028 [P] [US3] Crear `backend/test/integration/market/orders/sell-order-rollback.spec.ts` con fallas inyectadas en token, tenencia, saldo, transacción y auditoría, verificando rollback total y posibilidad de reintento.
+- [X] T029 [P] [US3] Crear `backend/test/integration/market/orders/sell-order-concurrency.spec.ts` con PostgreSQL/Testcontainers para ventas concurrentes, compra/venta sobre el mismo jugador y venta/recálculo con snapshot activo; comprobar locks, suministro, saldos y tenencias.
 
 ### Implementation for User Story 3
 
-- [X] T030 [US3] Completar el orden único de locks y reintentos en `backend/src/orders/persistence/typeorm-orders.repository.ts` y `backend/src/orders/orders.service.ts`: clave idempotente, estrategia/jugador/cotización, usuarios/saldos por UUID, tokens por emisión, tenencias y escrituras finales.
-- [X] T031 [US3] Asegurar en `backend/src/orders/persistence/typeorm-orders.repository.ts`, `backend/src/orders/persistence/transaccion-mercado.entity.ts`, `backend/src/orders/persistence/auditoria-transaccion.entity.ts` y `backend/migrations/1790275844000-CreateTransaccionesMercado.ts` que la UoW escriba operación/auditoría como unidad atómica, que la auditoría sea append-only y que las restricciones eviten duplicados o tipos no permitidos.
+- [X] T030 [US3] Completar el orden único de locks y reintentos en `backend/src/market/orders/persistence/typeorm-orders.repository.ts` y `backend/src/market/orders/orders.service.ts`: clave idempotente, estrategia/jugador/cotización, usuarios/saldos por UUID, tokens por emisión, tenencias y escrituras finales.
+- [X] T031 [US3] Asegurar en `backend/src/market/orders/persistence/typeorm-orders.repository.ts`, `backend/src/market/orders/persistence/transaccion-mercado.entity.ts`, `backend/src/market/orders/persistence/auditoria-transaccion.entity.ts` y `backend/migrations/1790275844000-CreateTransaccionesMercado.ts` que la UoW escriba operación/auditoría como unidad atómica, que la auditoría sea append-only y que las restricciones eviten duplicados o tipos no permitidos.
 
 **Checkpoint**: Las carreras y fallas controladas conservan tokens, tenencias, saldos y registros
 consistentes; solo el superadmin puede quedar con saldo negativo.
@@ -133,7 +133,7 @@ consistentes; solo el superadmin puede quedar con saldo negativo.
 
 **Purpose**: Cerrar documentación, verificación completa y controles de alcance.
 
-- [X] T032 [P] Actualizar `backend/test/unit/documentation/orders-openapi.spec.ts` y `backend/test/integration/documentation/swagger-openapi.spec.ts` para verificar `POST /orders/sell`, Bearer, `Idempotency-Key`, schemas, respuesta `201` y errores `401/403/404/409/422`, manteniendo también `POST /orders/buy`.
+- [X] T032 [P] Actualizar `backend/test/unit/documentation/market/orders-openapi.spec.ts` y `backend/test/integration/documentation/swagger-openapi.spec.ts` para verificar `POST /orders/sell`, Bearer, `Idempotency-Key`, schemas, respuesta `201` y errores `401/403/404/409/422`, manteniendo también `POST /orders/buy`.
 - [X] T033 [P] Actualizar `docs/postman/market-orders.postman_collection.json` con autenticación común, venta parcial, replay idempotente, clave incompatible y aserciones de operación, saldo y tenencias, sin quitar casos de compra.
 - [X] T034 Ejecutar y documentar en `specs/012-market-sell/quickstart.md` la validación desde `backend/package.json`: `npm run build`, tests unitarios, integración PostgreSQL/Testcontainers, lint, Swagger y Postman; dejar evidencia de que no se modificaron tests ajenos a Mercado.
 
@@ -167,17 +167,17 @@ consistentes; solo el superadmin puede quedar con saldo negativo.
 ## Parallel Example: User Story 1
 
 ```text
-T016: tests unitarios de OrdenVenta en backend/test/unit/orders/orden-venta.spec.ts
-T018: tests del caso de uso en backend/test/unit/orders/orders.service.spec.ts
-T017: única prueba PostgreSQL/Testcontainers + Supertest en backend/test/integration/orders/sell-order.spec.ts
+T016: tests unitarios de OrdenVenta en backend/test/unit/market/orders/orden-venta.spec.ts
+T018: tests del caso de uso en backend/test/unit/market/orders/orders.service.spec.ts
+T017: única prueba PostgreSQL/Testcontainers + Supertest en backend/test/integration/market/orders/sell-order.spec.ts
 ```
 
 ## Parallel Example: User Story 3
 
 ```text
-T027: idempotencia en backend/test/integration/orders/sell-order-idempotency.spec.ts
-T028: rollback en backend/test/integration/orders/sell-order-rollback.spec.ts
-T029: concurrencia y recálculo en backend/test/integration/orders/sell-order-concurrency.spec.ts
+T027: idempotencia en backend/test/integration/market/orders/sell-order-idempotency.spec.ts
+T028: rollback en backend/test/integration/market/orders/sell-order-rollback.spec.ts
+T029: concurrencia y recálculo en backend/test/integration/market/orders/sell-order-concurrency.spec.ts
 ```
 
 ## Implementation Strategy

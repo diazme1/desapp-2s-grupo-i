@@ -18,7 +18,7 @@ modificar compras, ventas, portfolio ni tests existentes.
 
 **Purpose**: Preparar los directorios de la nueva feature sin alterar módulos existentes.
 
-- [X] T001 Crear los directorios `backend/src/transactions/`, `backend/src/transactions/dto/`, `backend/src/transactions/persistence/`, `backend/test/unit/transactions/` y `backend/test/integration/transactions/` según [plan.md](./plan.md).
+- [X] T001 Crear los directorios `backend/src/market/transactions/`, `backend/src/market/transactions/dto/`, `backend/src/market/transactions/persistence/`, `backend/test/unit/market/transactions/` y `backend/test/integration/market/transactions/` según [plan.md](./plan.md).
 
 ---
 
@@ -27,10 +27,10 @@ modificar compras, ventas, portfolio ni tests existentes.
 **Purpose**: Definir el read model y la integración mínima con la infraestructura existente antes
 de implementar las historias.
 
-- [X] T002 Definir la interfaz `TRANSACTIONS_REPOSITORY` y el read model de usuario/operaciones en `backend/src/transactions/transactions.repository.ts`, reutilizando `TransaccionMercadoSnapshot` y `TipoTransaccionMercado` sin exponer metadatos internos.
-- [X] T003 Definir `TransactionsResponseDto` y `TransactionResponseDto` en `backend/src/transactions/dto/transactions-response.dto.ts`, con únicamente `usuarioId`, `idOperacion`, `tipo`, `idJugador`, `nombreCompleto`, `cantidadTokens`, `cotizacion`, `importe` y `fechaHora`, incluyendo lista vacía y strings monetarios de dos posiciones.
-- [X] T004 Implementar el repositorio de lectura en `backend/src/transactions/persistence/typeorm-transactions.repository.ts`: consultar `usuarios` únicamente para comprobar la existencia del usuario autenticado y decidir el `404`; obtener operaciones y snapshots exclusivamente de `transacciones_mercado`, enriquecer solo `nombreCompleto` desde `jugadores`, filtrar por comprador o vendedor, usar `REPEATABLE READ` con `SET TRANSACTION READ ONLY`, ordenar por `fecha_hora DESC, id_operacion ASC`, sin escrituras ni recálculos.
-- [X] T005 Crear `TransactionsModule` en `backend/src/transactions/transactions.module.ts` e integrarlo en `backend/src/app.module.ts`, importando `AuthModule` y `PlayersModule`, inyectando `PLAYERS_DATA_SOURCE` y sin agregar entidades, migraciones ni dependencias nuevas.
+- [X] T002 Definir la interfaz `TRANSACTIONS_REPOSITORY` y el read model de usuario/operaciones en `backend/src/market/transactions/transactions.repository.ts`, reutilizando `TransaccionMercadoSnapshot` y `TipoTransaccionMercado` sin exponer metadatos internos.
+- [X] T003 Definir `TransactionsResponseDto` y `TransactionResponseDto` en `backend/src/market/transactions/dto/transactions-response.dto.ts`, con únicamente `usuarioId`, `idOperacion`, `tipo`, `idJugador`, `nombreCompleto`, `cantidadTokens`, `cotizacion`, `importe` y `fechaHora`, incluyendo lista vacía y strings monetarios de dos posiciones.
+- [X] T004 Implementar el repositorio de lectura en `backend/src/market/transactions/persistence/typeorm-transactions.repository.ts`: consultar `usuarios` únicamente para comprobar la existencia del usuario autenticado y decidir el `404`; obtener operaciones y snapshots exclusivamente de `transacciones_mercado`, enriquecer solo `nombreCompleto` desde `jugadores`, filtrar por comprador o vendedor, usar `REPEATABLE READ` con `SET TRANSACTION READ ONLY`, ordenar por `fecha_hora DESC, id_operacion ASC`, sin escrituras ni recálculos.
+- [X] T005 Crear `TransactionsModule` en `backend/src/market/transactions/transactions.module.ts` e integrarlo en el agregado `MarketModule` (`backend/src/market/market.module.ts`), dejando `AppModule` como punto de composición, importando `AuthModule` y `PlayersModule`, inyectando `PLAYERS_DATA_SOURCE` y sin agregar entidades, migraciones ni dependencias nuevas.
 
 **Checkpoint**: el read model, DTO, repositorio de solo lectura y wiring del módulo están listos
 para las historias de usuario.
@@ -48,13 +48,13 @@ sin historial.
 
 ### Tests for User Story 1
 
-- [X] T006 [P] [US1] Agregar tests unitarios de la proyección pública en `backend/test/unit/transactions/transactions-response.spec.ts`: tipos `COMPRA`/`VENTA`, `nombreCompleto`, campos permitidos, lista vacía, orden estable y formato exacto de `Cotizacion`/`Creditos` sin punto flotante ni recálculo.
-- [X] T007 [P] [US1] Agregar tests HTTP con Supertest y PostgreSQL/Testcontainers en `backend/test/integration/transactions/transactions.spec.ts` usando `createOrdersIntegrationApp()`: probar el caso feliz `200` mediante HTTP, incluyendo operaciones de ambos tipos, `idJugador` y `nombreCompleto`, pertenencia como comprador y vendedor, fechas iguales/diferentes, orden `fecha_hora DESC, id_operacion ASC` y usuario sin operaciones.
+- [X] T006 [P] [US1] Agregar tests unitarios de la proyección pública en `backend/test/unit/market/transactions/transactions-response.spec.ts`: tipos `COMPRA`/`VENTA`, `nombreCompleto`, campos permitidos, lista vacía, orden estable y formato exacto de `Cotizacion`/`Creditos` sin punto flotante ni recálculo.
+- [X] T007 [P] [US1] Agregar tests HTTP con Supertest y PostgreSQL/Testcontainers en `backend/test/integration/market/transactions/transactions.spec.ts` usando `createOrdersIntegrationApp()`: probar el caso feliz `200` mediante HTTP, incluyendo operaciones de ambos tipos, `idJugador` y `nombreCompleto`, pertenencia como comprador y vendedor, fechas iguales/diferentes, orden `fecha_hora DESC, id_operacion ASC` y usuario sin operaciones.
 
 ### Implementation for User Story 1
 
-- [X] T008 [US1] Implementar `TransactionsService.consultar` en `backend/src/transactions/transactions.service.ts`: delegar ownership a `OwnershipService`, resolver `404` solo para el usuario propio inexistente, mapear snapshots con `Cotizacion.fromDecimal` y `Creditos.fromUnidades`, incluir `nombreCompleto` del jugador y devolver únicamente el contrato público sin leer portfolio ni cotizaciones.
-- [X] T009 [US1] Implementar `GET /users/:id/transactions` en `backend/src/transactions/transactions.controller.ts` con `JwtAuthGuard`, `ParseUUIDPipe` configurado para `422` y delegación exclusiva al Service.
+- [X] T008 [US1] Implementar `TransactionsService.consultar` en `backend/src/market/transactions/transactions.service.ts`: delegar ownership a `OwnershipService`, resolver `404` solo para el usuario propio inexistente, mapear snapshots con `Cotizacion.fromDecimal` y `Creditos.fromUnidades`, incluir `nombreCompleto` del jugador y devolver únicamente el contrato público sin leer portfolio ni cotizaciones.
+- [X] T009 [US1] Implementar `GET /users/:id/transactions` en `backend/src/market/transactions/transactions.controller.ts` con `JwtAuthGuard`, `ParseUUIDPipe` configurado para `422` y delegación exclusiva al Service.
 
 **Checkpoint**: la User Story 1 queda demostrable con `200`, compras, ventas, orden determinista
 y lista vacía, sin modificar el estado del Mercado.
@@ -72,14 +72,14 @@ Mercado consultadas.
 
 ### Tests for User Story 2
 
-- [X] T010 [P] [US2] Agregar tests unitarios del Service en `backend/test/unit/transactions/transactions.service.spec.ts`: `OwnershipService` antes del Repository, `403` para otro usuario, `404` para identidad propia inexistente, `409` sin respuesta parcial y aislamiento del read model.
-- [X] T011 [P] [US2] Agregar tests HTTP con Supertest en `backend/test/integration/transactions/transactions-errors.spec.ts` para `401`, `403`, `404`, `409` y `422`; cubrir el `409` con un contexto de Repository controlado sin alterar el esquema persistido.
-- [X] T012 [P] [US2] Agregar tests de integración de solo lectura en `backend/test/integration/transactions/transactions-read-only.spec.ts` con PostgreSQL/Testcontainers: comparar snapshots de `transacciones_mercado`, `auditorias_transaccion`, saldos, tokens, tenencias y cotizaciones, y verificar que un usuario no recibe operaciones ajenas.
+- [X] T010 [P] [US2] Agregar tests unitarios del Service en `backend/test/unit/market/transactions/transactions.service.spec.ts`: `OwnershipService` antes del Repository, `403` para otro usuario, `404` para identidad propia inexistente, `409` sin respuesta parcial y aislamiento del read model.
+- [X] T011 [P] [US2] Agregar tests HTTP con Supertest en `backend/test/integration/market/transactions/transactions-errors.spec.ts` para `401`, `403`, `404`, `409` y `422`; cubrir el `409` con un contexto de Repository controlado sin alterar el esquema persistido.
+- [X] T012 [P] [US2] Agregar tests de integración de solo lectura en `backend/test/integration/market/transactions/transactions-read-only.spec.ts` con PostgreSQL/Testcontainers: comparar snapshots de `transacciones_mercado`, `auditorias_transaccion`, saldos, tokens, tenencias y cotizaciones, y verificar que un usuario no recibe operaciones ajenas.
 
 ### Implementation for User Story 2
 
-- [X] T013 [US2] Completar en `backend/src/transactions/transactions.service.ts` el mapeo de errores `401`/`403`/`404`/`409`/`422` y la regla de no devolver una lista parcial ante un snapshot incompatible, sin trasladar reglas de negocio al Repository.
-- [X] T014 [US2] Verificar en `backend/src/transactions/persistence/typeorm-transactions.repository.ts` que las operaciones y snapshots provengan exclusivamente de `transacciones_mercado`, que `jugadores` solo se use para `nombreCompleto`, que `usuarios` solo se use para decidir el `404`, y que la lectura use la transacción `READ ONLY`, parámetros de usuario, filtro comprador/vendedor y orden contractual sin invocar `save`, `insert`, `update`, `delete` ni consultar auditorías, portfolio o cotizaciones.
+- [X] T013 [US2] Completar en `backend/src/market/transactions/transactions.service.ts` el mapeo de errores `401`/`403`/`404`/`409`/`422` y la regla de no devolver una lista parcial ante un snapshot incompatible, sin trasladar reglas de negocio al Repository.
+- [X] T014 [US2] Verificar en `backend/src/market/transactions/persistence/typeorm-transactions.repository.ts` que las operaciones y snapshots provengan exclusivamente de `transacciones_mercado`, que `jugadores` solo se use para `nombreCompleto`, que `usuarios` solo se use para decidir el `404`, y que la lectura use la transacción `READ ONLY`, parámetros de usuario, filtro comprador/vendedor y orden contractual sin invocar `save`, `insert`, `update`, `delete` ni consultar auditorías, portfolio o cotizaciones.
 
 **Checkpoint**: ambas historias P1 están protegidas por autenticación/ownership, cubren los
 errores documentados y demuestran que la lectura no escribe ni filtra operaciones de otros usuarios.
@@ -90,7 +90,7 @@ errores documentados y demuestran que la lectura no escribe ni filtra operacione
 
 **Purpose**: Cerrar el contrato público, la documentación obligatoria y la evidencia de terminado.
 
-- [X] T015 [P] Agregar anotaciones Swagger/OpenAPI para ruta, Bearer, UUID, schema de `200`, lista vacía y errores `401`, `403`, `404`, `409` y `422` en `backend/src/transactions/transactions.controller.ts`, y cubrirlas en `backend/test/unit/documentation/transactions-openapi.spec.ts`.
+- [X] T015 [P] Agregar anotaciones Swagger/OpenAPI para ruta, Bearer, UUID, schema de `200`, lista vacía y errores `401`, `403`, `404`, `409` y `422` en `backend/src/market/transactions/transactions.controller.ts`, y cubrirlas en `backend/test/unit/documentation/market/transactions-openapi.spec.ts`.
 - [X] T016 [P] Agregar la request autenticada “Consultar historial de operaciones” y sus aserciones de campos, tipos, `nombreCompleto`, strings decimales y orden en `docs/postman/football-player-market.postman_collection.json`, dentro de una sección propia sin duplicar la colección existente.
 - [X] T017 Ejecutar las validaciones de `specs/014-market-transactions/quickstart.md` desde `backend/package.json` (`test:unit`, OpenAPI, integración y `build`) y registrar en el handoff la evidencia de resultados; no modificar tests existentes ni documentos de diseño.
 - [X] T018 Revisar el diff de `backend/src/`, `backend/test/`, `backend/migrations/` y `docs/postman/football-player-market.postman_collection.json` para confirmar que solo se agregaron los archivos de la feature, que no hay migraciones/tablas nuevas y que compras, ventas y portfolio permanecen sin cambios.
@@ -125,16 +125,16 @@ errores documentados y demuestran que la lectura no escribe ni filtra operacione
 ## Parallel Example: User Story 1
 
 ```text
-Task T006: Unit tests for DTO projection in backend/test/unit/transactions/transactions-response.spec.ts
-Task T007: PostgreSQL/Testcontainers happy-path tests in backend/test/integration/transactions/transactions.spec.ts
+Task T006: Unit tests for DTO projection in backend/test/unit/market/transactions/transactions-response.spec.ts
+Task T007: PostgreSQL/Testcontainers happy-path tests in backend/test/integration/market/transactions/transactions.spec.ts
 ```
 
 ## Parallel Example: User Story 2
 
 ```text
-Task T010: Service authorization/error unit tests in backend/test/unit/transactions/transactions.service.spec.ts
-Task T011: Supertest HTTP error tests in backend/test/integration/transactions/transactions-errors.spec.ts
-Task T012: PostgreSQL read-only/isolation tests in backend/test/integration/transactions/transactions-read-only.spec.ts
+Task T010: Service authorization/error unit tests in backend/test/unit/market/transactions/transactions.service.spec.ts
+Task T011: Supertest HTTP error tests in backend/test/integration/market/transactions/transactions-errors.spec.ts
+Task T012: PostgreSQL read-only/isolation tests in backend/test/integration/market/transactions/transactions-read-only.spec.ts
 ```
 
 ---

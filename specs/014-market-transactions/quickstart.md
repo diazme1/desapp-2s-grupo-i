@@ -11,9 +11,9 @@
 Desde `backend/`:
 
 ```bash
-npm run test:unit -- --testPathPatterns=test/unit/transactions
-npm run test:unit -- --testPathPatterns=test/unit/documentation/transactions-openapi.spec.ts
-npm run test:integration -- --testPathPatterns=test/integration/transactions
+npm run test:unit -- --testPathPatterns=test/unit/market/transactions
+npm run test:unit -- --testPathPatterns=test/unit/documentation/market/transactions-openapi.spec.ts
+npm run test:integration -- --testPathPatterns=test/integration/market/transactions
 npm run build
 ```
 
