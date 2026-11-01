@@ -6,7 +6,6 @@ import { obtenerOpcionesEquipo, obtenerOpcionesLiga, filtrarJugadores } from './
 import { PlayerCard } from './PlayerCard'
 import { PlayerFilters } from './PlayerFilters'
 import { filtrosCatalogoIniciales, type EstadoCatalogo, type FiltrosCatalogo, type JugadorCatalogo } from './player-types'
-import { AdminQuotePanel } from '../market/AdminQuotePanel'
 import { TradeDialog } from '../market/TradeDialog'
 import { listarRanking, type RankingCotizaciones } from '../market/market-api'
 import './players.css'
@@ -27,7 +26,7 @@ function construirPaginasVisibles(actual: number, total: number): ElementoPagina
 }
 
 export function PlayersPage() {
-  const { session, user } = useAuth()
+  const { session } = useAuth()
   const [jugadores, setJugadores] = useState<JugadorCatalogo[]>([])
   const [estado, setEstado] = useState<EstadoCatalogo>('cargando')
   const [mensajeError, setMensajeError] = useState('')
@@ -127,14 +126,6 @@ export function PlayersPage() {
           </div>
         </div>
       </header>
-
-      {user?.rol === 'superadmin' && (
-        <AdminQuotePanel
-          estrategiaActiva={ranking?.estrategia ?? null}
-          fechaActualizacion={ranking?.fechaHora ?? null}
-          onComplete={cargarCotizaciones}
-        />
-      )}
 
       {errorCotizaciones && (
         <div className="quote-load-message" role="status">
