@@ -7,6 +7,7 @@ import { PlayersModule } from './players/players.module';
 import { MarketModule } from './market/market.module';
 import { OrdersModule } from './orders/orders.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
+import { TransactionsModule } from './transactions/transactions.module';
 
 @Module({})
 export class AppModule {
@@ -25,6 +26,7 @@ export class AppModule {
         MarketModule,
         OrdersModule,
         PortfolioModule,
+        TransactionsModule,
       ],
     };
   }

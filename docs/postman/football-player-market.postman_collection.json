@@ -628,6 +628,45 @@
           ]
         }
       ]
+    },
+    {
+      "name": "06 - Historial de operaciones",
+      "item": [
+        {
+          "name": "Consultar historial de operaciones",
+          "request": {
+            "method": "GET",
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{accessToken}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "header": [],
+            "url": "{{baseUrl}}/users/{{userId}}/transactions",
+            "description": "Consulta únicamente las compras y ventas del usuario autenticado, ordenadas por fecha descendente e id de operación ascendente."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Historial consultado', () => pm.response.to.have.status(200));",
+                  "const body = pm.response.json();",
+                  "pm.test('Devuelve usuario y operaciones', () => pm.expect(body).to.have.all.keys('usuarioId', 'operaciones'));",
+                  "body.operaciones.forEach((operation) => { pm.expect(operation).to.have.all.keys('idOperacion', 'tipo', 'idJugador', 'nombreCompleto', 'cantidadTokens', 'cotizacion', 'importe', 'fechaHora'); pm.expect(operation.tipo).to.be.oneOf(['COMPRA', 'VENTA']); pm.expect(operation.cotizacion).to.match(/^\\d+\\.\\d{2}$/); pm.expect(operation.importe).to.match(/^\\d+\\.\\d{2}$/); });",
+                  "pm.test('Operaciones ordenadas cronológicamente', () => { const operations = body.operaciones; const keys = operations.map((operation) => [new Date(operation.fechaHora).getTime(), operation.idOperacion]); for (let index = 1; index < keys.length; index += 1) { pm.expect(keys[index - 1][0] >= keys[index][0] || (keys[index - 1][0] === keys[index][0] && keys[index - 1][1] <= keys[index][1])).to.eql(true); } });"
+                ]
+              }
+            }
+          ]
+        }
+      ]
     }
   ]
 }
