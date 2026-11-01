@@ -19,11 +19,7 @@ export class SaldoUsuarioEntity {
   @JoinColumn({ name: 'id_usuario' })
   usuario!: UserEntity;
 
-  @Column({
-    name: 'creditos_disponibles',
-    type: 'bigint',
-    transformer: bigintTransformer,
-  })
+  @Column({ name: 'creditos_disponibles', type: 'bigint', transformer: bigintTransformer })
   creditosDisponibles!: bigint;
 
   @Column({ name: 'creado_en', type: 'timestamptz' })

@@ -1,10 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { Creditos } from '../../market/domain/creditos';
+import { UserRole } from './user';
+import { SaldoExacto } from './saldo-exacto';
 
 export interface CreateSaldoUsuarioInput {
   id?: string;
   usuarioId: string;
-  creditosDisponibles: Creditos;
+  creditosDisponibles: Creditos | SaldoExacto;
+  rol?: UserRole;
   creadoEn?: Date;
   actualizadoEn?: Date;
 }
@@ -12,15 +15,26 @@ export interface CreateSaldoUsuarioInput {
 export class SaldoUsuario {
   readonly id: string;
   readonly usuarioId: string;
-  readonly creditosDisponibles: Creditos;
+  readonly creditosDisponibles: SaldoExacto;
+  readonly rol: UserRole;
   readonly creadoEn: Date;
   readonly actualizadoEn: Date;
 
   private constructor(input: Required<CreateSaldoUsuarioInput>) {
-    if (!input.usuarioId) throw new Error('El saldo debe pertenecer a un usuario.');
+    if (!input.usuarioId)
+      throw new Error('El saldo debe pertenecer a un usuario.');
+    if (
+      input.rol !== UserRole.SUPERADMIN &&
+      input.creditosDisponibles.toUnidades() < 0n
+    )
+      throw new Error('El saldo de un usuario común no puede quedar negativo.');
     this.id = input.id;
     this.usuarioId = input.usuarioId;
-    this.creditosDisponibles = input.creditosDisponibles;
+    this.creditosDisponibles =
+      input.creditosDisponibles instanceof SaldoExacto
+        ? input.creditosDisponibles
+        : SaldoExacto.fromCreditos(input.creditosDisponibles);
+    this.rol = input.rol;
     this.creadoEn = input.creadoEn;
     this.actualizadoEn = input.actualizadoEn;
   }
@@ -30,6 +44,7 @@ export class SaldoUsuario {
       id: input.id ?? randomUUID(),
       usuarioId: input.usuarioId,
       creditosDisponibles: input.creditosDisponibles,
+      rol: input.rol ?? UserRole.USER,
       creadoEn: input.creadoEn ?? new Date(),
       actualizadoEn: input.actualizadoEn ?? input.creadoEn ?? new Date(),
     });
@@ -40,16 +55,21 @@ export class SaldoUsuario {
       id: this.id,
       usuarioId: this.usuarioId,
       creditosDisponibles: this.creditosDisponibles.sumar(importe),
+      rol: this.rol,
       creadoEn: this.creadoEn,
       actualizadoEn: new Date(),
     });
   }
 
   debitar(importe: Creditos): SaldoUsuario {
+    const actualizado = this.creditosDisponibles.restar(importe);
+    if (this.rol !== UserRole.SUPERADMIN && actualizado.toUnidades() < 0n)
+      throw new Error('El saldo de un usuario común no puede quedar negativo.');
     return SaldoUsuario.crear({
       id: this.id,
       usuarioId: this.usuarioId,
-      creditosDisponibles: this.creditosDisponibles.restar(importe),
+      creditosDisponibles: actualizado,
+      rol: this.rol,
       creadoEn: this.creadoEn,
       actualizadoEn: new Date(),
     });

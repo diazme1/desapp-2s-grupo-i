@@ -76,7 +76,7 @@ specs/011-market-buy/
 ### Backend y verificaciones
 
 ```text
-backend/src/orders/
+backend/src/market/orders/
 ├── orders.module.ts
 ├── orders.controller.ts
 ├── orders.service.ts
@@ -96,12 +96,12 @@ backend/src/orders/
 backend/migrations/
 └── 1790275843000-CreateOrdenesCompra.ts
 
-backend/test/unit/orders/
+backend/test/unit/market/orders/
 ├── orden-compra.spec.ts
 ├── idempotency-key.pipe.spec.ts
 └── orders.service.spec.ts
 
-backend/test/integration/orders/
+backend/test/integration/market/orders/
 ├── orders-integration-app.ts
 ├── orders-repository.spec.ts
 ├── buy-order.spec.ts
@@ -109,7 +109,7 @@ backend/test/integration/orders/
 ├── quote-recalculation-concurrency.spec.ts
 └── schema-constraints.spec.ts
 
-backend/test/unit/documentation/
+backend/test/unit/documentation/market/
 └── orders-openapi.spec.ts
 
 docs/postman/
@@ -199,7 +199,7 @@ reintentan hasta tres veces desde el service; los errores de negocio no se reint
 
 ### Verificación compra/recálculo concurrentes
 
-`backend/test/integration/orders/quote-recalculation-concurrency.spec.ts` prepara la estrategia
+`backend/test/integration/market/orders/quote-recalculation-concurrency.spec.ts` prepara la estrategia
 activa y la cotización vigente iniciales, y ejecuta compra y recálculo sobre el mismo jugador con
 una barrera controlada del test o un lock/advisory lock de coordinación, sin `sleep` ni esperas
 arbitrarias. El escenario acepta que cualquiera confirme primero y verifica que la compra conserve
