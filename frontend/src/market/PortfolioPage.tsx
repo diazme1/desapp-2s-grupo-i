@@ -5,6 +5,8 @@ import { useMarket } from './market-context'
 import type { PosicionPortfolio } from './market-api'
 import { PortfolioCharts } from './PortfolioCharts'
 
+const OPERACIONES_POR_PAGINA = 10
+
 function unidades(value: string): bigint {
   const negativo = value.startsWith('-')
   const limpio = negativo ? value.slice(1) : value
@@ -30,6 +32,15 @@ export function PortfolioPage() {
   const { user } = useAuth()
   const { portfolio, portfolioStatus, portfolioError, refreshPortfolio } = useMarket()
   const [paraVender, setParaVender] = useState<PosicionPortfolio | null>(null)
+  const [paginaOperaciones, setPaginaOperaciones] = useState(1)
+  const totalOperaciones = portfolio?.operacionesRecientes.length ?? 0
+  const totalPaginas = Math.max(1, Math.ceil(totalOperaciones / OPERACIONES_POR_PAGINA))
+  const paginaActual = Math.min(paginaOperaciones, totalPaginas)
+  const inicioPagina = (paginaActual - 1) * OPERACIONES_POR_PAGINA
+  const operacionesPagina = portfolio?.operacionesRecientes.slice(
+    inicioPagina,
+    inicioPagina + OPERACIONES_POR_PAGINA,
+  ) ?? []
 
   return (
     <main className="market-page">
@@ -37,7 +48,7 @@ export function PortfolioPage() {
         <div>
           <p className="players-eyebrow">TU MERCADO</p>
           <h1>Mi <span>cartera</span></h1>
-          <p className="players-intro">Tu saldo, el valor de tus posiciones y las operaciones recientes.</p>
+          <p className="players-intro">Tu saldo, el valor de tus posiciones y el historial de operaciones.</p>
         </div>
         <button className="secondary-button" type="button" onClick={() => void refreshPortfolio()}>Actualizar</button>
       </header>
@@ -96,7 +107,7 @@ export function PortfolioPage() {
               <div className="portfolio-empty"><p>Cuando compres o vendas tokens, vas a ver el historial acá.</p></div>
             ) : (
               <div className="operations-list">
-                {portfolio.operacionesRecientes.map((operacion) => (
+                {operacionesPagina.map((operacion) => (
                   <article className="operation-row" key={operacion.idOperacion}>
                     <span className={`operation-type operation-type-${operacion.tipo}`}>{operacion.tipo === 'compra' ? 'Compra' : 'Venta'}</span>
                     <div><strong>{operacion.jugador}</strong><small>{operacion.cantidadTokens} tokens · {new Date(operacion.fechaHora).toLocaleString('es-AR')}</small></div>
@@ -104,6 +115,34 @@ export function PortfolioPage() {
                   </article>
                 ))}
               </div>
+            )}
+            {totalOperaciones > OPERACIONES_POR_PAGINA && (
+              <nav className="operations-pagination" aria-label="Paginación del historial de operaciones">
+                <span>
+                  Mostrando {inicioPagina + 1}–{Math.min(inicioPagina + OPERACIONES_POR_PAGINA, totalOperaciones)} de {totalOperaciones}
+                </span>
+                <div>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => setPaginaOperaciones(paginaActual - 1)}
+                    disabled={paginaActual === 1}
+                    aria-label="Página anterior"
+                  >
+                    Anterior
+                  </button>
+                  <span aria-live="polite">Página {paginaActual} de {totalPaginas}</span>
+                  <button
+                    className="secondary-button"
+                    type="button"
+                    onClick={() => setPaginaOperaciones(paginaActual + 1)}
+                    disabled={paginaActual === totalPaginas}
+                    aria-label="Página siguiente"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              </nav>
             )}
           </section>
         </>
