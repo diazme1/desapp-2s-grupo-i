@@ -86,15 +86,39 @@
 .quote-history-panel { border: 1px solid var(--line); border-radius: 22px; padding: 23px; background: white; box-shadow: var(--shadow); }
 .quote-history-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
 .quote-history-heading h2 { margin: 0; color: var(--navy); font-size: 1.2rem; }
-.quote-history-heading > span { border-radius: 99px; padding: 6px 10px; color: var(--green-dark); background: var(--mint); font-size: .68rem; font-weight: 900; }
+.quote-history-description { margin: 6px 0 0; color: var(--muted); font-size: .78rem; }
+.quote-latest-change { flex: 0 0 auto; border-radius: 99px; padding: 8px 12px; font-size: .74rem; font-weight: 900; }
+.quote-latest-change.is-up, .quote-daily-change.is-up { color: #087d4f; background: #e7f7ed; }
+.quote-latest-change.is-down, .quote-daily-change.is-down { color: #b33949; background: #fff0f1; }
+.quote-latest-change.is-flat, .quote-daily-change.is-flat { color: #53647a; background: #f0f3f5; }
+.quote-strategy-picker { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+.quote-strategy-picker button { min-height: 36px; border: 1px solid var(--line); border-radius: 99px; padding: 0 13px; color: var(--navy-soft); background: white; font: inherit; font-size: .73rem; font-weight: 800; cursor: pointer; }
+.quote-strategy-picker button.is-selected { border-color: var(--green-dark); color: white; background: var(--green-dark); }
+.quote-strategy-picker button:focus-visible { outline: 3px solid rgba(8,125,79,.25); outline-offset: 2px; }
 .quote-chart-wrap { position: relative; margin-top: 14px; }
 .quote-chart-wrap svg { display: block; width: 100%; height: auto; min-height: 150px; overflow: visible; }
 .quote-chart-axis { stroke: #cfd8dd; stroke-width: 1.5; }
 .quote-chart-grid { stroke: #e7ecef; stroke-dasharray: 4 6; stroke-width: 1; }
 .quote-chart-line { fill: none; stroke: var(--green-dark); stroke-linecap: round; stroke-linejoin: round; stroke-width: 3; }
 .quote-chart-dot { fill: white; stroke: var(--green-dark); stroke-width: 2.5; }
+.quote-chart-dot.is-up { stroke: #087d4f; }
+.quote-chart-dot.is-down { stroke: #c43f50; }
+.quote-chart-dot.is-flat { stroke: #77879a; }
+.quote-chart-dot.is-first { stroke: #8a99a8; }
+.quote-chart-legend { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 4px; color: var(--muted); font-size: .68rem; }
+.quote-chart-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.quote-chart-legend i { width: 9px; height: 9px; border-radius: 50%; background: #77879a; }
+.quote-chart-legend i.is-up { background: #087d4f; }
+.quote-chart-legend i.is-down { background: #c43f50; }
 .quote-chart-scale, .quote-history-footnote { display: flex; justify-content: space-between; color: var(--muted); font-size: .68rem; }
 .quote-history-footnote { margin-top: 8px; }
+.quote-daily-changes { margin-top: 19px; border-top: 1px solid var(--line); padding-top: 14px; }
+.quote-daily-changes > strong { display: block; margin-bottom: 9px; color: var(--navy-soft); font-size: .76rem; }
+.quote-daily-changes-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.quote-daily-change { display: grid; gap: 3px; border: 1px solid var(--line); border-radius: 12px; padding: 9px 11px; }
+.quote-daily-change > span { color: var(--muted); font-size: .68rem; }
+.quote-daily-change > strong { color: var(--navy); font-size: .83rem; }
+.quote-daily-change > small { font-size: .68rem; font-weight: 800; }
 .quote-history-empty { margin: 18px 0 2px; color: var(--muted); }
 .trade-backdrop { position: fixed; z-index: 50; inset: 0; display: grid; place-items: center; overflow-y: auto; padding: 20px; background: rgba(10,20,36,.48); backdrop-filter: blur(4px); }
 .trade-dialog { position: relative; width: min(480px, 100%); border: 1px solid rgba(255,255,255,.5); border-radius: 22px; padding: 28px; background: white; box-shadow: 0 28px 90px rgba(8,23,42,.28); }
@@ -151,6 +175,8 @@
   .trade-actions button { width: 100%; }
   .quote-history-panel { padding: 18px; }
   .quote-history-heading { align-items: flex-start; flex-direction: column; }
+  .quote-latest-change { white-space: normal; }
+  .quote-daily-changes-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 .portfolio-charts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; width: min(1180px, 100%); margin: 0 auto 22px; }
