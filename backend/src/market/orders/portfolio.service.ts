@@ -102,7 +102,7 @@ export class PortfolioService {
             ? Creditos.fromUnidades(redondearDivision(costo.unidades, BigInt(costo.cantidad))).toDecimalString()
             : null,
           valorActual: valorActual === null ? null : Creditos.fromUnidades(valorActual).toDecimalString(),
-          gananciaPerdida: valorActual === null
+          gananciaPerdida: valorActual === null || !costo || costo.cantidad === 0
             ? null
             : formatSignedUnits(valorActual - costoBase),
         };
@@ -110,11 +110,15 @@ export class PortfolioService {
 
       const totalValor = items.reduce((total, item) =>
         total + (item.valorActual === null ? 0n : Creditos.fromDecimal(item.valorActual).toUnidades()), 0n);
-      const totalCosto = items.reduce((total, item) => {
+      const totalGananciaPerdida = items.reduce((total, item) => {
         if (item.valorActual === null) return total;
         const costo = costosPromedio.get(item.idJugador);
         if (!costo || costo.cantidad === 0) return total;
-        return total + redondearDivision(costo.unidades, BigInt(costo.cantidad)) * BigInt(item.cantidadTokens);
+        const valorActual = Creditos.fromDecimal(item.valorActual).toUnidades();
+        const costoBase =
+          redondearDivision(costo.unidades, BigInt(costo.cantidad)) *
+          BigInt(item.cantidadTokens);
+        return total + valorActual - costoBase;
       }, 0n);
 
       return {
@@ -122,7 +126,7 @@ export class PortfolioService {
           ? Creditos.fromUnidades(BigInt(saldos[0].creditosDisponibles)).toDecimalString()
           : '0.00',
         valorTotal: Creditos.fromUnidades(totalValor).toDecimalString(),
-        gananciaPerdidaTotal: formatSignedUnits(totalValor - totalCosto),
+        gananciaPerdidaTotal: formatSignedUnits(totalGananciaPerdida),
         posiciones: items,
         operacionesRecientes: operaciones.map((operacion) => ({
           ...operacion,
