@@ -9,6 +9,8 @@
 Como superadmin, quiero recalcular ambas estrategias desde las estadísticas guardadas y elegir cuál queda activa para operaciones de compra/venta.
 
 - `POST /quotes/recalculate` acepta `ataque_decisivo` o `creacion_tecnica`; calcula ambas estrategias en una operación síncrona y deja activa la elegida.
+- `GET /quotes/strategies` devuelve los pesos guardados más recientes; el superadmin puede editarlos desde el panel.
+- El POST acepta los pesos de ambas estrategias. Si cambian, persiste una nueva versión inmutable y usa esas versiones en las corridas.
 - Procesa el registro más reciente por jugador con estadísticas; omite jugadores sin registro.
 - El éxito agrega historial para ambas estrategias y actualiza una cotización vigente por jugador y estrategia.
 - La operación activa la estrategia elegida solo al guardar todo correctamente. Una falla revierte las dos corridas y conserva el estado previo.
@@ -19,7 +21,7 @@ Como superadmin, quiero recalcular ambas estrategias desde las estadísticas gua
 
 ## Requisitos
 
-- **FR-001**: Aceptar únicamente las dos estrategias v1. Pesos en orden goles, asistencias, tiros, pases clave, regates, rating y faltas: ataque decisivo `35/25/20/5/5/5/5`; creación y técnica `5/15/5/30/25/15/5`.
+- **FR-001**: Aceptar únicamente `ataque_decisivo` y `creacion_tecnica`; permitir configurar sus pesos para goles, asistencias, tiros, pases clave, regates, rating y faltas. Cada peso debe ser un entero entre 0 y 100 y cada estrategia debe sumar 100. Los valores iniciales son ataque decisivo `35/25/20/5/5/5/5` y creación técnica `5/15/5/30/25/15/5`.
 - **FR-002**: Calcular `max(0, redondeo a 2 decimales de 1 + Σ(métrica × peso)/100)`. Los nulos aportan cero y las faltas restan. No volver a normalizar los valores persistidos.
 - **FR-003**: Guardar una cotización append-only por jugador elegible y estrategia, con procedencia a su versión, corrida y estadísticas utilizadas.
 - **FR-004**: Persistir ambas corridas y activar la estrategia elegida solo dentro de la transacción que guarda correctamente todas las cotizaciones; ante error, mantener el estado activo anterior.
@@ -29,6 +31,8 @@ Como superadmin, quiero recalcular ambas estrategias desde las estadísticas gua
 - **FR-008**: Mantener en `cotizacion_vigente` una fila por jugador y estrategia del último recálculo exitoso, con fecha, valor y referencias de procedencia; actualizarla atómicamente con el historial y la estrategia activa.
 - **FR-009**: Generar ambas estrategias en cada POST y mantener una fila vigente por jugador y estrategia.
 - **FR-010**: Permitir que el ranking consulte una estrategia por GET; si no se indica, usar la estrategia activa.
+- **FR-011**: Exponer al superadmin la última versión de cada configuración; si una estrategia no tiene versión persistida, devolver sus pesos iniciales.
+- **FR-012**: Al recalcular con pesos distintos a la última versión, crear una nueva versión en vez de modificar la anterior; si los pesos no cambiaron, reutilizar la versión existente.
 
 ## Bordes
 

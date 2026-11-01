@@ -2,6 +2,25 @@ import { request, withBearer } from '../shared/http-client'
 
 export type EstrategiaCotizacion = 'ataque_decisivo' | 'creacion_tecnica'
 
+export interface PesosEstrategiaCotizacion {
+  goles: number
+  asistencias: number
+  tiros: number
+  pasesClave: number
+  regates: number
+  rating: number
+  faltasCometidas: number
+}
+
+export type PesosPorEstrategia = Record<EstrategiaCotizacion, PesosEstrategiaCotizacion>
+
+export interface ConfiguracionEstrategiaCotizacion {
+  tipoEstrategia: EstrategiaCotizacion
+  numeroVersion: number
+  pesos: PesosEstrategiaCotizacion
+  persistida: boolean
+}
+
 export interface JugadorCotizado {
   id: string
   nombre: string
@@ -135,10 +154,15 @@ export function venderTokens(token: string, idJugador: string, cantidadTokens: n
 export function recalcularCotizaciones(
   token: string,
   estrategia: EstrategiaCotizacion,
+  pesosEstrategias: PesosPorEstrategia,
 ): Promise<ResultadoRecalculo> {
   return request<ResultadoRecalculo>('/quotes/recalculate', {
     method: 'POST',
     ...withBearer(token),
-    body: JSON.stringify({ estrategia }),
+    body: JSON.stringify({ estrategia, pesosEstrategias }),
   })
+}
+
+export function listarConfiguracionesEstrategia(token: string): Promise<{ estrategias: ConfiguracionEstrategiaCotizacion[] }> {
+  return request<{ estrategias: ConfiguracionEstrategiaCotizacion[] }>('/quotes/strategies', withBearer(token))
 }

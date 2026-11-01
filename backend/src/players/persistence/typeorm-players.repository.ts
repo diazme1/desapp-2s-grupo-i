@@ -30,7 +30,11 @@ import type {
   CorridaCotizacionParaGuardar,
   EstadisticaParaRecalculo,
 } from '../../quotes/quote-recalculation.repository';
-import type { TipoEstrategiaCotizacion } from '../domain/estrategia-cotizacion';
+import type {
+  PesosEstrategiaCotizacion,
+  TipoEstrategiaCotizacion,
+  VersionEstrategiaCotizacion,
+} from '../domain/estrategia-cotizacion';
 import type {
   QuoteRankingRepository,
   RankingCotizaciones,
@@ -312,32 +316,29 @@ export class TypeOrmPlayersRepository
           `)) as Record<string, unknown>[];
           return rows.map(aEstadisticaParaRecalculo);
         },
-        obtenerOCrearVersionEstrategia: async (input) => {
+        obtenerUltimaVersionEstrategia: async (tipo) => {
           const repository = manager.getRepository(
             VersionEstrategiaCotizacionEntity,
           );
-          let entity = await repository.findOne({
-            where: {
+          const entity = await repository.findOne({
+            where: { tipoEstrategia: tipo },
+            order: { numeroVersion: 'DESC' },
+          });
+          return entity ? mapearVersionEstrategia(entity) : null;
+        },
+        crearVersionEstrategia: async (input) => {
+          const repository = manager.getRepository(
+            VersionEstrategiaCotizacionEntity,
+          );
+          const entity = await repository.save(
+            repository.create({
+              id: randomUUID(),
               tipoEstrategia: input.tipo,
               numeroVersion: input.version,
-            },
-          });
-          if (!entity) {
-            entity = await repository.save(
-              repository.create({
-                id: randomUUID(),
-                tipoEstrategia: input.tipo,
-                numeroVersion: input.version,
-                pesos: input.pesos,
-              }),
-            );
-          }
-          return {
-            id: entity.id,
-            tipoEstrategia: entity.tipoEstrategia,
-            numeroVersion: entity.numeroVersion,
-            pesos: entity.pesos,
-          };
+              pesos: input.pesos,
+            }),
+          );
+          return mapearVersionEstrategia(entity);
         },
         guardarCorrida: async (corrida: CorridaCotizacionParaGuardar) => {
           await manager.getRepository(RecalculoCotizacionEntity).save(
@@ -378,6 +379,19 @@ export class TypeOrmPlayersRepository
 
       return operacion(unitOfWork);
     });
+  }
+
+  async listarUltimasVersionesEstrategia(): Promise<VersionEstrategiaCotizacion[]> {
+    const versiones = await this.dataSource
+      .getRepository(VersionEstrategiaCotizacionEntity)
+      .find({ order: { tipoEstrategia: 'ASC', numeroVersion: 'DESC' } });
+    const ultimas = new Map<TipoEstrategiaCotizacion, VersionEstrategiaCotizacion>();
+    for (const version of versiones) {
+      if (!ultimas.has(version.tipoEstrategia)) {
+        ultimas.set(version.tipoEstrategia, mapearVersionEstrategia(version));
+      }
+    }
+    return [...ultimas.values()];
   }
 
   private async guardarLiga(
@@ -501,6 +515,17 @@ function aEstadisticaParaRecalculo(
     regates: nullableNumber(row.regates),
     faltasCometidas: nullableNumber(row.faltasCometidas),
     ratingWhoScored: nullableNumber(row.ratingWhoScored),
+  };
+}
+
+function mapearVersionEstrategia(
+  entity: VersionEstrategiaCotizacionEntity,
+): VersionEstrategiaCotizacion {
+  return {
+    id: entity.id,
+    tipoEstrategia: entity.tipoEstrategia,
+    numeroVersion: entity.numeroVersion,
+    pesos: { ...entity.pesos },
   };
 }
 

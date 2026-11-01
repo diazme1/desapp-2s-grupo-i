@@ -36,9 +36,10 @@ describe('RecalcularCotizacionesService', () => {
     const unitOfWork = {
       contarJugadores: jest.fn().mockResolvedValue(2),
       listarUltimasEstadisticas: jest.fn().mockResolvedValue([estadistica]),
-      obtenerOCrearVersionEstrategia: jest
+      obtenerUltimaVersionEstrategia: jest
         .fn()
-        .mockImplementation(async ({ tipo }) => versiones[tipo]),
+        .mockImplementation(async (tipo) => versiones[tipo]),
+      crearVersionEstrategia: jest.fn(),
       guardarCorrida: jest.fn().mockResolvedValue(undefined),
       guardarCotizaciones: jest.fn().mockResolvedValue(undefined),
       activarCorrida: jest.fn().mockResolvedValue(undefined),
@@ -56,7 +57,8 @@ describe('RecalcularCotizacionesService', () => {
     const result = await service.ejecutar('ataque_decisivo');
 
     expect(repository.ejecutarEnTransaccion).toHaveBeenCalledTimes(1);
-    expect(unitOfWork.obtenerOCrearVersionEstrategia).toHaveBeenCalledTimes(2);
+    expect(unitOfWork.obtenerUltimaVersionEstrategia).toHaveBeenCalledTimes(2);
+    expect(unitOfWork.crearVersionEstrategia).not.toHaveBeenCalled();
     expect(unitOfWork.guardarCorrida).toHaveBeenCalledTimes(2);
     expect(unitOfWork.guardarCotizaciones).toHaveBeenCalledTimes(2);
     expect(unitOfWork.guardarCotizaciones).toHaveBeenNthCalledWith(

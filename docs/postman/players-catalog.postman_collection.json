@@ -110,9 +110,9 @@
         "method": "POST",
         "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
         "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
-        "body": { "mode": "raw", "raw": "{\n  \"estrategia\": \"ataque_decisivo\"\n}", "options": { "raw": { "language": "json" } } },
+        "body": { "mode": "raw", "raw": "{\n  \"estrategia\": \"ataque_decisivo\",\n  \"pesosEstrategias\": {\n    \"ataque_decisivo\": { \"goles\": 35, \"asistencias\": 25, \"tiros\": 20, \"pasesClave\": 5, \"regates\": 5, \"rating\": 5, \"faltasCometidas\": 5 },\n    \"creacion_tecnica\": { \"goles\": 5, \"asistencias\": 15, \"tiros\": 5, \"pasesClave\": 30, \"regates\": 25, \"rating\": 15, \"faltasCometidas\": 5 }\n  }\n}", "options": { "raw": { "language": "json" } } },
         "url": "{{baseUrl}}/quotes/recalculate",
-        "description": "Calcula ambas estrategias sincrónicamente usando estadísticas locales; el body elige cuál queda activa para compras/ventas. Requiere el JWT de un superadmin; no ejecuta el scraper. Cambiar el filtro del ranking no vuelve a calcular. Pesos (goles/asistencias/tiros/pases clave/regates/rating/faltas): ataque_decisivo 35/25/20/5/5/5/5; creacion_tecnica 5/15/5/30/25/15/5. Las faltas restan."
+        "description": "Calcula ambas estrategias sincrónicamente usando estadísticas locales; el body elige cuál queda activa para compras/ventas y puede enviar los pesos configurables de ambas estrategias. Cada conjunto de pesos debe sumar 100. Si los pesos cambian, se guarda una nueva versión inmutable asociada a las cotizaciones. Requiere el JWT de un superadmin; no ejecuta el scraper. Cambiar el filtro del ranking no vuelve a calcular. Las faltas restan."
       },
       "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
         "pm.test('Responde después de una corrida exitosa', () => pm.response.to.have.status(200));",
