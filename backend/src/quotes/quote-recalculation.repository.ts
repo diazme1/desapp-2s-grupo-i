@@ -37,7 +37,10 @@ export interface CorridaCotizacionParaGuardar {
 export interface QuoteRecalculationUnitOfWork {
   contarJugadores(): Promise<number>;
   listarUltimasEstadisticas(): Promise<EstadisticaParaRecalculo[]>;
-  obtenerOCrearVersionEstrategia(input: {
+  obtenerUltimaVersionEstrategia(
+    tipo: TipoEstrategiaCotizacion,
+  ): Promise<VersionEstrategiaCotizacion | null>;
+  crearVersionEstrategia(input: {
     tipo: TipoEstrategiaCotizacion;
     version: number;
     pesos: PesosEstrategiaCotizacion;
@@ -59,6 +62,7 @@ export interface QuoteRecalculationUnitOfWork {
 }
 
 export interface QuoteRecalculationRepository {
+  listarUltimasVersionesEstrategia(): Promise<VersionEstrategiaCotizacion[]>;
   ejecutarEnTransaccion<T>(
     operacion: (unitOfWork: QuoteRecalculationUnitOfWork) => Promise<T>,
   ): Promise<T>;

@@ -1,7 +1,8 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, UnprocessableEntityException } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import {
   EstrategiaCotizacion,
+  type PesosEstrategiaCotizacion,
   type TipoEstrategiaCotizacion,
 } from '../players/domain/estrategia-cotizacion';
 import {
@@ -19,6 +20,18 @@ export interface ResultadoRecalculoCotizaciones {
   jugadoresSinEstadisticas: number;
 }
 
+export type PesosPorEstrategia = Record<
+  TipoEstrategiaCotizacion,
+  PesosEstrategiaCotizacion
+>;
+
+export interface ConfiguracionEstrategiaCotizacion {
+  tipoEstrategia: TipoEstrategiaCotizacion;
+  numeroVersion: number;
+  pesos: PesosEstrategiaCotizacion;
+  persistida: boolean;
+}
+
 @Injectable()
 export class RecalcularCotizacionesService {
   private readonly reloj: () => Date = () => new Date();
@@ -29,9 +42,25 @@ export class RecalcularCotizacionesService {
     private readonly recalculos: QuoteRecalculationRepository,
   ) {}
 
+  async listarConfiguraciones(): Promise<ConfiguracionEstrategiaCotizacion[]> {
+    const versiones = await this.recalculos.listarUltimasVersionesEstrategia();
+    const porTipo = new Map(versiones.map((version) => [version.tipoEstrategia, version]));
+    return (['ataque_decisivo', 'creacion_tecnica'] as const).map((tipo) => {
+      const version = porTipo.get(tipo) ?? EstrategiaCotizacion.versionInicial(tipo);
+      return {
+        tipoEstrategia: tipo,
+        numeroVersion: version.numeroVersion,
+        pesos: { ...version.pesos },
+        persistida: porTipo.has(tipo),
+      };
+    });
+  }
+
   ejecutar(
     estrategiaActiva: TipoEstrategiaCotizacion,
+    pesosConfigurados?: PesosPorEstrategia,
   ): Promise<ResultadoRecalculoCotizaciones> {
+    if (pesosConfigurados) validarPesosConfigurados(pesosConfigurados);
     return this.recalculos.ejecutarEnTransaccion(async (unitOfWork) => {
       const fechaInicio = this.reloj();
       const cantidadJugadores = await unitOfWork.contarJugadores();
@@ -46,12 +75,18 @@ export class RecalcularCotizacionesService {
         'ataque_decisivo',
         'creacion_tecnica',
       ] as const) {
-        const configuracion = EstrategiaCotizacion.versionInicial(tipo);
-        const version = await unitOfWork.obtenerOCrearVersionEstrategia({
-          tipo: configuracion.tipo,
-          version: configuracion.numeroVersion,
-          pesos: { ...configuracion.pesos },
-        });
+        const versionPrevia = await unitOfWork.obtenerUltimaVersionEstrategia(tipo);
+        const pesosSolicitados = pesosConfigurados?.[tipo];
+        const pesosVigentes = pesosSolicitados ?? versionPrevia?.pesos
+          ?? EstrategiaCotizacion.versionInicial(tipo).pesos;
+        const cambioPesos = !versionPrevia || !mismosPesos(versionPrevia.pesos, pesosVigentes);
+        const version = cambioPesos
+          ? await unitOfWork.crearVersionEstrategia({
+            tipo,
+            version: (versionPrevia?.numeroVersion ?? 0) + 1,
+            pesos: { ...pesosVigentes },
+          })
+          : versionPrevia!;
         const estrategia = EstrategiaCotizacion.desdeVersion(version);
         const cotizaciones = estadisticas.map((estadistica) => ({
           idJugador: estadistica.idJugador,
@@ -102,5 +137,30 @@ export class RecalcularCotizacionesService {
         ),
       };
     });
+  }
+}
+
+function mismosPesos(
+  primero: PesosEstrategiaCotizacion,
+  segundo: PesosEstrategiaCotizacion,
+): boolean {
+  return Object.keys(primero).every((metrica) =>
+    primero[metrica as keyof PesosEstrategiaCotizacion]
+      === segundo[metrica as keyof PesosEstrategiaCotizacion]);
+}
+
+function validarPesosConfigurados(pesosPorEstrategia: PesosPorEstrategia): void {
+  for (const tipo of ['ataque_decisivo', 'creacion_tecnica'] as const) {
+    const pesos = pesosPorEstrategia[tipo];
+    const valores = Object.values(pesos);
+    if (
+      valores.length !== 7
+      || valores.some((valor) => !Number.isInteger(valor) || valor < 0 || valor > 100)
+      || valores.reduce((total, valor) => total + valor, 0) !== 100
+    ) {
+      throw new UnprocessableEntityException(
+        `Los pesos de ${tipo} deben ser enteros entre 0 y 100 y sumar 100%.`,
+      );
+    }
   }
 }

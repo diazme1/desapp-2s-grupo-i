@@ -13,12 +13,18 @@ interface MarketContextValue {
 const MarketContext = createContext<MarketContextValue | null>(null)
 
 export function MarketProvider({ children }: { children: ReactNode }) {
-  const { session } = useAuth()
+  const { session, user } = useAuth()
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null)
   const [portfolioStatus, setPortfolioStatus] = useState<MarketContextValue['portfolioStatus']>('loading')
   const [portfolioError, setPortfolioError] = useState('')
 
   const refreshPortfolio = useCallback(async () => {
+    if (user?.rol === 'superadmin') {
+      setPortfolio(null)
+      setPortfolioStatus('ready')
+      setPortfolioError('')
+      return
+    }
     if (!session?.accessToken) return
     setPortfolioStatus('loading')
     setPortfolioError('')
@@ -30,7 +36,7 @@ export function MarketProvider({ children }: { children: ReactNode }) {
       setPortfolioStatus('error')
       setPortfolioError(error instanceof ApiError ? error.message : 'No se pudo actualizar tu cartera.')
     }
-  }, [session?.accessToken])
+  }, [session?.accessToken, user?.rol])
 
   useEffect(() => {
     void refreshPortfolio()

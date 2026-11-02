@@ -63,14 +63,19 @@ Después de ejecutar las migraciones, el backend expone:
 - `GET /players/:id/quotes`: devuelve el historial de cotizaciones del jugador, más reciente primero.
   Acepta `page` (por defecto `1`) y `limit` (por defecto `20`, máximo `100`).
 - `GET /players/ranking?estrategia=ataque_decisivo|creacion_tecnica`: devuelve el ranking de la última corrida de esa estrategia, ordenado por cotización descendente. Si se omite el filtro, usa la estrategia activa; cambiarlo no recalcula.
+- `GET /quotes/strategies`: devuelve la última versión guardada de los pesos para cada estrategia,
+  o la configuración inicial si todavía no hay versiones. Es exclusivo de superadmin.
 - `POST /quotes/recalculate`: permite a un superadmin elegir `ataque_decisivo` o `creacion_tecnica`
-  como estrategia activa y calcula ambas sincrónicamente desde las estadísticas locales. Las dos
-  corridas se guardan juntas y se apunta a la elegida solo al completar todas las escrituras; una
-  falla conserva la corrida activa anterior. Requiere
-  `Authorization: Bearer <token>` de superadmin y no llama al scraper. Los pesos siguen el orden
-  goles, asistencias, tiros, pases clave, regates, rating y faltas: ataque decisivo `35/25/20/5/5/5/5`,
-  creación y técnica `5/15/5/30/25/15/5`; las faltas restan y los valores persistidos no se normalizan
-  otra vez.
+  como estrategia activa y calcula ambas sincrónicamente desde las estadísticas locales. Puede
+  incluir `pesosEstrategias` para ajustar las siete métricas disponibles (goles, asistencias, tiros,
+  pases clave, regates, rating y faltas); cada estrategia debe sumar 100. Las faltas restan. Si los
+  pesos difieren de la última versión, se crea una versión inmutable nueva; la corrida y el historial
+  referencian esa versión. Las dos corridas se guardan juntas y se activa la elegida solo al completar
+  todas las escrituras; una falla conserva la corrida activa anterior. Requiere
+  `Authorization: Bearer <token>` de superadmin y no llama al scraper.
+- `versiones_estrategia_cotizacion` guarda pesos y versiones inmutables; `recalculos_cotizacion`
+  guarda una corrida por estrategia y versión; `recalculo_cotizacion_activo` es una fila única que
+  apunta a la corrida y estrategia activas para las operaciones.
 - Cada recálculo exitoso agrega ambas cotizaciones a `historial_cotizacion` y actualiza
   `cotizacion_vigente` (una fila por jugador y estrategia) dentro de la misma transacción. La tabla
   vigente conserva la corrida, estrategia y estadísticas usadas para cada valor actual.
