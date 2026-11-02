@@ -249,7 +249,13 @@ export class TypeOrmPlayersRepository
               jugador.nombre,
               equipo.nombre AS equipo,
               liga.codigo AS liga,
-              vigente.cotizacion
+              vigente.cotizacion,
+              COALESCE((
+                SELECT COUNT(*)::integer
+                FROM tokens token
+                JOIN usuarios propietario ON propietario.id = token.id_usuario_owner
+                WHERE token.id_jugador = jugador.id AND propietario.rol = 'superadmin'
+              ), 0) AS "tokensDisponibles"
        FROM cotizacion_vigente vigente
        JOIN jugadores jugador ON jugador.id = vigente.id_jugador
        JOIN equipos equipo ON equipo.id = jugador.equipo_id
@@ -264,6 +270,7 @@ export class TypeOrmPlayersRepository
       equipo: string;
       liga: string;
       cotizacion: string | number;
+      tokensDisponibles: number;
     }>;
 
     return {
@@ -273,6 +280,7 @@ export class TypeOrmPlayersRepository
       jugadores: jugadores.map((jugador) => ({
         ...jugador,
         cotizacion: Number(jugador.cotizacion),
+        tokensDisponibles: Number(jugador.tokensDisponibles),
       })),
     };
   }

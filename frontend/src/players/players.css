@@ -309,7 +309,7 @@
   position: relative;
   z-index: 1;
   display: flex;
-  min-height: 218px;
+  min-height: 276px;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 14px;
@@ -336,7 +336,7 @@
   position: relative;
   display: grid;
   flex: 0 0 138px;
-  min-height: 218px;
+  min-height: 276px;
   place-items: center;
   overflow: hidden;
   color: var(--green-dark);
@@ -528,7 +528,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 8px;
   margin-top: auto;
   padding-top: 14px;
   color: var(--green-dark);
@@ -536,6 +536,63 @@
   font-weight: 900;
   letter-spacing: 0.03em;
 }
+
+.player-card-price {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 16px 0 0;
+  border-top: 1px solid #edf0f3;
+  padding-top: 12px;
+}
+
+.player-card-price span {
+  color: var(--muted);
+  font-size: .66rem;
+  font-weight: 800;
+}
+
+.player-card-price > div { display: grid; gap: 4px; }
+.player-card-price small { color: var(--muted); font-size: .64rem; font-weight: 700; white-space: nowrap; }
+
+.player-card-price strong {
+  color: var(--green-dark);
+  font-size: .95rem;
+  white-space: nowrap;
+}
+
+.player-card-detail {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 0;
+  color: var(--green-dark);
+  background: transparent;
+  font-size: .66rem;
+  font-weight: 900;
+  text-align: left;
+}
+
+.player-card-detail:hover span:first-child { text-decoration: underline; }
+
+.player-card-buy {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 9px;
+  padding: 8px 11px;
+  color: white;
+  background: var(--green-dark);
+  font-size: .69rem;
+  font-weight: 900;
+}
+
+.player-card-buy:hover:not(:disabled) { background: var(--green); }
+.player-card-buy:disabled { cursor: not-allowed; opacity: .45; }
+.player-card-detail:focus-visible, .player-card-buy:focus-visible { outline: 3px solid rgba(19,141,88,.3); outline-offset: 3px; }
+
+.players-header-actions { min-height: 24px; }
 
 .player-card-arrow {
   display: grid;
@@ -806,6 +863,9 @@
   .players-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+
+  .player-card-visual,
+  .player-card { min-height: 260px; }
 }
 
 @media (max-width: 680px) {

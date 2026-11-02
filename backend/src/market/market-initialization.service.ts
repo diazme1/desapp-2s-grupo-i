@@ -34,12 +34,16 @@ export class MarketInitializationService implements OnApplicationBootstrap {
   }
 
   async inicializar(): Promise<void> {
-    if (!this.config.get<string>('SUPERADMIN_EMAIL')) return;
-    const configured = await this.superadminBootstrap.ensureSuperadmin();
-    if (!configured) return;
-    const superadmin = await this.users.findByEmail(configured.correo);
+    const correoConfigurado = this.config.get<string>('SUPERADMIN_EMAIL');
+    const configured = correoConfigurado
+      ? await this.superadminBootstrap.ensureSuperadmin()
+      : null;
+    if (correoConfigurado && !configured) return;
+    const superadmin = configured
+      ? await this.users.findByEmail(configured.correo)
+      : await this.users.findByRole?.(UserRole.SUPERADMIN) ?? null;
     if (!superadmin || superadmin.rol !== UserRole.SUPERADMIN)
-      throw new Error('El propietario inicial del mercado no es superadmin.');
+      return;
 
     const requiereEstadisticas = this.config.get<boolean>(
       'MARKET_TOKENIZATION_REQUIRE_STATS',

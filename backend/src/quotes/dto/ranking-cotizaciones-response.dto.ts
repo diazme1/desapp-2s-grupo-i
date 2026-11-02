@@ -16,6 +16,9 @@ export class JugadorRankingCotizacionResponseDto {
 
   @ApiProperty({ example: 82.5 })
   cotizacion!: number;
+
+  @ApiProperty({ example: 100, description: 'Tokens que conserva el superadmin para vender.' })
+  tokensDisponibles!: number;
 }
 
 export class RankingCotizacionesResponseDto implements RankingCotizaciones {

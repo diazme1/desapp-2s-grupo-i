@@ -8,6 +8,7 @@ export interface JugadorRankingCotizacion {
   equipo: string;
   liga: string;
   cotizacion: number;
+  tokensDisponibles: number;
 }
 
 export interface RankingCotizaciones {

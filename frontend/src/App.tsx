@@ -1,24 +1,15 @@
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
-import { useAuth } from './auth/auth-context'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { AuthLayout } from './auth/AuthLayout'
 import { LoginPage } from './auth/LoginPage'
 import { RegisterPage } from './auth/RegisterPage'
 import { ProtectedRoute } from './app/ProtectedRoute'
 import { PlayersPage } from './players/PlayersPage'
 import { PlayerStatsPage } from './players/PlayerStatsPage'
+import { MarketProvider } from './market/market-context'
+import { MarketLayout } from './market/MarketLayout'
+import { RankingPage } from './market/RankingPage'
+import { PortfolioPage } from './market/PortfolioPage'
 import './App.css'
-
-function AuthenticatedHome() {
-  const { logout } = useAuth()
-  const navigate = useNavigate()
-
-  function handleLogout() {
-    logout()
-    navigate('/login', { replace: true })
-  }
-
-  return <PlayersPage onLogout={handleLogout} />
-}
 
 function App() {
   return (
@@ -31,18 +22,17 @@ function App() {
         path="/app"
         element={
           <ProtectedRoute>
-            <AuthenticatedHome />
+            <MarketProvider>
+              <MarketLayout />
+            </MarketProvider>
           </ProtectedRoute>
         }
-      />
-      <Route
-        path="/app/players/:id/estadisticas"
-        element={
-          <ProtectedRoute>
-            <PlayerStatsPage />
-          </ProtectedRoute>
-        }
-      />
+      >
+        <Route index element={<PlayersPage />} />
+        <Route path="players/:id/estadisticas" element={<PlayerStatsPage />} />
+        <Route path="ranking" element={<RankingPage />} />
+        <Route path="portfolio" element={<PortfolioPage />} />
+      </Route>
       <Route path="/" element={<Navigate to="/app" replace />} />
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
