@@ -1,0 +1,172 @@
+{
+  "info": {
+    "name": "Football Player Market - Orders",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "accessToken", "value": "" },
+    { "key": "playerId", "value": "" },
+    { "key": "idempotencyKey", "value": "postman-buy-1" },
+    { "key": "sellIdempotencyKey", "value": "postman-sell-1" }
+  ],
+  "item": [
+    {
+      "name": "Login usuario",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"correo\": \"usuario@example.com\",\n  \"password\": \"password\"\n}"
+        },
+        "url": "{{baseUrl}}/auth/login"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 200) pm.collectionVariables.set('accessToken', pm.response.json().accessToken);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Comprar tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 2\n}"
+        },
+        "url": "{{baseUrl}}/orders/buy"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('compra confirmada o replay', () => pm.expect([201]).to.include(pm.response.code));",
+              "pm.test('importe y cotización son strings', () => { const body = pm.response.json(); pm.expect(body.cotizacion).to.be.a('string'); pm.expect(body.importe).to.be.a('string'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay de compra",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{idempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 2\n}"
+        },
+        "url": "{{baseUrl}}/orders/buy"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('replay idempotente', () => pm.expect(pm.response.code).to.eql(201));"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Vender tokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{sellIdempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 1\n}"
+        },
+        "url": "{{baseUrl}}/orders/sell"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('venta confirmada', () => pm.expect(pm.response.code).to.eql(201));",
+              "const body = pm.response.json();",
+              "pm.test('venta identifica comprador y vendedor', () => { pm.expect(body.idComprador).to.exist; pm.expect(body.idVendedor).to.exist; });",
+              "pm.test('importe y cotización son strings exactos', () => { pm.expect(body.cotizacion).to.match(/^\\d+\\.\\d{2}$/); pm.expect(body.importe).to.match(/^\\d+\\.\\d{2}$/); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Replay de venta",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{sellIdempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 1\n}"
+        },
+        "url": "{{baseUrl}}/orders/sell"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('replay de venta idempotente', () => pm.expect(pm.response.code).to.eql(201));",
+              "pm.test('se mantiene la operación común', () => pm.expect(pm.response.json().idOperacion).to.exist);"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Venta con clave incompatible",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "Idempotency-Key", "value": "{{sellIdempotencyKey}}" },
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"idJugador\": \"{{playerId}}\",\n  \"cantidadTokens\": 2\n}"
+        },
+        "url": "{{baseUrl}}/orders/sell"
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test('clave incompatible rechazada', () => pm.expect(pm.response.code).to.eql(409));"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

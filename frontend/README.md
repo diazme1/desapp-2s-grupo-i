@@ -1,4 +1,4 @@
-# PlayerMarket - Frontend
+# Valor 90 - Frontend
 
 Frontend de la aplicación de mercado de jugadores, construido con Vite, React y
 TypeScript. Incluye registro, login, sesión autenticada, catálogo web de jugadores,

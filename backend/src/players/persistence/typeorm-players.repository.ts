@@ -20,16 +20,16 @@ import { LigaEntity } from './liga.entity';
 export class TypeOrmPlayersRepository implements PlayersRepository {
   constructor(private readonly dataSource: DataSource) {}
 
-  async onApplicationShutdown(): Promise<void> {
-    if (this.dataSource.isInitialized) await this.dataSource.destroy();
-  }
-
-  async guardarCatalogo(catalogo: CatalogoBase): Promise<ResultadoGuardadoCatalogo> {
+  async guardarCatalogo(
+    catalogo: CatalogoBase,
+  ): Promise<ResultadoGuardadoCatalogo> {
     return this.dataSource.transaction(async (manager) => {
       const ligaIds = new Map<string, string>();
       const equipoIds = new Map<string, string>();
       const ligasPorId = new Map(catalogo.ligas.map((liga) => [liga.id, liga]));
-      const equiposPorId = new Map(catalogo.equipos.map((equipo) => [equipo.id, equipo]));
+      const equiposPorId = new Map(
+        catalogo.equipos.map((equipo) => [equipo.id, equipo]),
+      );
       const jugadoresProcesados: JugadorProcesado[] = [];
 
       for (const liga of catalogo.ligas) {
@@ -39,22 +39,28 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
 
       for (const equipo of catalogo.equipos) {
         const ligaId = ligaIds.get(equipo.ligaId);
-        if (!ligaId) throw new Error('El catálogo contiene un equipo sin liga válida.');
+        if (!ligaId)
+          throw new Error('El catálogo contiene un equipo sin liga válida.');
         const entity = await this.guardarEquipo(manager, equipo, ligaId);
         equipoIds.set(equipo.id, entity.id);
       }
 
       for (const jugador of catalogo.jugadores) {
         const equipoId = equipoIds.get(jugador.equipoId);
-        if (!equipoId) throw new Error('El catálogo contiene un jugador sin equipo válido.');
+        if (!equipoId)
+          throw new Error('El catálogo contiene un jugador sin equipo válido.');
         const equipo = equiposPorId.get(jugador.equipoId);
         const liga = equipo ? ligasPorId.get(equipo.ligaId) : undefined;
-        if (!equipo || !liga) throw new Error('El catálogo contiene relaciones inválidas.');
+        if (!equipo || !liga)
+          throw new Error('El catálogo contiene relaciones inválidas.');
         const guardado = await this.guardarJugador(manager, jugador, equipoId);
         jugadoresProcesados.push({
           idJugador: guardado.id,
           nombreJugador: jugador.nombre,
           equipoJugador: equipo.nombre,
+          ...(equipo.nombreCorto
+            ? { equipoJugadorAlternativos: [equipo.nombreCorto] }
+            : {}),
           ligaEquipoJugador: liga.nombre,
         });
       }
@@ -99,7 +105,10 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
       .leftJoinAndSelect('jugador.estadisticas', 'estadisticas')
       .orderBy('jugador.nombre', 'ASC')
       .addOrderBy('jugador.id', 'ASC');
-    if (ligaCodigo) query.where('liga.codigo = :ligaCodigo', { ligaCodigo: ligaCodigo.trim().toUpperCase() });
+    if (ligaCodigo)
+      query.where('liga.codigo = :ligaCodigo', {
+        ligaCodigo: ligaCodigo.trim().toUpperCase(),
+      });
     return (await query.getMany()).map((entity) => this.aModelo(entity));
   }
 
@@ -115,11 +124,15 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
     return entity ? this.aModelo(entity) : null;
   }
 
-  private async guardarLiga(manager: EntityManager, liga: Liga): Promise<LigaEntity> {
+  private async guardarLiga(
+    manager: EntityManager,
+    liga: Liga,
+  ): Promise<LigaEntity> {
     const repository = manager.getRepository(LigaEntity);
     const entity =
-      (await repository.findOne({ where: { proveedorId: liga.proveedorId } })) ??
-      repository.create({ id: liga.id, creadoEn: new Date() });
+      (await repository.findOne({
+        where: { proveedorId: liga.proveedorId },
+      })) ?? repository.create({ id: liga.id, creadoEn: new Date() });
     entity.proveedorId = liga.proveedorId;
     entity.codigo = liga.codigo;
     entity.nombre = liga.nombre;
@@ -136,8 +149,9 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
   ): Promise<EquipoEntity> {
     const repository = manager.getRepository(EquipoEntity);
     const entity =
-      (await repository.findOne({ where: { proveedorId: equipo.proveedorId } })) ??
-      repository.create({ id: equipo.id, creadoEn: new Date() });
+      (await repository.findOne({
+        where: { proveedorId: equipo.proveedorId },
+      })) ?? repository.create({ id: equipo.id, creadoEn: new Date() });
     entity.proveedorId = equipo.proveedorId;
     entity.nombre = equipo.nombre;
     entity.nombreCorto = equipo.nombreCorto;
@@ -155,8 +169,9 @@ export class TypeOrmPlayersRepository implements PlayersRepository {
   ): Promise<JugadorEntity> {
     const repository = manager.getRepository(JugadorEntity);
     const entity =
-      (await repository.findOne({ where: { proveedorId: jugador.proveedorId } })) ??
-      repository.create({ id: jugador.id, creadoEn: new Date() });
+      (await repository.findOne({
+        where: { proveedorId: jugador.proveedorId },
+      })) ?? repository.create({ id: jugador.id, creadoEn: new Date() });
     entity.proveedorId = jugador.proveedorId;
     entity.nombre = jugador.nombre;
     entity.nombreCompleto = jugador.nombreCompleto;

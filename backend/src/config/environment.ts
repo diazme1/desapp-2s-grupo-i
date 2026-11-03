@@ -7,6 +7,9 @@ export function validateEnvironment(config: Record<string, unknown>): {
   JWT_SECRET?: string;
   JWT_EXPIRES_IN?: string;
   JWT_ALGORITHM?: string;
+  SUPERADMIN_EMAIL?: string;
+  SUPERADMIN_PASSWORD?: string;
+  MARKET_TOKENIZATION_REQUIRE_STATS: boolean;
   FOOTBALL_DATA_API_URL?: string;
   FOOTBALL_DATA_API_TOKEN?: string;
   FOOTBALL_DATA_COMPETITIONS?: string;
@@ -45,19 +48,60 @@ export function validateEnvironment(config: Record<string, unknown>): {
   }
 
   const algorithm = config.JWT_ALGORITHM;
-  if (algorithm !== undefined && !['HS256', 'HS384', 'HS512'].includes(String(algorithm))) {
+  if (
+    algorithm !== undefined &&
+    !['HS256', 'HS384', 'HS512'].includes(String(algorithm))
+  ) {
     throw new Error('JWT_ALGORITHM debe ser HS256, HS384 o HS512.');
   }
 
+  const superadminEmail = optionalTrimmedString(config.SUPERADMIN_EMAIL);
+  const superadminPassword = optionalPasswordString(config.SUPERADMIN_PASSWORD);
+  if ((superadminEmail === undefined) !== (superadminPassword === undefined)) {
+    throw new Error(
+      'SUPERADMIN_EMAIL y SUPERADMIN_PASSWORD deben configurarse juntos.',
+    );
+  }
+  if (
+    superadminEmail !== undefined &&
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(superadminEmail)
+  ) {
+    throw new Error('SUPERADMIN_EMAIL debe ser un correo válido.');
+  }
+  const isSharedSuperadminCredential =
+    superadminEmail?.toLowerCase() === 'admin@gmail.com' &&
+    superadminPassword === 'admin';
+  if (
+    superadminPassword !== undefined &&
+    superadminPassword.length < 8 &&
+    !isSharedSuperadminCredential
+  ) {
+    throw new Error('SUPERADMIN_PASSWORD debe tener al menos 8 caracteres.');
+  }
+
+  const requirePlayerStats = parseBooleanConfig(
+    config.MARKET_TOKENIZATION_REQUIRE_STATS,
+    false,
+    'MARKET_TOKENIZATION_REQUIRE_STATS',
+  );
+
   const catalogRefreshApiKey = config.CATALOG_REFRESH_API_KEY;
-  const catalogRefreshApiKeyIssue = getCatalogRefreshApiKeyConfigurationIssue(catalogRefreshApiKey);
-  if (catalogRefreshApiKeyIssue !== undefined && !(isTest && catalogRefreshApiKey === undefined)) {
-    throw new Error(catalogRefreshApiKeyConfigurationError(catalogRefreshApiKeyIssue));
+  const catalogRefreshApiKeyIssue =
+    getCatalogRefreshApiKeyConfigurationIssue(catalogRefreshApiKey);
+  if (
+    catalogRefreshApiKeyIssue !== undefined &&
+    !(isTest && catalogRefreshApiKey === undefined)
+  ) {
+    throw new Error(
+      catalogRefreshApiKeyConfigurationError(catalogRefreshApiKeyIssue),
+    );
   }
 
   const rawMaxTeams = config.FOOTBALL_DATA_MAX_TEAMS;
   const maxTeamsValue =
-    typeof rawMaxTeams === 'string' && rawMaxTeams.trim() !== '' ? rawMaxTeams.trim() : undefined;
+    typeof rawMaxTeams === 'string' && rawMaxTeams.trim() !== ''
+      ? rawMaxTeams.trim()
+      : undefined;
   let maxTeams: number | undefined;
   if (maxTeamsValue !== undefined) {
     if (!/^\d+$/.test(maxTeamsValue) || Number(maxTeamsValue) < 1) {
@@ -74,7 +118,9 @@ export function validateEnvironment(config: Record<string, unknown>): {
   let requestDelayMs: number | undefined;
   if (requestDelayValue !== undefined) {
     if (!/^\d+$/.test(requestDelayValue) || Number(requestDelayValue) < 0) {
-      throw new Error('FOOTBALL_DATA_REQUEST_DELAY_MS debe ser un entero mayor o igual a cero.');
+      throw new Error(
+        'FOOTBALL_DATA_REQUEST_DELAY_MS debe ser un entero mayor o igual a cero.',
+      );
     }
     requestDelayMs = Number(requestDelayValue);
   }
@@ -82,8 +128,17 @@ export function validateEnvironment(config: Record<string, unknown>): {
   return {
     PORT: port,
     DATABASE_URL: databaseUrl,
-    ...(typeof catalogRefreshApiKey === 'string' && { CATALOG_REFRESH_API_KEY: catalogRefreshApiKey }),
+    ...(typeof catalogRefreshApiKey === 'string' && {
+      CATALOG_REFRESH_API_KEY: catalogRefreshApiKey,
+    }),
     ...(typeof jwtSecret === 'string' && { JWT_SECRET: jwtSecret }),
+    ...(superadminEmail !== undefined && {
+      SUPERADMIN_EMAIL: superadminEmail.toLowerCase(),
+    }),
+    ...(superadminPassword !== undefined && {
+      SUPERADMIN_PASSWORD: superadminPassword,
+    }),
+    MARKET_TOKENIZATION_REQUIRE_STATS: requirePlayerStats,
     JWT_EXPIRES_IN: typeof jwtExpiresIn === 'string' ? jwtExpiresIn : '15m',
     JWT_ALGORITHM: typeof algorithm === 'string' ? algorithm : 'HS256',
     ...(typeof config.FOOTBALL_DATA_API_URL === 'string' && {
@@ -96,12 +151,40 @@ export function validateEnvironment(config: Record<string, unknown>): {
       FOOTBALL_DATA_COMPETITIONS: config.FOOTBALL_DATA_COMPETITIONS,
     }),
     ...(maxTeams !== undefined && { FOOTBALL_DATA_MAX_TEAMS: maxTeams }),
-    ...(requestDelayMs !== undefined && { FOOTBALL_DATA_REQUEST_DELAY_MS: requestDelayMs }),
+    ...(requestDelayMs !== undefined && {
+      FOOTBALL_DATA_REQUEST_DELAY_MS: requestDelayMs,
+    }),
   };
 }
 
+function parseBooleanConfig(
+  value: unknown,
+  defaultValue: boolean,
+  name: string,
+): boolean {
+  if (value === undefined || (typeof value === 'string' && value.trim() === ''))
+    return defaultValue;
+  const normalized = String(value).trim().toLowerCase();
+  if (normalized === 'true') return true;
+  if (normalized === 'false') return false;
+  throw new Error(`${name} debe ser true o false.`);
+}
+
+function optionalTrimmedString(value: unknown): string | undefined {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed === '' ? undefined : trimmed;
+}
+
+function optionalPasswordString(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.trim() === '') return undefined;
+  return value;
+}
+
 function catalogRefreshApiKeyConfigurationError(
-  issue: NonNullable<ReturnType<typeof getCatalogRefreshApiKeyConfigurationIssue>>,
+  issue: NonNullable<
+    ReturnType<typeof getCatalogRefreshApiKeyConfigurationIssue>
+  >,
 ): string {
   const descriptions = {
     missing: 'es obligatoria fuera del ambiente de tests',

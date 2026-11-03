@@ -12,6 +12,7 @@ export interface LoginFormData {
 export interface PublicUser {
   id: string
   correo: string
+  rol?: 'usuario' | 'superadmin'
   creadoEn: string
 }
 

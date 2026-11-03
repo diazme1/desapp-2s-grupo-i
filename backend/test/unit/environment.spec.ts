@@ -10,6 +10,30 @@ describe('Configuración de PORT', () => {
   it('usa 3000 cuando PORT está ausente', () => {
     expect(validateEnvironment(validDatabaseConfig).PORT).toBe(3000);
   });
+
+  it('interpreta la configuración de tokenización por estadísticas', () => {
+    expect(
+      validateEnvironment({
+        ...validDatabaseConfig,
+        MARKET_TOKENIZATION_REQUIRE_STATS: 'true',
+      }).MARKET_TOKENIZATION_REQUIRE_STATS,
+    ).toBe(true);
+    expect(
+      validateEnvironment({
+        ...validDatabaseConfig,
+        MARKET_TOKENIZATION_REQUIRE_STATS: 'false',
+      }).MARKET_TOKENIZATION_REQUIRE_STATS,
+    ).toBe(false);
+  });
+
+  it('rechaza una configuración de tokenización que no sea booleana', () => {
+    expect(() =>
+      validateEnvironment({
+        ...validDatabaseConfig,
+        MARKET_TOKENIZATION_REQUIRE_STATS: 'yes',
+      }),
+    ).toThrow('MARKET_TOKENIZATION_REQUIRE_STATS debe ser true o false.');
+  });
   it.each(['1', '3000', '65535'])('acepta el puerto %s', (port) => {
     expect(validateEnvironment({ ...validDatabaseConfig, PORT: port }).PORT).toBe(Number(port));
   });

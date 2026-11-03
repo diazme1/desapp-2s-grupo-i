@@ -7,10 +7,10 @@ export function AuthLayout() {
     <main className="auth-page">
       <div className="auth-frame">
         <header className="auth-header">
-          <Link className="brand-lockup" to="/login" aria-label="PlayerMarket, ir al inicio de sesión">
+          <Link className="brand-lockup" to="/login" aria-label="Valor 90, ir al inicio de sesión">
             <BrandMark className="brand-logo" />
             <span className="brand-wordmark">
-              <strong>PlayerMarket</strong>
+              <strong>Valor <span>90</span></strong>
               <small>EL VALOR DEL FÚTBOL, EN TUS MANOS</small>
             </span>
           </Link>
@@ -28,7 +28,7 @@ export function AuthLayout() {
         </div>
 
         <footer className="auth-footer">
-          <span>© 2024 PlayerMarket. Todos los derechos reservados.</span>
+          <span>© 2024 Valor 90. Todos los derechos reservados.</span>
           <div className="footer-links">
             <a href="#privacy">Privacidad</a>
             <a href="#terms">Términos</a>

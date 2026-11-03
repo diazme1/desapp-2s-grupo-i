@@ -21,6 +21,9 @@ services:
     environment:
       PORT: 3000
       DATABASE_URL: postgres://postgres:postgres@postgres:5432/football_market
+      SUPERADMIN_EMAIL: ${SUPERADMIN_EMAIL:-}
+      SUPERADMIN_PASSWORD: ${SUPERADMIN_PASSWORD:-}
+      MARKET_TOKENIZATION_REQUIRE_STATS: ${MARKET_TOKENIZATION_REQUIRE_STATS:-true}
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-this-please-32chars}
       JWT_EXPIRES_IN: 2h
       JWT_ALGORITHM: HS256
@@ -30,6 +33,15 @@ services:
       FOOTBALL_DATA_COMPETITIONS: ${FOOTBALL_DATA_COMPETITIONS:-PL,BL1,PD,SA,FL1}
       FOOTBALL_DATA_MAX_TEAMS: ${FOOTBALL_DATA_MAX_TEAMS:-}
       FOOTBALL_DATA_REQUEST_DELAY_MS: ${FOOTBALL_DATA_REQUEST_DELAY_MS:-6000}
+      ML_FASTAPI_BASE_URL: ${ML_FASTAPI_BASE_URL:-http://ml-fastapi:8000}
+      ML_FASTAPI_INTERNAL_TOKEN: ${ML_FASTAPI_INTERNAL_TOKEN:-dev-ml-token}
+      ML_FASTAPI_TIMEOUT_MS: ${ML_FASTAPI_TIMEOUT_MS:-3000}
+      ML_FASTAPI_TRAINING_TIMEOUT_MS: ${ML_FASTAPI_TRAINING_TIMEOUT_MS:-600000}
+      ML_MODEL_POLL_INTERVAL_MS: ${ML_MODEL_POLL_INTERVAL_MS:-5000}
+      ML_MODEL_PATH: ${ML_MODEL_PATH:-}
+      ML_FASTAPI_PORT: ${ML_FASTAPI_PORT:-8000}
+      ML_ARTIFACTS_DIR: ${ML_ARTIFACTS_DIR:-/app/artifacts}
+      ML_TRAINING_DATA_PATH: ${ML_TRAINING_DATA_PATH:-}
       WHOSCORED_BROWSER_EXECUTABLE_PATH: /usr/bin/chromium
       WHOSCORED_BROWSER_HEADLESS: "true"
       WHOSCORED_BROWSER_TIMEOUT_MS: 45000
@@ -43,6 +55,24 @@ services:
       - ./backend:/app
       - /app/node_modules
     command: sh -c "npm run migration:run && npm run start:dev"
+
+  ml-fastapi:
+    build:
+      context: ./ml-players
+    environment:
+      ML_FASTAPI_INTERNAL_TOKEN: ${ML_FASTAPI_INTERNAL_TOKEN:-dev-ml-token}
+      ML_FASTAPI_TRAINING_TIMEOUT_MS: ${ML_FASTAPI_TRAINING_TIMEOUT_MS:-600000}
+      ML_MODEL_POLL_INTERVAL_MS: ${ML_MODEL_POLL_INTERVAL_MS:-5000}
+      ML_MODEL_PATH: ${ML_MODEL_PATH:-}
+      ML_FASTAPI_PORT: ${ML_FASTAPI_PORT:-8000}
+      ML_ARTIFACTS_DIR: ${ML_ARTIFACTS_DIR:-/app/artifacts}
+      ML_TRAINING_DATA_PATH: ${ML_TRAINING_DATA_PATH:-}
+    ports:
+      - "${ML_FASTAPI_PORT:-8000}:${ML_FASTAPI_PORT:-8000}"
+    volumes:
+      - ./ml-players:/app
+      - ml_artifacts:/app/artifacts
+    command: sh -c "uvicorn ml_players.inference.main:app --host 0.0.0.0 --port $${ML_FASTAPI_PORT:-8000}"
 
   frontend:
     build:
@@ -62,3 +92,4 @@ services:
 
 volumes:
   postgres_data:
+  ml_artifacts:

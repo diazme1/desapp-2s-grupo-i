@@ -1,22 +1,20 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { DataSource } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { DATABASE_DATA_SOURCE, DatabaseModule } from '../database/database.module';
 import { ActualizarCatalogoService } from './actualizar-catalogo.service';
-import { FootballDataAdapter, FOOTBALL_DATA_ADAPTER } from './adapters/football-data/football-data.adapter';
+import {
+  FootballDataAdapter,
+  FOOTBALL_DATA_ADAPTER,
+} from './adapters/football-data/football-data.adapter';
 import { WhoScoredAdapter } from './adapters/whoscored/whoscored.adapter';
 import { CatalogoJugadoresService } from './catalogo-jugadores.service';
 import { EstadisticasJugadorService } from './estadisticas-jugador.service';
-import { EquipoEntity } from './persistence/equipo.entity';
-import { EstadisticasJugadorEntity } from './persistence/estadisticas-jugador.entity';
-import { JugadorEntity } from './persistence/jugador.entity';
-import { LigaEntity } from './persistence/liga.entity';
 import { TypeOrmPlayersRepository } from './persistence/typeorm-players.repository';
-import { PLAYERS_REPOSITORY } from './players.repository';
 import { PlayersController } from './players.controller';
+import { PLAYERS_REPOSITORY } from './players.repository';
 
 @Module({
-  imports: [AuthModule],
+  imports: [AuthModule, DatabaseModule],
   controllers: [PlayersController],
   providers: [
     FootballDataAdapter,
@@ -25,28 +23,26 @@ import { PlayersController } from './players.controller';
       useExisting: FootballDataAdapter,
     },
     {
+      provide: TypeOrmPlayersRepository,
+      inject: [DATABASE_DATA_SOURCE],
+      useFactory: (dataSource: import('typeorm').DataSource) =>
+        new TypeOrmPlayersRepository(dataSource),
+    },
+    {
       provide: PLAYERS_REPOSITORY,
-      inject: [ConfigService],
-      useFactory: async (config: ConfigService) => {
-        const url = config.get<string>('DATABASE_URL');
-        if (!url) throw new Error('DATABASE_URL es obligatoria para el catálogo de jugadores.');
-        const dataSource = new DataSource({
-          type: 'postgres',
-          url,
-          entities: [LigaEntity, EquipoEntity, JugadorEntity, EstadisticasJugadorEntity],
-          synchronize: false,
-        });
-        await dataSource.initialize();
-        return new TypeOrmPlayersRepository(dataSource);
-      },
+      useExisting: TypeOrmPlayersRepository,
     },
     WhoScoredAdapter,
     {
       provide: EstadisticasJugadorService,
       inject: [PLAYERS_REPOSITORY, WhoScoredAdapter],
-      useFactory: (players: TypeOrmPlayersRepository, whoscored: WhoScoredAdapter) =>
+      useFactory: (
+        players: TypeOrmPlayersRepository,
+        whoscored: WhoScoredAdapter,
+      ) =>
         new EstadisticasJugadorService(whoscored, {
-          guardar: (estadisticas, context) => players.guardarEstadisticas(estadisticas, context),
+          guardar: (estadisticas, context) =>
+            players.guardarEstadisticas(estadisticas, context),
         }),
     },
     CatalogoJugadoresService,

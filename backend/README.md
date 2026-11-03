@@ -48,15 +48,56 @@ npm run start:dev
 - `POST /auth/login` para obtener un JWT Bearer.
 - `GET /auth/me` requiere `Authorization: Bearer <token>`.
 
+Después de aplicar las migraciones, el primer inicio crea el superadmin compartido con correo
+`admin@gmail.com` y contraseña `admin`, tomando los valores de `.env.example`; los siguientes
+inicios no modifican la cuenta. El registro público siempre crea cuentas con rol `usuario` y no
+permite elegir un rol. Si el correo ya pertenece a un usuario común, el backend se niega a
+promoverlo y no inicia.
+
 ## Catálogo base de jugadores
 
 Después de ejecutar las migraciones, el backend expone:
 
 - `GET /players`: devuelve jugadores persistidos localmente y no consulta proveedores externos.
 - `GET /players/:id`: devuelve el detalle por el UUID interno del jugador.
+- `GET /players/:id/quotes`: devuelve el historial de cotizaciones del jugador, más reciente primero.
+  Acepta `page` (por defecto `1`) y `limit` (por defecto `20`, máximo `100`).
+- `GET /players/ranking?estrategia=ataque_decisivo|creacion_tecnica`: devuelve el ranking de la última corrida de esa estrategia, ordenado por cotización descendente. Si se omite el filtro, usa la estrategia activa; cambiarlo no recalcula.
+- `GET /quotes/strategies`: devuelve la última versión guardada de los pesos para cada estrategia,
+  o la configuración inicial si todavía no hay versiones. Es exclusivo de superadmin.
+- `POST /quotes/recalculate`: permite a un superadmin elegir `ataque_decisivo` o `creacion_tecnica`
+  como estrategia activa y calcula ambas sincrónicamente desde las estadísticas locales. Puede
+  incluir `pesosEstrategias` para ajustar las siete métricas disponibles (goles, asistencias, tiros,
+  pases clave, regates, rating y faltas); cada estrategia debe sumar 100. Las faltas restan. Si los
+  pesos difieren de la última versión, se crea una versión inmutable nueva; la corrida y el historial
+  referencian esa versión. Las dos corridas se guardan juntas y se activa la elegida solo al completar
+  todas las escrituras; una falla conserva la corrida activa anterior. Requiere
+  `Authorization: Bearer <token>` de superadmin y no llama al scraper.
+- `versiones_estrategia_cotizacion` guarda pesos y versiones inmutables; `recalculos_cotizacion`
+  guarda una corrida por estrategia y versión; `recalculo_cotizacion_activo` es una fila única que
+  apunta a la corrida y estrategia activas para las operaciones.
+- Cada recálculo exitoso agrega ambas cotizaciones a `historial_cotizacion` y actualiza
+  `cotizacion_vigente` (una fila por jugador y estrategia) dentro de la misma transacción. La tabla
+  vigente conserva la corrida, estrategia y estadísticas usadas para cada valor actual.
 - `POST /catalog/refresh?ligaCodigo=PL`: requiere un JWT Bearer y `X-API-Key` válidos e importa
   una liga, sus equipos y jugadores base desde Football-Data.org. La API key no se exige en las
   consultas de jugadores ni en los demás endpoints.
+- `POST /orders/buy` y `POST /orders/sell`: requieren JWT Bearer, `Idempotency-Key` y un body
+  `{ "idJugador": "<uuid>", "cantidadTokens": 1 }`. La compra transfiere tokens del superadmin
+  al usuario; la venta los devuelve al superadmin. Ambas operaciones actualizan tokens,
+  tenencias, saldos y auditoría de manera atómica.
+- `GET /users/me/portfolio`: devuelve el saldo exacto, posiciones con costo promedio y valuación
+  vigente, rendimiento estimado y las diez operaciones recientes. El usuario se identifica desde
+  el JWT y no desde un ID enviado por el cliente.
+
+La venta al superadmin requiere que este tenga créditos disponibles para recomprar; una venta no
+crea créditos cuando el fondo no alcanza. Las migraciones `1790275843000-CreateOrdenesCompra` y
+`1790275844000-CreateTransaccionesMercado` crean las tablas append-only de órdenes, transacciones
+y auditorías del mercado. La migración
+`1790275845000-BackfillSaldoInicialUsuarios` acredita 1.000 créditos a usuarios comunes antiguos
+que todavía no tengan una fila de saldo; `1790275846000-RepairInitialSaldoWithoutOperations`
+repara saldos en cero de usuarios sin operaciones previas. Ninguna de las migraciones acredita al
+superadmin ni vuelve a cargar cuentas con compras o ventas registradas.
 
 Para actualizar el catálogo, configurá `FOOTBALL_DATA_API_TOKEN` en el `.env` raíz. La URL,
 las competencias y el intervalo entre requests se pueden revisar en `.env.example`. La

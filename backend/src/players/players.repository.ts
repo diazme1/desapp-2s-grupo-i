@@ -32,6 +32,7 @@ export interface JugadorProcesado {
   idJugador: string;
   nombreJugador: string;
   equipoJugador: string;
+  equipoJugadorAlternativos?: string[];
   ligaEquipoJugador: string;
 }
 

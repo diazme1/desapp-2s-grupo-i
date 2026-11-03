@@ -1,0 +1,66 @@
+aliases:
+  premier league:
+    brighton:
+      - "Brighton & Hove Albion FC"
+      - "Brighton Hove"
+    coventry:
+      - "Coventry City FC"
+      - "Coventry City"
+    hull:
+      - "Hull City AFC"
+      - "Hull City"
+    ipswich:
+      - "Ipswich Town FC"
+      - "Ipswich Town"
+    leeds:
+      - "Leeds United FC"
+      - "Leeds United"
+    "man utd":
+      - "Manchester United FC"
+      - "Man United"
+
+  bundesliga:
+    "fc koln":
+      - "1. FC Köln"
+    "borussia m.gladbach":
+      - "Borussia Mönchengladbach"
+      - "M'gladbach"
+    hamburg:
+      - "Hamburger SV"
+      - HSV
+    rbl:
+      - "RB Leipzig"
+    "werder bremen":
+      - "SV Werder Bremen"
+      - Bremen
+
+  la liga:
+    atletico:
+      - "Club Atlético de Madrid"
+      - Atleti
+    "celta vigo":
+      - "RC Celta de Vigo"
+      - Celta
+    "racing santander":
+      - "Real Racing Club"
+      - "Real Racing Club de Santander"
+      - "Racing Club de Santander"
+      - "Racing de Santander"
+      - Santander
+
+  serie a:
+    como:
+      - "Como 1907"
+
+  ligue 1:
+    angers:
+      - "Angers SCO"
+    lyon:
+      - "Olympique Lyonnais"
+      - "Olympique Lyon"
+    lens:
+      - "Racing Club de Lens"
+      - "RC Lens"
+    rennes:
+      - "Stade Rennais FC 1901"
+      - "Stade Rennais"

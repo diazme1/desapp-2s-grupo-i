@@ -40,8 +40,8 @@
 .brand-logo {
   width: 55px;
   height: 55px;
-  color: var(--green);
-  --logo-ball: #fff;
+  flex: 0 0 auto;
+  object-fit: contain;
 }
 
 .brand-wordmark {
@@ -53,6 +53,10 @@
   font-size: 25px;
   line-height: 1;
   letter-spacing: -0.055em;
+}
+
+.brand-wordmark strong span {
+  color: var(--green);
 }
 
 .brand-wordmark small {

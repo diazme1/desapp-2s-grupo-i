@@ -5,6 +5,7 @@ import type {
   EstadisticasJugador,
   JugadorCatalogo,
   LigaJugador,
+  PrediccionJugador,
 } from './player-types'
 
 const estadisticasCampos: Array<keyof Omit<EstadisticasJugador, 'estado'>> = [
@@ -117,4 +118,27 @@ export async function listarJugadores(token: string): Promise<JugadorCatalogo[]>
 export async function obtenerJugador(token: string, id: string): Promise<JugadorCatalogo> {
   const payload = await request<unknown>(`/players/${encodeURIComponent(id)}`, withBearer(token))
   return normalizarJugador(payload)
+}
+
+export async function obtenerPrediccion(token: string, id: string): Promise<PrediccionJugador> {
+  const payload = await request<unknown>(`/players/${encodeURIComponent(id)}/prediction`, withBearer(token))
+  if (!esRegistro(payload) || (payload.estado !== 'disponible' && payload.estado !== 'no_disponible')) {
+    throw new ApiError(0, 'La predicción devolvió una respuesta inválida.')
+  }
+  const estadisticas = esRegistro(payload.estadisticasPredichas)
+    ? Object.fromEntries(Object.entries(payload.estadisticasPredichas).map(([key, value]) => [key, String(value)]))
+    : {}
+  return {
+    estado: payload.estado as 'disponible' | 'no_disponible',
+    cotizacionActual: payload.cotizacionActual === null || payload.cotizacionActual === undefined ? null : String(payload.cotizacionActual),
+    cotizacionPredicha: payload.cotizacionPredicha === null || payload.cotizacionPredicha === undefined ? null : String(payload.cotizacionPredicha),
+    prediccionDisponible: payload.prediccionDisponible === true,
+    fechaGeneracion: texto(payload.fechaGeneracion) ?? new Date().toISOString(),
+    fechaObjetivo: texto(payload.fechaObjetivo) ?? '',
+    versionModelo: texto(payload.versionModelo),
+    versionEstrategia: texto(payload.versionEstrategia),
+    origenDatos: Array.isArray(payload.origenDatos) ? payload.origenDatos.map(String) : [],
+    estadisticasPredichas: Object.keys(estadisticas).length > 0 ? estadisticas : null,
+    mensaje: texto(payload.mensaje) ?? undefined,
+  }
 }

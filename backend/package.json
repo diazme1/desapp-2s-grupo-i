@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:unit": "jest --runInBand --testPathPatterns=test/unit",
-    "test:integration": "jest --runInBand --testPathPatterns=test/integration",
+    "test:e2e": "jest --runInBand --testPathPatterns=test/e2e",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts"
   },
@@ -36,7 +36,8 @@
     "playwright": "^1.63.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",
-    "typeorm": "^0.3.27"
+    "typeorm": "^0.3.27",
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@nestjs/cli": "11.0.5",
