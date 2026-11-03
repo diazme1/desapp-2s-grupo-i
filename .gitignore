@@ -21,5 +21,10 @@ Thumbs.db
 **/.vite/
 .vscode/
 .idea/
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
 *.tmp
 *.swp

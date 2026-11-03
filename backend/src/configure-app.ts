@@ -14,7 +14,7 @@ export function configureApp(app: INestApplication): void {
   );
   const config = new DocumentBuilder()
     .setTitle('API base del TP')
-    .setDescription('API REST de Football Player Market: salud, autenticación y catálogo base de jugadores.')
+    .setDescription('API REST de Football Player Market: salud, autenticación, catálogo y pronóstico ML de estadísticas.')
     .setVersion('1.0.0')
     .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'bearerAuth')
     .addApiKey({ type: 'apiKey', in: 'header', name: 'X-API-Key' }, 'catalogRefreshApiKey')

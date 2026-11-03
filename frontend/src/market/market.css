@@ -151,6 +151,16 @@
 .trade-current-quote, .trade-total-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-radius: 12px; padding: 13px 14px; background: #f6f9f8; }
 .trade-current-quote span, .trade-total-row span { color: var(--muted); font-size: .78rem; font-weight: 700; }
 .trade-current-quote strong, .trade-total-row strong { color: var(--navy); font-size: 1rem; }
+.ai-prediction-button { display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; margin-top: 12px; border: 2px solid transparent; border-radius: 12px; padding: 10px 12px; color: var(--navy); background: linear-gradient(white, white) padding-box, linear-gradient(110deg, #ff6b6b, #ffd166, #06d6a0, #4dabf7, #b197fc) border-box; font-size: .78rem; font-weight: 900; line-height: 1.25; text-align: center; transition: transform 160ms ease, box-shadow 160ms ease; }
+.ai-prediction-button:hover:not(:disabled) { box-shadow: 0 8px 20px rgba(99,102,241,.14); transform: translateY(-1px); }
+.ai-prediction-button:disabled { cursor: not-allowed; opacity: .55; }
+.trade-prediction-block { margin-top: 14px; }
+.trade-prediction { display: grid; gap: 4px; margin-top: 12px; border-top: 1px solid var(--line); padding-top: 12px; }
+.trade-prediction > span { color: var(--navy-soft); font-size: .68rem; font-weight: 900; letter-spacing: .07em; text-transform: uppercase; }
+.trade-prediction > strong { color: #635bca; font-size: 1.2rem; font-weight: 900; }
+.trade-prediction > strong.trade-prediction-unavailable { color: var(--muted); font-size: .95rem; }
+.trade-prediction > small { color: var(--muted); font-size: .74rem; font-style: italic; }
+.trade-prediction-error { margin: 8px 0 0; color: var(--danger); font-size: .76rem; line-height: 1.4; }
 .trade-quantity-field { display: grid; gap: 7px; margin-top: 17px; color: var(--navy-soft); font-size: .82rem; font-weight: 800; }
 .trade-quantity-field input { min-height: 48px; border: 1px solid var(--line); border-radius: 11px; padding: 0 13px; outline: none; }
 .trade-quantity-field input:focus-visible { border-color: var(--green); outline: 3px solid rgba(19,141,88,.16); }

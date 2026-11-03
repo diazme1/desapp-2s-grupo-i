@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "8c14adf0-8c87-4e1d-a5cb-4d1e0f2a0b37",
     "name": "Football Player Market - API completa",
-    "description": "Colección unificada de todos los endpoints públicos del backend. Orden sugerido: registrar o iniciar sesión, listar jugadores para obtener playerId y luego ejecutar las operaciones protegidas. Las requests están organizadas en subcarpetas por dominio.",
+    "description": "Colección unificada para probar el servicio interno FastAPI y los endpoints públicos de NestJS. Orden sugerido para ML: 07 - Pronóstico ML / 01 - FastAPI interno (salud, entrenamiento y predicción), luego Entrenar modelo y Consultar predicción de jugador mediante NestJS. Para las requests públicas: registrar o iniciar sesión, listar jugadores para obtener playerId y ejecutar las operaciones protegidas.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -11,6 +11,18 @@
       "value": "http://localhost:3000",
       "type": "string",
       "description": "URL base de la API"
+    },
+    {
+      "key": "fastApiBaseUrl",
+      "value": "http://localhost:8000",
+      "type": "string",
+      "description": "URL local de FastAPI para probar el servicio interno desde Postman"
+    },
+    {
+      "key": "mlInternalToken",
+      "value": "dev-ml-token",
+      "type": "string",
+      "description": "Debe coincidir con ML_FASTAPI_INTERNAL_TOKEN; no guardar secretos reales"
     },
     {
       "key": "accessToken",
@@ -665,6 +677,93 @@
               }
             }
           ]
+        }
+      ]
+    },
+    {
+      "name": "07 - Pronóstico ML",
+      "item": [
+        {
+          "name": "01 - FastAPI interno",
+          "description": "Pruebas directas del servicio interno. Ejecutar en orden: salud, entrenamiento y predicción. FastAPI no recibe playerId durante la inferencia; recibe estadísticas y posición.",
+          "item": [
+            {
+              "name": "Consultar salud FastAPI",
+              "request": {
+                "method": "GET",
+                "auth": { "type": "noauth" },
+                "header": [
+                  { "key": "X-ML-Internal-Token", "value": "{{mlInternalToken}}", "type": "text" }
+                ],
+                "url": "{{fastApiBaseUrl}}/internal/health",
+                "description": "Confirma si FastAPI inició con un modelo cargado. Puede devolver no_model_loaded antes del primer entrenamiento."
+              },
+              "event": [{ "listen": "test", "script": { "type": "text", "exec": ["pm.test('FastAPI responde', () => pm.expect([200, 401, 403]).to.include(pm.response.code));", "if (pm.response.code === 200) pm.expect(pm.response.json().estado).to.be.oneOf(['ready', 'no_model_loaded']);"] } }]
+            },
+            {
+              "name": "Entrenar modelo en FastAPI",
+              "request": {
+                "method": "POST",
+                "auth": { "type": "noauth" },
+                "header": [
+                  { "key": "Content-Type", "value": "application/json", "type": "text" },
+                  { "key": "X-ML-Internal-Token", "value": "{{mlInternalToken}}", "type": "text" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"origenDatos\": \"synthetic\",\n  \"snapshots\": [\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-01\", \"granularity\": \"date\", \"position\": \"forward\", \"statistics\": {\"goles\": 1, \"asistencias\": 1, \"tiros\": 5, \"pasesClave\": 2, \"regates\": 3, \"faltasCometidas\": 1, \"rating\": 6.5}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-16\", \"granularity\": \"date\", \"position\": \"forward\", \"statistics\": {\"goles\": 1, \"asistencias\": 2, \"tiros\": 6, \"pasesClave\": 3, \"regates\": 4, \"faltasCometidas\": 1, \"rating\": 6.7}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-31\", \"granularity\": \"date\", \"position\": \"forward\", \"statistics\": {\"goles\": 2, \"asistencias\": 2, \"tiros\": 7, \"pasesClave\": 3, \"regates\": 5, \"faltasCometidas\": 2, \"rating\": 6.9}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-02-15\", \"granularity\": \"date\", \"position\": \"forward\", \"statistics\": {\"goles\": 2, \"asistencias\": 3, \"tiros\": 8, \"pasesClave\": 4, \"regates\": 6, \"faltasCometidas\": 2, \"rating\": 7.1}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-03-02\", \"granularity\": \"date\", \"position\": \"forward\", \"statistics\": {\"goles\": 3, \"asistencias\": 3, \"tiros\": 9, \"pasesClave\": 5, \"regates\": 7, \"faltasCometidas\": 3, \"rating\": 7.3}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-03-17\", \"granularity\": \"date\", \"position\": \"forward\", \"statistics\": {\"goles\": 3, \"asistencias\": 4, \"tiros\": 10, \"pasesClave\": 6, \"regates\": 8, \"faltasCometidas\": 3, \"rating\": 7.5}}\n  ]\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{fastApiBaseUrl}}/internal/train",
+                "description": "Entrena y activa un modelo directamente en FastAPI. Este entrenamiento es técnico y usa datos sintéticos. Para probar el body grande, reemplazar snapshots por ml-players/examples/training-body-30-players-positions-synthetic.json."
+              },
+              "event": [{ "listen": "test", "script": { "type": "text", "exec": ["pm.test('Entrenamiento FastAPI finalizado', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.estado).to.eql('entrenado');", "pm.expect(body.versionModelo).to.be.a('string').and.not.empty;", "pm.expect(body.metricas).to.be.an('object');"] } }]
+            },
+            {
+              "name": "Predecir estadísticas en FastAPI",
+              "request": {
+                "method": "POST",
+                "auth": { "type": "noauth" },
+                "header": [
+                  { "key": "Content-Type", "value": "application/json", "type": "text" },
+                  { "key": "X-ML-Internal-Token", "value": "{{mlInternalToken}}", "type": "text" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"fechaGeneracion\": \"2026-11-02T12:00:00Z\",\n  \"fechaObjetivo\": \"2026-11-17\",\n  \"position\": \"forward\",\n  \"features\": {\n    \"goles\": \"3\",\n    \"asistencias\": \"2\",\n    \"tiros\": \"5.000\",\n    \"pasesClave\": \"2.000\",\n    \"regates\": \"3.000\",\n    \"faltasCometidas\": \"1.000\",\n    \"ratingWhoScored\": \"7.500\"\n  }\n}",
+                  "options": { "raw": { "language": "json" } }
+                },
+                "url": "{{fastApiBaseUrl}}/internal/predict",
+                "description": "Devuelve únicamente estadísticas predichas y metadatos. No recibe playerId ni calcula cotizaciones. La cotización se prueba luego mediante el endpoint público de NestJS."
+              },
+              "event": [{ "listen": "test", "script": { "type": "text", "exec": ["pm.test('Predicción FastAPI disponible', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.estado).to.be.oneOf(['ready', 'no_model_loaded']);", "if (body.estado === 'ready') { pm.expect(body.estadisticasPredichas).to.be.an('object'); pm.expect(body).not.to.have.property('cotizacionPredicha'); pm.expect(body).not.to.have.property('idJugador'); }"] } }]
+            }
+          ]
+        },
+        {
+          "name": "Entrenar modelo",
+          "request": {
+            "method": "POST",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"origenDatos\": \"synthetic\",\n  \"snapshots\": [\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-01\", \"statistics\": {\"goles\": 1, \"asistencias\": 1, \"tiros\": 5, \"pasesClave\": 2, \"regates\": 3, \"faltasCometidas\": 1, \"rating\": 6.5}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-16\", \"statistics\": {\"goles\": 1, \"asistencias\": 2, \"tiros\": 6, \"pasesClave\": 3, \"regates\": 4, \"faltasCometidas\": 1, \"rating\": 6.7}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-31\", \"statistics\": {\"goles\": 2, \"asistencias\": 2, \"tiros\": 7, \"pasesClave\": 3, \"regates\": 5, \"faltasCometidas\": 2, \"rating\": 6.9}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-02-15\", \"statistics\": {\"goles\": 2, \"asistencias\": 3, \"tiros\": 8, \"pasesClave\": 4, \"regates\": 6, \"faltasCometidas\": 2, \"rating\": 7.1}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-03-02\", \"statistics\": {\"goles\": 3, \"asistencias\": 3, \"tiros\": 9, \"pasesClave\": 5, \"regates\": 7, \"faltasCometidas\": 3, \"rating\": 7.3}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-03-17\", \"statistics\": {\"goles\": 3, \"asistencias\": 4, \"tiros\": 10, \"pasesClave\": 6, \"regates\": 8, \"faltasCometidas\": 3, \"rating\": 7.5}}\n  ]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": "{{baseUrl}}/ml-players/train",
+            "description": "Entrena sincrónicamente el modelo con el dataset enviado, lo deja disponible y devuelve su versión y métricas. Ejecutar antes el login de superadmin. Los datos sintéticos solo validan técnicamente el flujo."
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Entrenamiento finalizado', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "pm.expect(body.estado).to.eql('entrenado');", "pm.expect(body.versionModelo).to.be.a('string').and.not.empty;", "pm.expect(body.versionDataset).to.be.a('string').and.not.empty;", "pm.expect(body.versionTransformaciones).to.be.a('string').and.not.empty;", "pm.expect(body.origenDatos).to.be.oneOf(['whoscored', 'app', 'synthetic']);", "pm.expect(body.cantidadSnapshots).to.be.a('number').and.greaterThan(0);", "pm.expect(body.cantidadEjemplos).to.be.a('number').and.greaterThan(0);", "pm.expect(body.metricas).to.be.an('object');", "pm.expect(body.metricas).to.have.property('validacion');", "pm.expect(body.metricas).to.have.property('prueba');", "pm.expect(body.metricas).to.have.property('baselinePrueba');"] } }]
+        },
+        {
+          "name": "Consultar predicción de jugador",
+          "request": {
+            "method": "GET",
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+            "url": "{{baseUrl}}/players/{{playerId}}/prediction"
+          },
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": ["pm.test('Cotizaciones consultadas', () => pm.response.to.have.status(200));", "const body = pm.response.json();", "['estado', 'cotizacionActual', 'cotizacionPredicha', 'prediccionDisponible', 'fechaGeneracion', 'fechaObjetivo', 'versionModelo', 'versionEstrategia', 'origenDatos'].forEach((key) => pm.expect(body).to.have.property(key));", "pm.expect(body.estado).to.be.oneOf(['disponible', 'no_disponible']);", "pm.expect(body.cotizacionActual === null || /^\\d+\\.\\d{2}$/.test(body.cotizacionActual)).to.eql(true);", "pm.expect(body.cotizacionPredicha === null || /^\\d+\\.\\d{2}$/.test(body.cotizacionPredicha)).to.eql(true);", "if (body.prediccionDisponible) { pm.expect(body.cotizacionPredicha).to.match(/^\\d+\\.\\d{2}$/); pm.expect(body.versionModelo).to.be.a('string').and.not.empty; pm.expect(body.versionEstrategia).to.be.a('string').and.not.empty; }"] } }]
         }
       ]
     }

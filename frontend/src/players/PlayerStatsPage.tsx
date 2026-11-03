@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context'
 import { ApiError } from '../shared/http-client'
-import { obtenerJugador } from './players-api'
+import { obtenerJugador, obtenerPrediccion } from './players-api'
+import { PlayerPredictionPanel } from './PlayerPredictionPanel'
 import { PlayerStatsPanel } from './PlayerStatsPanel'
-import type { EstadoDetalle, JugadorCatalogo } from './player-types'
+import type { EstadoDetalle, JugadorCatalogo, PrediccionJugador } from './player-types'
 import { listarHistorialCotizaciones, listarRanking, type EstrategiaCotizacion, type HistorialCotizacion } from '../market/market-api'
 import { QuoteHistoryPanel } from '../market/QuoteHistoryPanel'
 import { TradeDialog } from '../market/TradeDialog'
@@ -23,6 +24,9 @@ export function PlayerStatsPage() {
   const [tokensDisponibles, setTokensDisponibles] = useState(0)
   const [errorCotizacion, setErrorCotizacion] = useState('')
   const [comprando, setComprando] = useState(false)
+  const [prediccion, setPrediccion] = useState<PrediccionJugador | null>(null)
+  const [errorPrediccion, setErrorPrediccion] = useState('')
+  const [consultandoPrediccion, setConsultandoPrediccion] = useState(false)
 
   useEffect(() => {
     let activo = true
@@ -38,6 +42,9 @@ export function PlayerStatsPage() {
 
       setEstado('cargando')
       setMensajeError('')
+      setPrediccion(null)
+      setErrorPrediccion('')
+      setConsultandoPrediccion(false)
       try {
         const resultado = await obtenerJugador(session.accessToken, id)
         if (!activo) return
@@ -55,6 +62,23 @@ export function PlayerStatsPage() {
       activo = false
     }
   }, [id, session?.accessToken])
+
+  async function consultarPrediccion() {
+    if (!session?.accessToken || !id || consultandoPrediccion || jugador?.estadisticas.length === 0) return
+    setConsultandoPrediccion(true)
+    setErrorPrediccion('')
+    try {
+      const resultado = await obtenerPrediccion(session.accessToken, id)
+      setPrediccion(resultado)
+    } catch (error) {
+      setPrediccion(null)
+      setErrorPrediccion(error instanceof ApiError && error.status === 503
+        ? 'El servicio de predicción no está disponible.'
+        : 'No se pudo consultar la posible cotización.')
+    } finally {
+      setConsultandoPrediccion(false)
+    }
+  }
 
   useEffect(() => {
     let activo = true
@@ -110,6 +134,18 @@ export function PlayerStatsPage() {
             <div className="detail-quote">
               <span>Cotización vigente</span>
               <strong>{cotizacion ? `${Number(cotizacion).toFixed(2).replace('.', ',')} cr` : 'Sin cotización'}</strong>
+              <button
+                className="ai-prediction-button"
+                type="button"
+                disabled={consultandoPrediccion || jugador.estadisticas.length === 0}
+                onClick={() => void consultarPrediccion()}
+                aria-controls="detail-prediction"
+              >
+                <span aria-hidden="true">✦</span>
+                {consultandoPrediccion ? 'Consultando…' : 'Consultar posible cotización a 15 días'}
+              </button>
+              {errorPrediccion && <small className="prediction-request-error" role="alert">{errorPrediccion}</small>}
+              <PlayerPredictionPanel prediccion={prediccion} error={errorPrediccion} />
             </div>
             <button className="primary-button detail-buy-button" type="button" disabled={!cotizacion || tokensDisponibles === 0} onClick={() => setComprando(true)}>
               Comprar tokens
