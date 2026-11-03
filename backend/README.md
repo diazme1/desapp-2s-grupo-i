@@ -91,8 +91,9 @@ Después de ejecutar las migraciones, el backend expone:
   el JWT y no desde un ID enviado por el cliente.
 
 La venta al superadmin requiere que este tenga créditos disponibles para recomprar; una venta no
-crea créditos cuando el fondo no alcanza. La migración `1790275844000-CreateOrdenesVenta` crea las
-tablas append-only de órdenes y auditorías de venta. La migración
+crea créditos cuando el fondo no alcanza. Las migraciones `1790275843000-CreateOrdenesCompra` y
+`1790275844000-CreateTransaccionesMercado` crean las tablas append-only de órdenes, transacciones
+y auditorías del mercado. La migración
 `1790275845000-BackfillSaldoInicialUsuarios` acredita 1.000 créditos a usuarios comunes antiguos
 que todavía no tengan una fila de saldo; `1790275846000-RepairInitialSaldoWithoutOperations`
 repara saldos en cero de usuarios sin operaciones previas. Ninguna de las migraciones acredita al

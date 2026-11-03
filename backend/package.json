@@ -17,7 +17,7 @@
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:unit": "jest --runInBand --testPathPatterns=test/unit",
-    "test:integration": "jest --runInBand --testPathPatterns=test/integration",
+    "test:e2e": "jest --runInBand --testPathPatterns=test/e2e",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/database/data-source.ts",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/database/data-source.ts"
   },

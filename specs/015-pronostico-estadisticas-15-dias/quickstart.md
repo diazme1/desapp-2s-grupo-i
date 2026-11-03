@@ -19,7 +19,7 @@ Para probar primero FastAPI desde Postman, usar la carpeta `07 - Pronóstico ML 
 3. Confirmar HTTP 200, `estado: "entrenado"`, `versionModelo`, `versionDataset` y `metricas`.
 4. Consultar `GET /players/{id}/prediction` sin query de estrategia y verificar que usa el modelo recién entrenado junto con la estrategia activa.
 
-Para probar con datos reales, usar como body `ml-players/examples/training-body-whoscored-2026.json`. El archivo contiene snapshots de Lionel Messi tomados de WhoScored y no debe interpretarse como evidencia de precisión deportiva del modelo.
+Para probar volumen y codificación por posición, usar como body `ml-players/examples/training-body-30-players-positions-synthetic.json`. El archivo contiene datos sintéticos y no debe interpretarse como evidencia de precisión deportiva del modelo.
 
 Para probar el volumen y el ajuste por posición, usar `ml-players/examples/training-body-30-players-positions-synthetic.json`: contiene 30 jugadores distintos, cuatro posiciones y 120 snapshots (cuatro por jugador), que generan ejemplos temporales válidos. Declarar `origenDatos: "synthetic"`; sus métricas solo sirven para validación técnica y no son evidencia de precisión deportiva.
 
