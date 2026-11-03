@@ -1,7 +1,7 @@
 import { DataSource, EntityManager } from 'typeorm';
-import { HistorialCotizacionEntity } from '../../players/persistence/historial-cotizacion.entity';
+import { HistorialCotizacionEntity } from '../../quotes/persistence/historial-cotizacion.entity';
 import { JugadorEntity } from '../../players/persistence/jugador.entity';
-import { Cotizacion } from '../domain/cotizacion';
+import { Cotizacion } from '../../quotes/domain/cotizacion';
 import { TenenciaJugador } from '../domain/tenencia-jugador';
 import { TokenJugador } from '../domain/token-jugador';
 import { MarketRepository, MarketTransaction } from '../market.repository';

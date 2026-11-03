@@ -1,7 +1,7 @@
 import { TenenciaJugador } from './domain/tenencia-jugador';
 import { TokenJugador } from './domain/token-jugador';
 import { QuoteOpeningTransaction } from '../quotes/quote-opening-writer';
-import { Cotizacion } from './domain/cotizacion';
+import { Cotizacion } from '../quotes/domain/cotizacion';
 
 export const MARKET_REPOSITORY = Symbol('MARKET_REPOSITORY');
 

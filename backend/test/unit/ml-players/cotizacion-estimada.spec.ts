@@ -1,4 +1,4 @@
-import { EstrategiaCotizacion } from '../../../src/players/domain/estrategia-cotizacion';
+import { EstrategiaCotizacion } from '../../../src/quotes/domain/estrategia-cotizacion';
 import { normalizarEstadisticasPredichas } from '../../../src/ml-players/domain/estadisticas-predichas';
 
 describe('cotizacion estimada', () => {

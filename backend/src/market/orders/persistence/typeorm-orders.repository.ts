@@ -1,10 +1,10 @@
 import { DataSource, EntityManager } from 'typeorm';
-import { Cotizacion } from '../../domain/cotizacion';
+import { Cotizacion } from '../../../quotes/domain/cotizacion';
 import { TokenJugador } from '../../domain/token-jugador';
 import { TenenciaJugador } from '../../domain/tenencia-jugador';
 import { Jugador } from '../../../players/domain/jugador';
 import { JugadorEntity } from '../../../players/persistence/jugador.entity';
-import { RecalculoCotizacionActivoEntity } from '../../../players/persistence/recalculo-cotizacion-activo.entity';
+import { RecalculoCotizacionActivoEntity } from '../../../quotes/persistence/recalculo-cotizacion-activo.entity';
 import { SaldoUsuario } from '../../../users/domain/saldo-usuario';
 import { SaldoExacto } from '../../../users/domain/saldo-exacto';
 import { User, UserRole } from '../../../users/domain/user';

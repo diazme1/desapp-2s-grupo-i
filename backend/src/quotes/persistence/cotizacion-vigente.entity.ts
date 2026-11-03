@@ -1,5 +1,5 @@
 import { Column, Entity, PrimaryColumn } from 'typeorm';
-import { Cotizacion } from '../../market/domain/cotizacion';
+import { Cotizacion } from '../domain/cotizacion';
 
 const numericTransformer = {
   to(value: Cotizacion | string | number): string {

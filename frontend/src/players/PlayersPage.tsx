@@ -120,7 +120,7 @@ export function PlayersPage() {
           <div className="players-header-actions">
             {ranking?.estrategia && (
               <span className="active-strategy-badge">
-                Cotización activa: {ranking.estrategia === 'ataque_decisivo' ? 'Ataque decisivo' : 'Creación técnica'}
+                Bonus activo: {ranking.estrategia === 'ataque_decisivo' ? 'Ataque decisivo' : 'Creación técnica'}
               </span>
             )}
           </div>

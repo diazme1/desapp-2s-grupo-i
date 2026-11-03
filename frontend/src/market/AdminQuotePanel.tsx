@@ -40,7 +40,7 @@ const metricas: Array<{ clave: keyof PesosEstrategiaCotizacion; nombre: string }
   { clave: 'tiros', nombre: 'Tiros' },
   { clave: 'pasesClave', nombre: 'Pases clave' },
   { clave: 'regates', nombre: 'Regates' },
-  { clave: 'rating', nombre: 'Rating' },
+  { clave: 'rating', nombre: 'Desempeño' },
   { clave: 'faltasCometidas', nombre: 'Faltas cometidas' },
 ]
 

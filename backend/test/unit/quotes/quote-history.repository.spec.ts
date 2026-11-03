@@ -1,8 +1,8 @@
-import { TypeOrmPlayersRepository } from '../../../src/players/persistence/typeorm-players.repository';
-import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { TypeOrmQuotesRepository } from '../../../src/quotes/persistence/typeorm-quotes.repository';
+import { HistorialCotizacionEntity } from '../../../src/quotes/persistence/historial-cotizacion.entity';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
 
-describe('TypeOrmPlayersRepository.listarHistorialJugador', () => {
+describe('TypeOrmQuotesRepository.listarHistorialJugador', () => {
   const playerId = 'd4fd866a-1c58-4423-99eb-56e70a054bb4';
   const quoteId = '9948e5b3-35fa-4104-baf4-93d593fa9a03';
   const statsId = '150b06ef-c482-4584-b4be-17b455b686bd';
@@ -32,7 +32,7 @@ describe('TypeOrmPlayersRepository.listarHistorialJugador', () => {
         entity === JugadorEntity ? playerRepository : quoteRepository,
       ),
     } as any;
-    const repository = new TypeOrmPlayersRepository(dataSource);
+    const repository = new TypeOrmQuotesRepository(dataSource);
 
     await expect(
       repository.listarHistorialJugador(playerId, 2, 7),
@@ -68,7 +68,7 @@ describe('TypeOrmPlayersRepository.listarHistorialJugador', () => {
         entity === JugadorEntity ? playerRepository : quoteRepository,
       ),
     } as any;
-    const repository = new TypeOrmPlayersRepository(dataSource);
+    const repository = new TypeOrmQuotesRepository(dataSource);
 
     await expect(
       repository.listarHistorialJugador(playerId, 1, 20),

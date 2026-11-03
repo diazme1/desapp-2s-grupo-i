@@ -1,4 +1,4 @@
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
 
 describe('Cotizacion', () => {
   it('parsea y formatea en unidades mínimas sin punto flotante', () => {

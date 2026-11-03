@@ -2,7 +2,7 @@ import { RequestMethod } from '@nestjs/common';
 import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
-import { PlayersController } from '../../../src/players/players.controller';
+import { QuoteHistoryController } from '../../../src/quotes/quote-history.controller';
 import { HistorialCotizacionService } from '../../../src/quotes/historial-cotizacion.service';
 import { ListarCotizacionesDto } from '../../../src/quotes/dto/listar-cotizaciones.dto';
 
@@ -30,24 +30,25 @@ describe('GET /players/:id/quotes', () => {
       totalPages: 2,
     }),
   };
-  const controller = new PlayersController(
-    {} as any,
-    {} as any,
+  const controller = new QuoteHistoryController(
     historialCotizacion as unknown as HistorialCotizacionService,
   );
 
   beforeEach(() => historialCotizacion.listar.mockClear());
 
   it('está montado como GET en la ruta de historial y devuelve la página pedida', async () => {
-    const handler = PlayersController.prototype.listarCotizaciones;
+    const handler = QuoteHistoryController.prototype.listar;
     expect(Reflect.getMetadata(PATH_METADATA, handler)).toBe(
-      'players/:id/quotes',
+      ':id/quotes',
+    );
+    expect(Reflect.getMetadata(PATH_METADATA, QuoteHistoryController)).toBe(
+      'players',
     );
     expect(Reflect.getMetadata(METHOD_METADATA, handler)).toBe(
       RequestMethod.GET,
     );
 
-    const response = await controller.listarCotizaciones(PLAYER_ID, {
+    const response = await controller.listar(PLAYER_ID, {
       page: 2,
       limit: 7,
     });

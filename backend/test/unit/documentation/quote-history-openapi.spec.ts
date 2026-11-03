@@ -2,34 +2,17 @@ import request from 'supertest';
 import { Test } from '@nestjs/testing';
 import type { INestApplication } from '@nestjs/common';
 import { configureApp } from '../../../src/configure-app';
-import { ActualizarCatalogoService } from '../../../src/players/actualizar-catalogo.service';
-import { CatalogoJugadoresService } from '../../../src/players/catalogo-jugadores.service';
-import { PlayersController } from '../../../src/players/players.controller';
+import { QuoteHistoryController } from '../../../src/quotes/quote-history.controller';
 import { HistorialCotizacionService } from '../../../src/quotes/historial-cotizacion.service';
-import { JwtAuthGuard } from '../../../src/auth/guards/jwt-auth.guard';
-import {
-  CATALOG_REFRESH_API_KEY_CONFIG,
-  CatalogRefreshApiKeyGuard,
-} from '../../../src/auth/guards/catalog-refresh-api-key.guard';
-import { JwtTokenService } from '../../../src/auth/strategies/jwt-token.service';
 
 describe('documentación OpenAPI del historial de cotizaciones', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
     const module = await Test.createTestingModule({
-      controllers: [PlayersController],
+      controllers: [QuoteHistoryController],
       providers: [
-        { provide: CatalogoJugadoresService, useValue: {} },
-        { provide: ActualizarCatalogoService, useValue: {} },
         { provide: HistorialCotizacionService, useValue: {} },
-        { provide: JwtTokenService, useValue: { verify: jest.fn() } },
-        { provide: CATALOG_REFRESH_API_KEY_CONFIG, useValue: 'test-api-key' },
-        { provide: JwtAuthGuard, useValue: { canActivate: () => true } },
-        {
-          provide: CatalogRefreshApiKeyGuard,
-          useValue: { canActivate: () => true },
-        },
       ],
     }).compile();
 

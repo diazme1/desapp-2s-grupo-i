@@ -1,4 +1,4 @@
-import { Cotizacion } from '../../domain/cotizacion';
+import { Cotizacion } from '../../../quotes/domain/cotizacion';
 import { Creditos } from '../../domain/creditos';
 import { TenenciaJugador } from '../../domain/tenencia-jugador';
 import { TokenJugador } from '../../domain/token-jugador';

@@ -2,7 +2,7 @@ import type {
   PesosEstrategiaCotizacion,
   TipoEstrategiaCotizacion,
   VersionEstrategiaCotizacion,
-} from '../players/domain/estrategia-cotizacion';
+} from './domain/estrategia-cotizacion';
 
 export const QUOTE_RECALCULATION_REPOSITORY = Symbol(
   'QUOTE_RECALCULATION_REPOSITORY',

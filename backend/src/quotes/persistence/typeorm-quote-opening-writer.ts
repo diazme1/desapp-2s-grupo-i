@@ -2,7 +2,7 @@ import {
   QuoteOpening,
   QuoteOpeningWriter,
   QuoteOpeningTransaction,
-} from '../../quotes/quote-opening-writer';
+} from '../quote-opening-writer';
 
 export class TypeOrmQuoteOpeningWriter implements QuoteOpeningWriter {
   async escribir(

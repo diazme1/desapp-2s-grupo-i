@@ -1,6 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
 import { IsEnum, IsOptional } from 'class-validator';
-import { TIPOS_ESTRATEGIA_COTIZACION } from '../../players/domain/estrategia-cotizacion';
+import { TIPOS_ESTRATEGIA_COTIZACION } from '../domain/estrategia-cotizacion';
 
 export class ListarRankingDto {
   @ApiPropertyOptional({

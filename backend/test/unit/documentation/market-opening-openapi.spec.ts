@@ -1,5 +1,5 @@
 import { CotizacionHistorialItemResponseDto } from '../../../src/quotes/dto/historial-cotizacion-response.dto';
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
 
 describe('compatibilidad OpenAPI de la apertura de mercado', () => {
   it('convierte Cotizacion a número solo en la presentación y permite procedencias nulas', () => {

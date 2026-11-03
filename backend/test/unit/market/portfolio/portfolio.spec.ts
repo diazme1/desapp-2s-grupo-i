@@ -1,4 +1,4 @@
-import { Cotizacion } from '../../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../../src/quotes/domain/cotizacion';
 import {
   Portfolio,
   PortfolioDomainError,

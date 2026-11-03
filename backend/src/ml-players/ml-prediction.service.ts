@@ -1,10 +1,10 @@
 import { Inject, Injectable, NotFoundException, ServiceUnavailableException, UnprocessableEntityException } from '@nestjs/common';
 import { DataSource } from 'typeorm';
-import { PLAYERS_DATA_SOURCE } from '../players/players.module';
+import { DATABASE_DATA_SOURCE } from '../database/database.module';
 import { PLAYERS_REPOSITORY } from '../players/players.repository';
 import type { PlayersRepository } from '../players/players.repository';
-import { EstrategiaCotizacion, TipoEstrategiaCotizacion, TIPOS_ESTRATEGIA_COTIZACION } from '../players/domain/estrategia-cotizacion';
-import { VersionEstrategiaCotizacionEntity } from '../players/persistence/version-estrategia-cotizacion.entity';
+import { EstrategiaCotizacion, TipoEstrategiaCotizacion, TIPOS_ESTRATEGIA_COTIZACION } from '../quotes/domain/estrategia-cotizacion';
+import { VersionEstrategiaCotizacionEntity } from '../quotes/persistence/version-estrategia-cotizacion.entity';
 import { FastApiPredictionAdapter, FastApiTechnicalError, FastApiTrainingValidationError, type FastApiTrainingResult } from './fastapi-prediction.adapter';
 import { normalizarEstadisticasPredichas } from './domain/estadisticas-predichas';
 
@@ -26,7 +26,7 @@ export interface PlayerQuotePrediction {
 export class MlPredictionService {
   constructor(
     @Inject(PLAYERS_REPOSITORY) private readonly players: PlayersRepository,
-    @Inject(PLAYERS_DATA_SOURCE) private readonly dataSource: DataSource,
+    @Inject(DATABASE_DATA_SOURCE) private readonly dataSource: DataSource,
     private readonly adapter: FastApiPredictionAdapter,
   ) {}
 

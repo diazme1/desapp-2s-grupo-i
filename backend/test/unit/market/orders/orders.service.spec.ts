@@ -1,6 +1,6 @@
 import { ConflictException, NotFoundException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Cotizacion } from '../../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../../src/quotes/domain/cotizacion';
 import { Creditos } from '../../../../src/market/domain/creditos';
 import { TokenJugador } from '../../../../src/market/domain/token-jugador';
 import { TenenciaJugador } from '../../../../src/market/domain/tenencia-jugador';

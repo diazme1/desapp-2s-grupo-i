@@ -2,7 +2,7 @@ import request from 'supertest';
 import { randomUUID } from 'node:crypto';
 import { JwtTokenService } from '../../../../src/auth/strategies/jwt-token.service';
 import { UserRole } from '../../../../src/users/domain/user';
-import { EstrategiaCotizacion } from '../../../../src/players/domain/estrategia-cotizacion';
+import { EstrategiaCotizacion } from '../../../../src/quotes/domain/estrategia-cotizacion';
 import {
   createOrdersIntegrationApp,
   type OrdersIntegrationApp,

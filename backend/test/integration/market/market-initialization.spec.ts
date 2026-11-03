@@ -4,7 +4,7 @@ import { MarketInitializationService } from '../../../src/market/market-initiali
 import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
 import { LigaEntity } from '../../../src/players/persistence/liga.entity';
-import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { HistorialCotizacionEntity } from '../../../src/quotes/persistence/historial-cotizacion.entity';
 import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../../../src/market/persistence/tenencia-jugador.entity';
 import {

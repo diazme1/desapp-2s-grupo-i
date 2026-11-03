@@ -1,12 +1,13 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { PlayersModule } from '../players/players.module';
+import { DatabaseModule } from '../database/database.module';
 import { MlPlayersController } from './ml-players.controller';
 import { FastApiPredictionAdapter } from './fastapi-prediction.adapter';
 import { MlPredictionService } from './ml-prediction.service';
 
 @Module({
-  imports: [AuthModule, PlayersModule],
+  imports: [AuthModule, PlayersModule, DatabaseModule],
   controllers: [MlPlayersController],
   providers: [FastApiPredictionAdapter, MlPredictionService],
 })

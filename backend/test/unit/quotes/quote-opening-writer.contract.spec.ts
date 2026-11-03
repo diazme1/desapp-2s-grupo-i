@@ -1,4 +1,4 @@
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
 import { QuoteOpeningWriter } from '../../../src/quotes/quote-opening-writer';
 
 describe('QuoteOpeningWriter', () => {
