@@ -7,36 +7,50 @@
   background: linear-gradient(135deg, #f7f9fa 0%, #f2f5f6 100%);
 }
 
-.prediction-panel {
-  position: relative;
-  z-index: 1;
-  width: min(1180px, 100%);
-  margin: 24px auto 0;
+.prediction-request-error {
+  display: block;
+  margin-top: 8px;
+  color: var(--danger);
+  font-size: 0.76rem;
+  line-height: 1.4;
 }
 
-.prediction-meta {
+.detail-prediction {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 16px;
-  margin: 0;
+  gap: 4px;
+  margin-top: 16px;
+  border-top: 1px solid var(--line);
+  padding-top: 14px;
 }
 
-.prediction-meta div {
-  padding: 12px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
+.detail-prediction-label {
+  color: var(--navy-soft);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }
 
-.prediction-meta dt {
+.detail-quote .detail-prediction-value {
+  color: #635bca;
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+
+.detail-prediction-unavailable {
   color: var(--muted);
-  font-size: 0.75rem;
-  font-weight: 700;
+  font-size: 1rem;
 }
 
-.prediction-meta dd {
-  margin: 5px 0 0;
-  color: var(--navy);
-  font-weight: 800;
+.detail-prediction-note {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-style: italic;
+}
+
+.detail-prediction-error {
+  color: var(--danger);
+  font-size: 0.76rem;
 }
 
 .players-page::after {

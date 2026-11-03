@@ -26,6 +26,7 @@ export function PlayerStatsPage() {
   const [comprando, setComprando] = useState(false)
   const [prediccion, setPrediccion] = useState<PrediccionJugador | null>(null)
   const [errorPrediccion, setErrorPrediccion] = useState('')
+  const [consultandoPrediccion, setConsultandoPrediccion] = useState(false)
 
   useEffect(() => {
     let activo = true
@@ -41,6 +42,9 @@ export function PlayerStatsPage() {
 
       setEstado('cargando')
       setMensajeError('')
+      setPrediccion(null)
+      setErrorPrediccion('')
+      setConsultandoPrediccion(false)
       try {
         const resultado = await obtenerJugador(session.accessToken, id)
         if (!activo) return
@@ -59,33 +63,22 @@ export function PlayerStatsPage() {
     }
   }, [id, session?.accessToken])
 
-  useEffect(() => {
-    let activo = true
-    if (!session?.accessToken || !id) return
-    void obtenerPrediccion(session.accessToken, id).then((resultado) => {
-      if (!activo) return
+  async function consultarPrediccion() {
+    if (!session?.accessToken || !id || consultandoPrediccion || jugador?.estadisticas.length === 0) return
+    setConsultandoPrediccion(true)
+    setErrorPrediccion('')
+    try {
+      const resultado = await obtenerPrediccion(session.accessToken, id)
       setPrediccion(resultado)
-      if (resultado.cotizacionActual !== null) setCotizacion(resultado.cotizacionActual)
-      setErrorPrediccion('')
-    }).catch((error) => {
-      if (!activo) return
-      setPrediccion({
-        estado: 'no_disponible',
-        cotizacionActual: null,
-        cotizacionPredicha: null,
-        prediccionDisponible: false,
-        fechaGeneracion: new Date().toISOString(),
-        fechaObjetivo: '',
-        versionModelo: null,
-        versionEstrategia: null,
-        origenDatos: [],
-        estadisticasPredichas: null,
-        mensaje: 'La predicción no está disponible en este momento.',
-      })
-      setErrorPrediccion(error instanceof ApiError && error.status === 503 ? 'El servicio de predicción no está disponible.' : '')
-    })
-    return () => { activo = false }
-  }, [id, session?.accessToken])
+    } catch (error) {
+      setPrediccion(null)
+      setErrorPrediccion(error instanceof ApiError && error.status === 503
+        ? 'El servicio de predicción no está disponible.'
+        : 'No se pudo consultar la posible cotización.')
+    } finally {
+      setConsultandoPrediccion(false)
+    }
+  }
 
   useEffect(() => {
     let activo = true
@@ -141,6 +134,18 @@ export function PlayerStatsPage() {
             <div className="detail-quote">
               <span>Cotización vigente</span>
               <strong>{cotizacion ? `${Number(cotizacion).toFixed(2).replace('.', ',')} cr` : 'Sin cotización'}</strong>
+              <button
+                className="ai-prediction-button"
+                type="button"
+                disabled={consultandoPrediccion || jugador.estadisticas.length === 0}
+                onClick={() => void consultarPrediccion()}
+                aria-controls="detail-prediction"
+              >
+                <span aria-hidden="true">✦</span>
+                {consultandoPrediccion ? 'Consultando…' : 'Consultar posible cotización a 15 días'}
+              </button>
+              {errorPrediccion && <small className="prediction-request-error" role="alert">{errorPrediccion}</small>}
+              <PlayerPredictionPanel prediccion={prediccion} error={errorPrediccion} />
             </div>
             <button className="primary-button detail-buy-button" type="button" disabled={!cotizacion || tokensDisponibles === 0} onClick={() => setComprando(true)}>
               Comprar tokens
@@ -162,9 +167,6 @@ export function PlayerStatsPage() {
           {errorCotizacion && <p className="market-inline-error" role="status">{errorCotizacion}</p>}
           <QuoteHistoryPanel items={historial} estrategiaActiva={estrategiaActiva} />
         </section>
-      )}
-      {(estado === 'con_estadisticas' || estado === 'sin_estadisticas') && jugador && (
-        <PlayerPredictionPanel prediccion={prediccion} error={errorPrediccion} />
       )}
       {comprando && jugador && cotizacion && (
         <TradeDialog

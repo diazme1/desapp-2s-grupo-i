@@ -1,6 +1,8 @@
 import { useState, type FormEvent } from 'react'
 import { useAuth } from '../auth/auth-context'
 import { ApiError } from '../shared/http-client'
+import { obtenerPrediccion } from '../players/players-api'
+import type { PrediccionJugador } from '../players/player-types'
 import { comprarTokens, venderTokens, type ResultadoOperacion } from './market-api'
 import { useMarket } from './market-context'
 
@@ -38,12 +40,31 @@ export function TradeDialog({
   const [procesando, setProcesando] = useState(false)
   const [error, setError] = useState('')
   const [resultado, setResultado] = useState<ResultadoOperacion | null>(null)
+  const [prediccion, setPrediccion] = useState<PrediccionJugador | null>(null)
+  const [consultandoPrediccion, setConsultandoPrediccion] = useState(false)
+  const [errorPrediccion, setErrorPrediccion] = useState('')
   const compra = lado === 'compra'
   const cantidadNumerica = Number(cantidad)
   const cantidadValida = Number.isInteger(cantidadNumerica)
     && cantidadNumerica >= 1
     && cantidadNumerica <= cantidadMaxima
   const estimado = cantidadValida ? centavos(cotizacion) * BigInt(cantidadNumerica) : null
+
+  async function consultarPrediccion() {
+    if (!compra || !session?.accessToken || consultandoPrediccion) return
+    setConsultandoPrediccion(true)
+    setErrorPrediccion('')
+    try {
+      setPrediccion(await obtenerPrediccion(session.accessToken, jugadorId))
+    } catch (cause) {
+      setPrediccion(null)
+      setErrorPrediccion(cause instanceof ApiError && cause.status === 503
+        ? 'El servicio de predicción no está disponible.'
+        : 'No se pudo consultar la posible cotización.')
+    } finally {
+      setConsultandoPrediccion(false)
+    }
+  }
 
   async function confirmar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -90,6 +111,35 @@ export function TradeDialog({
               <span>Cotización vigente</span>
               <strong>{formatoCreditos(centavos(cotizacion))} cr</strong>
             </div>
+            {compra && (
+              <div className="trade-prediction-block">
+                <button
+                  className="ai-prediction-button"
+                  type="button"
+                  disabled={consultandoPrediccion}
+                  onClick={() => void consultarPrediccion()}
+                >
+                  <span aria-hidden="true">✦</span>
+                  {consultandoPrediccion ? 'Consultando…' : 'Consultar posible cotización a 15 días'}
+                </button>
+                {prediccion && (() => {
+                  const noDisponible = !prediccion.prediccionDisponible || prediccion.cotizacionPredicha === null
+                  const fecha = prediccion.fechaObjetivo ? ` (${prediccion.fechaObjetivo})` : ''
+                  const valorPredicho = noDisponible ? 'No disponible' : `${formatoCreditos(centavos(prediccion.cotizacionPredicha!))} cr`
+                  return (
+                    <div className="trade-prediction" aria-live="polite">
+                      <span>Posible cotización</span>
+                      <strong className={noDisponible ? 'trade-prediction-unavailable' : ''}>
+                        {valorPredicho}
+                      </strong>
+                      <small>Estimación a 15 días{fecha}</small>
+                      {prediccion.mensaje && <small className="trade-prediction-error" role="status">{prediccion.mensaje}</small>}
+                    </div>
+                  )
+                })()}
+                {errorPrediccion && <p className="trade-prediction-error" role="alert">{errorPrediccion}</p>}
+              </div>
+            )}
             <label className="trade-quantity-field">
               Cantidad de tokens
               <input
