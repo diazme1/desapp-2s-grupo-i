@@ -91,3 +91,9 @@ en un `.env` local no versionado.
 La actualización acepta una liga por request mediante `ligaCodigo` y respeta un intervalo entre
 solicitudes externas configurado con `FOOTBALL_DATA_REQUEST_DELAY_MS`. WhoScored y las estadísticas
 quedan fuera de esta primera parte.
+
+### Pronóstico de estadísticas y cotización a 15 días
+
+La feature se divide en dos procesos: `/ml-players` contiene el entrenamiento y el servicio interno FastAPI; `backend/src/ml-players` integra ese servicio con NestJS. Python predice únicamente las siete estadísticas. NestJS aplica la versión registrada de `EstrategiaCotizacion` y calcula la cotización predicha con precisión de dos decimales.
+
+Con Docker Compose también se levanta `ml-fastapi`. El superadmin inicia el entrenamiento mediante `POST /ml-players/train`; la request espera hasta finalizar y devuelve la versión y las métricas. FastAPI solo acepta requests internas con `X-ML-Internal-Token`; el frontend se comunica exclusivamente con NestJS. Para las variables de la API usar [backend/.env.example](backend/.env.example). La operación detallada está en [ml-players/README.md](ml-players/README.md) y la validación en [specs/015-pronostico-estadisticas-15-dias/quickstart.md](specs/015-pronostico-estadisticas-15-dias/quickstart.md).

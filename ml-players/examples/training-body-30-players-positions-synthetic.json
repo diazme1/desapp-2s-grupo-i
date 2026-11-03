@@ -1,0 +1,1925 @@
+{
+  "origenDatos": "synthetic",
+  "snapshots": [
+    {
+      "playerId": "synthetic-goalkeeper-01",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 1,
+        "pasesClave": 0.4,
+        "regates": 0.2,
+        "faltasCometidas": 0.8,
+        "rating": 6.7
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-02",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.03,
+        "pasesClave": 0.415,
+        "regates": 0.23,
+        "faltasCometidas": 0.81,
+        "rating": 6.703
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-03",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.06,
+        "pasesClave": 0.43,
+        "regates": 0.26,
+        "faltasCometidas": 0.82,
+        "rating": 6.706
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-04",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 1.09,
+        "pasesClave": 0.445,
+        "regates": 0.29,
+        "faltasCometidas": 0.83,
+        "rating": 6.709
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-05",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.12,
+        "pasesClave": 0.46,
+        "regates": 0.32,
+        "faltasCometidas": 0.84,
+        "rating": 6.712
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-06",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.15,
+        "pasesClave": 0.475,
+        "regates": 0.35,
+        "faltasCometidas": 0.85,
+        "rating": 6.715
+      }
+    },
+    {
+      "playerId": "synthetic-defender-07",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 1.8,
+        "pasesClave": 0.9,
+        "regates": 0.8,
+        "faltasCometidas": 1.2,
+        "rating": 6.8
+      }
+    },
+    {
+      "playerId": "synthetic-defender-08",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 1.83,
+        "pasesClave": 0.915,
+        "regates": 0.83,
+        "faltasCometidas": 1.21,
+        "rating": 6.803
+      }
+    },
+    {
+      "playerId": "synthetic-defender-09",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 1.86,
+        "pasesClave": 0.93,
+        "regates": 0.86,
+        "faltasCometidas": 1.22,
+        "rating": 6.806
+      }
+    },
+    {
+      "playerId": "synthetic-defender-10",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 1.89,
+        "pasesClave": 0.945,
+        "regates": 0.89,
+        "faltasCometidas": 1.23,
+        "rating": 6.809
+      }
+    },
+    {
+      "playerId": "synthetic-defender-11",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 1.92,
+        "pasesClave": 0.96,
+        "regates": 0.92,
+        "faltasCometidas": 1.24,
+        "rating": 6.812
+      }
+    },
+    {
+      "playerId": "synthetic-defender-12",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 1.95,
+        "pasesClave": 0.975,
+        "regates": 0.95,
+        "faltasCometidas": 1.25,
+        "rating": 6.815
+      }
+    },
+    {
+      "playerId": "synthetic-defender-13",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 1.98,
+        "pasesClave": 0.99,
+        "regates": 0.98,
+        "faltasCometidas": 1.26,
+        "rating": 6.818
+      }
+    },
+    {
+      "playerId": "synthetic-defender-14",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 2.01,
+        "pasesClave": 1.005,
+        "regates": 1.01,
+        "faltasCometidas": 1.27,
+        "rating": 6.821
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-15",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 2.8,
+        "pasesClave": 1.8,
+        "regates": 1.8,
+        "faltasCometidas": 1,
+        "rating": 7
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-16",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.83,
+        "pasesClave": 1.815,
+        "regates": 1.83,
+        "faltasCometidas": 1.01,
+        "rating": 7.003
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-17",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.86,
+        "pasesClave": 1.83,
+        "regates": 1.86,
+        "faltasCometidas": 1.02,
+        "rating": 7.006
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-18",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 2.89,
+        "pasesClave": 1.845,
+        "regates": 1.89,
+        "faltasCometidas": 1.03,
+        "rating": 7.009
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-19",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.92,
+        "pasesClave": 1.86,
+        "regates": 1.92,
+        "faltasCometidas": 1.04,
+        "rating": 7.012
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-20",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.95,
+        "pasesClave": 1.875,
+        "regates": 1.95,
+        "faltasCometidas": 1.05,
+        "rating": 7.015
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-21",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 2.98,
+        "pasesClave": 1.89,
+        "regates": 1.98,
+        "faltasCometidas": 1.06,
+        "rating": 7.018
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-22",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 3.01,
+        "pasesClave": 1.905,
+        "regates": 2.01,
+        "faltasCometidas": 1.07,
+        "rating": 7.021
+      }
+    },
+    {
+      "playerId": "synthetic-forward-23",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4,
+        "pasesClave": 1.7,
+        "regates": 2.8,
+        "faltasCometidas": 1.1,
+        "rating": 7.1
+      }
+    },
+    {
+      "playerId": "synthetic-forward-24",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.03,
+        "pasesClave": 1.715,
+        "regates": 2.83,
+        "faltasCometidas": 1.11,
+        "rating": 7.103
+      }
+    },
+    {
+      "playerId": "synthetic-forward-25",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.06,
+        "pasesClave": 1.73,
+        "regates": 2.86,
+        "faltasCometidas": 1.12,
+        "rating": 7.106
+      }
+    },
+    {
+      "playerId": "synthetic-forward-26",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4.09,
+        "pasesClave": 1.745,
+        "regates": 2.89,
+        "faltasCometidas": 1.13,
+        "rating": 7.109
+      }
+    },
+    {
+      "playerId": "synthetic-forward-27",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.12,
+        "pasesClave": 1.76,
+        "regates": 2.92,
+        "faltasCometidas": 1.14,
+        "rating": 7.112
+      }
+    },
+    {
+      "playerId": "synthetic-forward-28",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.15,
+        "pasesClave": 1.775,
+        "regates": 2.95,
+        "faltasCometidas": 1.15,
+        "rating": 7.115
+      }
+    },
+    {
+      "playerId": "synthetic-forward-29",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4.18,
+        "pasesClave": 1.79,
+        "regates": 2.98,
+        "faltasCometidas": 1.16,
+        "rating": 7.118
+      }
+    },
+    {
+      "playerId": "synthetic-forward-30",
+      "season": "2025",
+      "date": "2025-01-01",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.21,
+        "pasesClave": 1.805,
+        "regates": 3.01,
+        "faltasCometidas": 1.17,
+        "rating": 7.121
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-01",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 1.35,
+        "pasesClave": 0.58,
+        "regates": 0.42,
+        "faltasCometidas": 0.88,
+        "rating": 6.74
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-02",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.38,
+        "pasesClave": 0.595,
+        "regates": 0.45,
+        "faltasCometidas": 0.89,
+        "rating": 6.743
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-03",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.41,
+        "pasesClave": 0.61,
+        "regates": 0.48,
+        "faltasCometidas": 0.9,
+        "rating": 6.746
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-04",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 1.44,
+        "pasesClave": 0.625,
+        "regates": 0.51,
+        "faltasCometidas": 0.91,
+        "rating": 6.749
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-05",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.47,
+        "pasesClave": 0.64,
+        "regates": 0.54,
+        "faltasCometidas": 0.92,
+        "rating": 6.752
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-06",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.5,
+        "pasesClave": 0.655,
+        "regates": 0.57,
+        "faltasCometidas": 0.93,
+        "rating": 6.755
+      }
+    },
+    {
+      "playerId": "synthetic-defender-07",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 2.15,
+        "pasesClave": 1.08,
+        "regates": 1.02,
+        "faltasCometidas": 1.28,
+        "rating": 6.84
+      }
+    },
+    {
+      "playerId": "synthetic-defender-08",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 2.18,
+        "pasesClave": 1.095,
+        "regates": 1.05,
+        "faltasCometidas": 1.29,
+        "rating": 6.843
+      }
+    },
+    {
+      "playerId": "synthetic-defender-09",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 2,
+        "tiros": 2.21,
+        "pasesClave": 1.11,
+        "regates": 1.08,
+        "faltasCometidas": 1.3,
+        "rating": 6.846
+      }
+    },
+    {
+      "playerId": "synthetic-defender-10",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.24,
+        "pasesClave": 1.125,
+        "regates": 1.11,
+        "faltasCometidas": 1.31,
+        "rating": 6.849
+      }
+    },
+    {
+      "playerId": "synthetic-defender-11",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 2,
+        "tiros": 2.27,
+        "pasesClave": 1.14,
+        "regates": 1.14,
+        "faltasCometidas": 1.32,
+        "rating": 6.852
+      }
+    },
+    {
+      "playerId": "synthetic-defender-12",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 2.3,
+        "pasesClave": 1.155,
+        "regates": 1.17,
+        "faltasCometidas": 1.33,
+        "rating": 6.855
+      }
+    },
+    {
+      "playerId": "synthetic-defender-13",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 2.33,
+        "pasesClave": 1.17,
+        "regates": 1.2,
+        "faltasCometidas": 1.34,
+        "rating": 6.858
+      }
+    },
+    {
+      "playerId": "synthetic-defender-14",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 1,
+        "tiros": 2.36,
+        "pasesClave": 1.185,
+        "regates": 1.23,
+        "faltasCometidas": 1.35,
+        "rating": 6.861
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-15",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.15,
+        "pasesClave": 1.98,
+        "regates": 2.02,
+        "faltasCometidas": 1.08,
+        "rating": 7.04
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-16",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 3.18,
+        "pasesClave": 1.995,
+        "regates": 2.05,
+        "faltasCometidas": 1.09,
+        "rating": 7.043
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-17",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 3.21,
+        "pasesClave": 2.01,
+        "regates": 2.08,
+        "faltasCometidas": 1.1,
+        "rating": 7.046
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-18",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 3.24,
+        "pasesClave": 2.025,
+        "regates": 2.11,
+        "faltasCometidas": 1.11,
+        "rating": 7.049
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-19",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 3.27,
+        "pasesClave": 2.04,
+        "regates": 2.14,
+        "faltasCometidas": 1.12,
+        "rating": 7.052
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-20",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 3.3,
+        "pasesClave": 2.055,
+        "regates": 2.17,
+        "faltasCometidas": 1.13,
+        "rating": 7.055
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-21",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.33,
+        "pasesClave": 2.07,
+        "regates": 2.2,
+        "faltasCometidas": 1.14,
+        "rating": 7.058
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-22",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 3.36,
+        "pasesClave": 2.085,
+        "regates": 2.23,
+        "faltasCometidas": 1.15,
+        "rating": 7.061
+      }
+    },
+    {
+      "playerId": "synthetic-forward-23",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 4.35,
+        "pasesClave": 1.88,
+        "regates": 3.02,
+        "faltasCometidas": 1.18,
+        "rating": 7.14
+      }
+    },
+    {
+      "playerId": "synthetic-forward-24",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.38,
+        "pasesClave": 1.895,
+        "regates": 3.05,
+        "faltasCometidas": 1.19,
+        "rating": 7.143
+      }
+    },
+    {
+      "playerId": "synthetic-forward-25",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 4.41,
+        "pasesClave": 1.91,
+        "regates": 3.08,
+        "faltasCometidas": 1.2,
+        "rating": 7.146
+      }
+    },
+    {
+      "playerId": "synthetic-forward-26",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4.44,
+        "pasesClave": 1.925,
+        "regates": 3.11,
+        "faltasCometidas": 1.21,
+        "rating": 7.149
+      }
+    },
+    {
+      "playerId": "synthetic-forward-27",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 4.47,
+        "pasesClave": 1.94,
+        "regates": 3.14,
+        "faltasCometidas": 1.22,
+        "rating": 7.152
+      }
+    },
+    {
+      "playerId": "synthetic-forward-28",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.5,
+        "pasesClave": 1.955,
+        "regates": 3.17,
+        "faltasCometidas": 1.23,
+        "rating": 7.155
+      }
+    },
+    {
+      "playerId": "synthetic-forward-29",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 4.53,
+        "pasesClave": 1.97,
+        "regates": 3.2,
+        "faltasCometidas": 1.24,
+        "rating": 7.158
+      }
+    },
+    {
+      "playerId": "synthetic-forward-30",
+      "season": "2025",
+      "date": "2025-01-16",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.56,
+        "pasesClave": 1.985,
+        "regates": 3.23,
+        "faltasCometidas": 1.25,
+        "rating": 7.161
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-01",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 1.7,
+        "pasesClave": 0.76,
+        "regates": 0.64,
+        "faltasCometidas": 0.96,
+        "rating": 6.78
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-02",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.73,
+        "pasesClave": 0.775,
+        "regates": 0.67,
+        "faltasCometidas": 0.97,
+        "rating": 6.783
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-03",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.76,
+        "pasesClave": 0.79,
+        "regates": 0.7,
+        "faltasCometidas": 0.98,
+        "rating": 6.786
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-04",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 1.79,
+        "pasesClave": 0.805,
+        "regates": 0.73,
+        "faltasCometidas": 0.99,
+        "rating": 6.789
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-05",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.82,
+        "pasesClave": 0.82,
+        "regates": 0.76,
+        "faltasCometidas": 1,
+        "rating": 6.792
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-06",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 1.85,
+        "pasesClave": 0.835,
+        "regates": 0.79,
+        "faltasCometidas": 1.01,
+        "rating": 6.795
+      }
+    },
+    {
+      "playerId": "synthetic-defender-07",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 2.5,
+        "pasesClave": 1.26,
+        "regates": 1.24,
+        "faltasCometidas": 1.36,
+        "rating": 6.88
+      }
+    },
+    {
+      "playerId": "synthetic-defender-08",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.53,
+        "pasesClave": 1.275,
+        "regates": 1.27,
+        "faltasCometidas": 1.37,
+        "rating": 6.883
+      }
+    },
+    {
+      "playerId": "synthetic-defender-09",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 2.56,
+        "pasesClave": 1.29,
+        "regates": 1.3,
+        "faltasCometidas": 1.38,
+        "rating": 6.886
+      }
+    },
+    {
+      "playerId": "synthetic-defender-10",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 2.59,
+        "pasesClave": 1.305,
+        "regates": 1.33,
+        "faltasCometidas": 1.39,
+        "rating": 6.889
+      }
+    },
+    {
+      "playerId": "synthetic-defender-11",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 2.62,
+        "pasesClave": 1.32,
+        "regates": 1.36,
+        "faltasCometidas": 1.4,
+        "rating": 6.892
+      }
+    },
+    {
+      "playerId": "synthetic-defender-12",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.65,
+        "pasesClave": 1.335,
+        "regates": 1.39,
+        "faltasCometidas": 1.41,
+        "rating": 6.895
+      }
+    },
+    {
+      "playerId": "synthetic-defender-13",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 2.68,
+        "pasesClave": 1.35,
+        "regates": 1.42,
+        "faltasCometidas": 1.42,
+        "rating": 6.898
+      }
+    },
+    {
+      "playerId": "synthetic-defender-14",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.71,
+        "pasesClave": 1.365,
+        "regates": 1.45,
+        "faltasCometidas": 1.43,
+        "rating": 6.901
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-15",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 3.5,
+        "pasesClave": 2.16,
+        "regates": 2.24,
+        "faltasCometidas": 1.16,
+        "rating": 7.08
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-16",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 3.53,
+        "pasesClave": 2.175,
+        "regates": 2.27,
+        "faltasCometidas": 1.17,
+        "rating": 7.083
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-17",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.56,
+        "pasesClave": 2.19,
+        "regates": 2.3,
+        "faltasCometidas": 1.18,
+        "rating": 7.086
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-18",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 3.59,
+        "pasesClave": 2.205,
+        "regates": 2.33,
+        "faltasCometidas": 1.19,
+        "rating": 7.089
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-19",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.62,
+        "pasesClave": 2.22,
+        "regates": 2.36,
+        "faltasCometidas": 1.2,
+        "rating": 7.092
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-20",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 3.65,
+        "pasesClave": 2.235,
+        "regates": 2.39,
+        "faltasCometidas": 1.21,
+        "rating": 7.095
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-21",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 3.68,
+        "pasesClave": 2.25,
+        "regates": 2.42,
+        "faltasCometidas": 1.22,
+        "rating": 7.098
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-22",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 3.71,
+        "pasesClave": 2.265,
+        "regates": 2.45,
+        "faltasCometidas": 1.23,
+        "rating": 7.101
+      }
+    },
+    {
+      "playerId": "synthetic-forward-23",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 4,
+        "asistencias": 2,
+        "tiros": 4.7,
+        "pasesClave": 2.06,
+        "regates": 3.24,
+        "faltasCometidas": 1.26,
+        "rating": 7.18
+      }
+    },
+    {
+      "playerId": "synthetic-forward-24",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4.73,
+        "pasesClave": 2.075,
+        "regates": 3.27,
+        "faltasCometidas": 1.27,
+        "rating": 7.183
+      }
+    },
+    {
+      "playerId": "synthetic-forward-25",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 4.76,
+        "pasesClave": 2.09,
+        "regates": 3.3,
+        "faltasCometidas": 1.28,
+        "rating": 7.186
+      }
+    },
+    {
+      "playerId": "synthetic-forward-26",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 4,
+        "asistencias": 1,
+        "tiros": 4.79,
+        "pasesClave": 2.105,
+        "regates": 3.33,
+        "faltasCometidas": 1.29,
+        "rating": 7.189
+      }
+    },
+    {
+      "playerId": "synthetic-forward-27",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 4.82,
+        "pasesClave": 2.12,
+        "regates": 3.36,
+        "faltasCometidas": 1.3,
+        "rating": 7.192
+      }
+    },
+    {
+      "playerId": "synthetic-forward-28",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4.85,
+        "pasesClave": 2.135,
+        "regates": 3.39,
+        "faltasCometidas": 1.31,
+        "rating": 7.195
+      }
+    },
+    {
+      "playerId": "synthetic-forward-29",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 4,
+        "asistencias": 2,
+        "tiros": 4.88,
+        "pasesClave": 2.15,
+        "regates": 3.42,
+        "faltasCometidas": 1.32,
+        "rating": 7.198
+      }
+    },
+    {
+      "playerId": "synthetic-forward-30",
+      "season": "2025",
+      "date": "2025-01-31",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 4.91,
+        "pasesClave": 2.165,
+        "regates": 3.45,
+        "faltasCometidas": 1.33,
+        "rating": 7.201
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-01",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 2.05,
+        "pasesClave": 0.94,
+        "regates": 0.86,
+        "faltasCometidas": 1.04,
+        "rating": 6.82
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-02",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 2.08,
+        "pasesClave": 0.955,
+        "regates": 0.89,
+        "faltasCometidas": 1.05,
+        "rating": 6.823
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-03",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 2.11,
+        "pasesClave": 0.97,
+        "regates": 0.92,
+        "faltasCometidas": 1.06,
+        "rating": 6.826
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-04",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 0,
+        "tiros": 2.14,
+        "pasesClave": 0.985,
+        "regates": 0.95,
+        "faltasCometidas": 1.07,
+        "rating": 6.829
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-05",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 2.17,
+        "pasesClave": 1,
+        "regates": 0.98,
+        "faltasCometidas": 1.08,
+        "rating": 6.832
+      }
+    },
+    {
+      "playerId": "synthetic-goalkeeper-06",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "goalkeeper",
+      "statistics": {
+        "goles": 0,
+        "asistencias": 0,
+        "tiros": 2.2,
+        "pasesClave": 1.015,
+        "regates": 1.01,
+        "faltasCometidas": 1.09,
+        "rating": 6.835
+      }
+    },
+    {
+      "playerId": "synthetic-defender-07",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 2.85,
+        "pasesClave": 1.44,
+        "regates": 1.46,
+        "faltasCometidas": 1.44,
+        "rating": 6.92
+      }
+    },
+    {
+      "playerId": "synthetic-defender-08",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 2.88,
+        "pasesClave": 1.455,
+        "regates": 1.49,
+        "faltasCometidas": 1.45,
+        "rating": 6.923
+      }
+    },
+    {
+      "playerId": "synthetic-defender-09",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 2.91,
+        "pasesClave": 1.47,
+        "regates": 1.52,
+        "faltasCometidas": 1.46,
+        "rating": 6.926
+      }
+    },
+    {
+      "playerId": "synthetic-defender-10",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 2.94,
+        "pasesClave": 1.485,
+        "regates": 1.55,
+        "faltasCometidas": 1.47,
+        "rating": 6.929
+      }
+    },
+    {
+      "playerId": "synthetic-defender-11",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 2,
+        "tiros": 2.97,
+        "pasesClave": 1.5,
+        "regates": 1.58,
+        "faltasCometidas": 1.48,
+        "rating": 6.932
+      }
+    },
+    {
+      "playerId": "synthetic-defender-12",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 3,
+        "pasesClave": 1.515,
+        "regates": 1.61,
+        "faltasCometidas": 1.49,
+        "rating": 6.935
+      }
+    },
+    {
+      "playerId": "synthetic-defender-13",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.03,
+        "pasesClave": 1.53,
+        "regates": 1.64,
+        "faltasCometidas": 1.5,
+        "rating": 6.938
+      }
+    },
+    {
+      "playerId": "synthetic-defender-14",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "defender",
+      "statistics": {
+        "goles": 1,
+        "asistencias": 1,
+        "tiros": 3.06,
+        "pasesClave": 1.545,
+        "regates": 1.67,
+        "faltasCometidas": 1.51,
+        "rating": 6.941
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-15",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 3.85,
+        "pasesClave": 2.34,
+        "regates": 2.46,
+        "faltasCometidas": 1.24,
+        "rating": 7.12
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-16",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 3.88,
+        "pasesClave": 2.355,
+        "regates": 2.49,
+        "faltasCometidas": 1.25,
+        "rating": 7.123
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-17",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.91,
+        "pasesClave": 2.37,
+        "regates": 2.52,
+        "faltasCometidas": 1.26,
+        "rating": 7.126
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-18",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 3.94,
+        "pasesClave": 2.385,
+        "regates": 2.55,
+        "faltasCometidas": 1.27,
+        "rating": 7.129
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-19",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 2,
+        "tiros": 3.97,
+        "pasesClave": 2.4,
+        "regates": 2.58,
+        "faltasCometidas": 1.28,
+        "rating": 7.132
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-20",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4,
+        "pasesClave": 2.415,
+        "regates": 2.61,
+        "faltasCometidas": 1.29,
+        "rating": 7.135
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-21",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 4.03,
+        "pasesClave": 2.43,
+        "regates": 2.64,
+        "faltasCometidas": 1.3,
+        "rating": 7.138
+      }
+    },
+    {
+      "playerId": "synthetic-midfielder-22",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "midfielder",
+      "statistics": {
+        "goles": 2,
+        "asistencias": 1,
+        "tiros": 4.06,
+        "pasesClave": 2.445,
+        "regates": 2.67,
+        "faltasCometidas": 1.31,
+        "rating": 7.141
+      }
+    },
+    {
+      "playerId": "synthetic-forward-23",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 4,
+        "asistencias": 2,
+        "tiros": 5.05,
+        "pasesClave": 2.24,
+        "regates": 3.46,
+        "faltasCometidas": 1.34,
+        "rating": 7.22
+      }
+    },
+    {
+      "playerId": "synthetic-forward-24",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 5.08,
+        "pasesClave": 2.255,
+        "regates": 3.49,
+        "faltasCometidas": 1.35,
+        "rating": 7.223
+      }
+    },
+    {
+      "playerId": "synthetic-forward-25",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 5.11,
+        "pasesClave": 2.27,
+        "regates": 3.52,
+        "faltasCometidas": 1.36,
+        "rating": 7.226
+      }
+    },
+    {
+      "playerId": "synthetic-forward-26",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 4,
+        "asistencias": 1,
+        "tiros": 5.14,
+        "pasesClave": 2.285,
+        "regates": 3.55,
+        "faltasCometidas": 1.37,
+        "rating": 7.229
+      }
+    },
+    {
+      "playerId": "synthetic-forward-27",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 2,
+        "tiros": 5.17,
+        "pasesClave": 2.3,
+        "regates": 3.58,
+        "faltasCometidas": 1.38,
+        "rating": 7.232
+      }
+    },
+    {
+      "playerId": "synthetic-forward-28",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 5.2,
+        "pasesClave": 2.315,
+        "regates": 3.61,
+        "faltasCometidas": 1.39,
+        "rating": 7.235
+      }
+    },
+    {
+      "playerId": "synthetic-forward-29",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 4,
+        "asistencias": 2,
+        "tiros": 5.23,
+        "pasesClave": 2.33,
+        "regates": 3.64,
+        "faltasCometidas": 1.4,
+        "rating": 7.238
+      }
+    },
+    {
+      "playerId": "synthetic-forward-30",
+      "season": "2025",
+      "date": "2025-02-15",
+      "granularity": "date",
+      "position": "forward",
+      "statistics": {
+        "goles": 3,
+        "asistencias": 1,
+        "tiros": 5.26,
+        "pasesClave": 2.345,
+        "regates": 3.67,
+        "faltasCometidas": 1.41,
+        "rating": 7.241
+      }
+    }
+  ]
+}

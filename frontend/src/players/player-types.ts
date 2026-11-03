@@ -44,6 +44,20 @@ export interface JugadorCatalogo {
   estadisticas: EstadisticasJugador[]
 }
 
+export interface PrediccionJugador {
+  estado: 'disponible' | 'no_disponible'
+  cotizacionActual: string | null
+  cotizacionPredicha: string | null
+  prediccionDisponible: boolean
+  fechaGeneracion: string
+  fechaObjetivo: string
+  versionModelo: string | null
+  versionEstrategia: string | null
+  origenDatos: string[]
+  estadisticasPredichas: Record<string, string> | null
+  mensaje?: string
+}
+
 export interface FiltrosCatalogo {
   nombre: string
   ligaCodigo: string

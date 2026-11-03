@@ -2,9 +2,10 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../auth/auth-context'
 import { ApiError } from '../shared/http-client'
-import { obtenerJugador } from './players-api'
+import { obtenerJugador, obtenerPrediccion } from './players-api'
+import { PlayerPredictionPanel } from './PlayerPredictionPanel'
 import { PlayerStatsPanel } from './PlayerStatsPanel'
-import type { EstadoDetalle, JugadorCatalogo } from './player-types'
+import type { EstadoDetalle, JugadorCatalogo, PrediccionJugador } from './player-types'
 import { listarHistorialCotizaciones, listarRanking, type EstrategiaCotizacion, type HistorialCotizacion } from '../market/market-api'
 import { QuoteHistoryPanel } from '../market/QuoteHistoryPanel'
 import { TradeDialog } from '../market/TradeDialog'
@@ -23,6 +24,8 @@ export function PlayerStatsPage() {
   const [tokensDisponibles, setTokensDisponibles] = useState(0)
   const [errorCotizacion, setErrorCotizacion] = useState('')
   const [comprando, setComprando] = useState(false)
+  const [prediccion, setPrediccion] = useState<PrediccionJugador | null>(null)
+  const [errorPrediccion, setErrorPrediccion] = useState('')
 
   useEffect(() => {
     let activo = true
@@ -54,6 +57,34 @@ export function PlayerStatsPage() {
     return () => {
       activo = false
     }
+  }, [id, session?.accessToken])
+
+  useEffect(() => {
+    let activo = true
+    if (!session?.accessToken || !id) return
+    void obtenerPrediccion(session.accessToken, id).then((resultado) => {
+      if (!activo) return
+      setPrediccion(resultado)
+      if (resultado.cotizacionActual !== null) setCotizacion(resultado.cotizacionActual)
+      setErrorPrediccion('')
+    }).catch((error) => {
+      if (!activo) return
+      setPrediccion({
+        estado: 'no_disponible',
+        cotizacionActual: null,
+        cotizacionPredicha: null,
+        prediccionDisponible: false,
+        fechaGeneracion: new Date().toISOString(),
+        fechaObjetivo: '',
+        versionModelo: null,
+        versionEstrategia: null,
+        origenDatos: [],
+        estadisticasPredichas: null,
+        mensaje: 'La predicción no está disponible en este momento.',
+      })
+      setErrorPrediccion(error instanceof ApiError && error.status === 503 ? 'El servicio de predicción no está disponible.' : '')
+    })
+    return () => { activo = false }
   }, [id, session?.accessToken])
 
   useEffect(() => {
@@ -131,6 +162,9 @@ export function PlayerStatsPage() {
           {errorCotizacion && <p className="market-inline-error" role="status">{errorCotizacion}</p>}
           <QuoteHistoryPanel items={historial} estrategiaActiva={estrategiaActiva} />
         </section>
+      )}
+      {(estado === 'con_estadisticas' || estado === 'sin_estadisticas') && jugador && (
+        <PlayerPredictionPanel prediccion={prediccion} error={errorPrediccion} />
       )}
       {comprando && jugador && cotizacion && (
         <TradeDialog

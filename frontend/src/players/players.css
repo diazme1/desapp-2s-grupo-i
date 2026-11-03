@@ -7,6 +7,38 @@
   background: linear-gradient(135deg, #f7f9fa 0%, #f2f5f6 100%);
 }
 
+.prediction-panel {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin: 24px auto 0;
+}
+
+.prediction-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin: 0;
+}
+
+.prediction-meta div {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.prediction-meta dt {
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.prediction-meta dd {
+  margin: 5px 0 0;
+  color: var(--navy);
+  font-weight: 800;
+}
+
 .players-page::after {
   position: absolute;
   z-index: 0;

@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "Cotizaciones y jugadores",
-    "description": "Ejecutar primero 'Iniciar sesión (superadmin)': guarda accessToken para las requests protegidas. El recálculo crea ambas estrategias; el body selecciona cuál queda activa. El ranking permite consultar cada estrategia sin recalcular.",
+    "description": "Ejecutar primero 'Iniciar sesión (superadmin)': guarda accessToken para las requests protegidas. El entrenamiento ML deja disponible un modelo y devuelve sus métricas; la predicción devuelve cotización actual y posible. El recálculo crea ambas estrategias; el ranking permite consultar cada estrategia sin recalcular.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -102,6 +102,44 @@
         "pm.test('Devuelve una lista de cotizaciones', () => pm.expect(body.items).to.be.an('array'));",
         "if (body.items.length > 0) pm.test('Incluye datos y procedencia de cotización', () => pm.expect(body.items[0]).to.have.all.keys('id', 'idJugador', 'fechaHora', 'cotizacion', 'tipoEstrategia', 'idVersionEstrategia', 'idRecalculo', 'idEstadistica'));",
         "if (body.items.length > 0 && body.items[0].tipoEstrategia === 'apertura_mercado') pm.test('La apertura usa cotización 1.00 y procedencia nula', () => { pm.expect(body.items[0].cotizacion).to.eql(1); pm.expect(body.items[0].idRecalculo).to.eql(null); pm.expect(body.items[0].idEstadistica).to.eql(null); });"
+      ] } }]
+    },
+    {
+      "name": "Entrenar modelo ML (superadmin)",
+      "request": {
+        "method": "POST",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+        "header": [{ "key": "Content-Type", "value": "application/json", "type": "text" }],
+        "body": { "mode": "raw", "raw": "{\n  \"origenDatos\": \"synthetic\",\n  \"snapshots\": [\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-01\", \"statistics\": {\"goles\": 1, \"asistencias\": 1, \"tiros\": 5, \"pasesClave\": 2, \"regates\": 3, \"faltasCometidas\": 1, \"rating\": 6.5}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-16\", \"statistics\": {\"goles\": 1, \"asistencias\": 2, \"tiros\": 6, \"pasesClave\": 3, \"regates\": 4, \"faltasCometidas\": 1, \"rating\": 6.7}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-01-31\", \"statistics\": {\"goles\": 2, \"asistencias\": 2, \"tiros\": 7, \"pasesClave\": 3, \"regates\": 5, \"faltasCometidas\": 2, \"rating\": 6.9}},\n    {\"playerId\": \"fixture-player\", \"season\": \"2025\", \"date\": \"2025-02-15\", \"statistics\": {\"goles\": 2, \"asistencias\": 3, \"tiros\": 8, \"pasesClave\": 4, \"regates\": 6, \"faltasCometidas\": 2, \"rating\": 7.1}}\n  ]\n}", "options": { "raw": { "language": "json" } } },
+        "url": "{{baseUrl}}/ml-players/train",
+        "description": "Entrena sincrónicamente el modelo y lo deja disponible. Requiere el JWT del superadmin. La respuesta HTTP 200 contiene versionModelo, versionDataset, versionTransformaciones, cantidadEjemplos y metricas. Los datos synthetic solo sirven para validar técnicamente el flujo."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Entrenamiento finalizado', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "pm.expect(body.estado).to.eql('entrenado');",
+        "pm.expect(body.versionModelo).to.be.a('string').and.not.empty;",
+        "pm.expect(body.versionDataset).to.be.a('string').and.not.empty;",
+        "pm.expect(body.metricas).to.have.property('prueba');",
+        "pm.expect(body.metricas).to.have.property('baselinePrueba');"
+      ] } }]
+    },
+    {
+      "name": "Consultar predicción y cotización posible",
+      "request": {
+        "method": "GET",
+        "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }] },
+        "header": [],
+        "url": "{{baseUrl}}/players/{{playerId}}/prediction",
+        "description": "Devuelve la cotización actual y la cotización predicha. La predicha puede ser null si no hay modelo, estadísticas o estrategia. Ejecutar después de listar jugadores y, opcionalmente, entrenar el modelo."
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Predicción consultada', () => pm.response.to.have.status(200));",
+        "const body = pm.response.json();",
+        "['estado', 'cotizacionActual', 'cotizacionPredicha', 'prediccionDisponible', 'fechaGeneracion', 'fechaObjetivo', 'versionModelo', 'versionEstrategia', 'origenDatos'].forEach((key) => pm.expect(body).to.have.property(key));",
+        "pm.expect(body.estado).to.be.oneOf(['disponible', 'no_disponible']);",
+        "pm.expect(body.cotizacionActual === null || /^\\d+\\.\\d{2}$/.test(body.cotizacionActual)).to.eql(true);",
+        "pm.expect(body.cotizacionPredicha === null || /^\\d+\\.\\d{2}$/.test(body.cotizacionPredicha)).to.eql(true);"
       ] } }]
     },
     {
