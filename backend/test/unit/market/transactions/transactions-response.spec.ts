@@ -1,5 +1,5 @@
 import { Creditos } from '../../../../src/market/domain/creditos';
-import { Cotizacion } from '../../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../../src/quotes/domain/cotizacion';
 import {
   TransactionResponseDto,
   TransactionsResponseDto,

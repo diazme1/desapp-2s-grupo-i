@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { QuoteHistoryItem } from '../quotes.repository';
-import { Cotizacion } from '../../market/domain/cotizacion';
+import { Cotizacion } from '../domain/cotizacion';
 
 export class CotizacionHistorialItemResponseDto {
   @ApiProperty({ format: 'uuid' })

@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { DataSource } from 'typeorm';
 import { AuthModule } from '../auth/auth.module';
+import { DATABASE_DATA_SOURCE, DatabaseModule } from '../database/database.module';
 import { ActualizarCatalogoService } from './actualizar-catalogo.service';
 import {
   FootballDataAdapter,
@@ -10,40 +9,13 @@ import {
 import { WhoScoredAdapter } from './adapters/whoscored/whoscored.adapter';
 import { CatalogoJugadoresService } from './catalogo-jugadores.service';
 import { EstadisticasJugadorService } from './estadisticas-jugador.service';
-import { EquipoEntity } from './persistence/equipo.entity';
-import { EstadisticasJugadorEntity } from './persistence/estadisticas-jugador.entity';
-import { JugadorEntity } from './persistence/jugador.entity';
-import { LigaEntity } from './persistence/liga.entity';
-import { HistorialCotizacionEntity } from './persistence/historial-cotizacion.entity';
-import { CotizacionVigenteEntity } from './persistence/cotizacion-vigente.entity';
-import { VersionEstrategiaCotizacionEntity } from './persistence/version-estrategia-cotizacion.entity';
-import { RecalculoCotizacionEntity } from './persistence/recalculo-cotizacion.entity';
-import { RecalculoCotizacionActivoEntity } from './persistence/recalculo-cotizacion-activo.entity';
 import { TypeOrmPlayersRepository } from './persistence/typeorm-players.repository';
-import { TypeOrmQuoteOpeningWriter } from './persistence/typeorm-quote-opening-writer';
-import { TokenJugadorEntity } from '../market/persistence/token-jugador.entity';
-import { TenenciaJugadorEntity } from '../market/persistence/tenencia-jugador.entity';
-import { UserEntity } from '../users/persistence/user.entity';
-import { SaldoUsuarioEntity } from '../users/persistence/saldo-usuario.entity';
-import { TransaccionMercadoEntity } from '../market/orders/persistence/transaccion-mercado.entity';
-import { AuditoriaTransaccionEntity } from '../market/orders/persistence/auditoria-transaccion.entity';
-import { PLAYERS_REPOSITORY } from './players.repository';
 import { PlayersController } from './players.controller';
-import { HistorialCotizacionService } from '../quotes/historial-cotizacion.service';
-import { QUOTE_HISTORY_REPOSITORY } from '../quotes/quotes.repository';
-import { QuotesController } from '../quotes/quotes.controller';
-import { RecalcularCotizacionesService } from '../quotes/recalcular-cotizaciones.service';
-import { QUOTE_RECALCULATION_REPOSITORY } from '../quotes/quote-recalculation.repository';
-import { QUOTE_RANKING_REPOSITORY } from '../quotes/quote-ranking.repository';
-import { RankingCotizacionesService } from '../quotes/ranking-cotizaciones.service';
-import { RankingController } from '../quotes/ranking.controller';
-import { QUOTE_OPENING_WRITER } from '../quotes/quote-opening-writer';
-
-export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
+import { PLAYERS_REPOSITORY } from './players.repository';
 
 @Module({
-  imports: [AuthModule],
-  controllers: [RankingController, PlayersController, QuotesController],
+  imports: [AuthModule, DatabaseModule],
+  controllers: [PlayersController],
   providers: [
     FootballDataAdapter,
     {
@@ -51,61 +23,10 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
       useExisting: FootballDataAdapter,
     },
     {
-      provide: PLAYERS_DATA_SOURCE,
-      inject: [ConfigService],
-      useFactory: async (config: ConfigService) => {
-        const url = config.get<string>('DATABASE_URL');
-        if (!url)
-          throw new Error(
-            'DATABASE_URL es obligatoria para el catálogo de jugadores.',
-          );
-        const dataSource = new DataSource({
-          type: 'postgres',
-          url,
-          entities: [
-            UserEntity,
-            SaldoUsuarioEntity,
-            LigaEntity,
-            EquipoEntity,
-            JugadorEntity,
-            EstadisticasJugadorEntity,
-            HistorialCotizacionEntity,
-            CotizacionVigenteEntity,
-            VersionEstrategiaCotizacionEntity,
-            RecalculoCotizacionEntity,
-            RecalculoCotizacionActivoEntity,
-            TokenJugadorEntity,
-            TenenciaJugadorEntity,
-            TransaccionMercadoEntity,
-            AuditoriaTransaccionEntity,
-          ],
-          synchronize: false,
-        });
-        await dataSource.initialize();
-        return dataSource;
-      },
-    },
-    {
       provide: TypeOrmPlayersRepository,
-      inject: [PLAYERS_DATA_SOURCE],
-      useFactory: (dataSource: DataSource) =>
+      inject: [DATABASE_DATA_SOURCE],
+      useFactory: (dataSource: import('typeorm').DataSource) =>
         new TypeOrmPlayersRepository(dataSource),
-    },
-    {
-      provide: QUOTE_OPENING_WRITER,
-      useClass: TypeOrmQuoteOpeningWriter,
-    },
-    {
-      provide: QUOTE_HISTORY_REPOSITORY,
-      useExisting: TypeOrmPlayersRepository,
-    },
-    {
-      provide: QUOTE_RECALCULATION_REPOSITORY,
-      useExisting: TypeOrmPlayersRepository,
-    },
-    {
-      provide: QUOTE_RANKING_REPOSITORY,
-      useExisting: TypeOrmPlayersRepository,
     },
     {
       provide: PLAYERS_REPOSITORY,
@@ -125,17 +46,8 @@ export const PLAYERS_DATA_SOURCE = Symbol('PLAYERS_DATA_SOURCE');
         }),
     },
     CatalogoJugadoresService,
-    HistorialCotizacionService,
-    RecalcularCotizacionesService,
-    RankingCotizacionesService,
     ActualizarCatalogoService,
   ],
-  exports: [
-    PLAYERS_REPOSITORY,
-    PLAYERS_DATA_SOURCE,
-    QUOTE_OPENING_WRITER,
-    CatalogoJugadoresService,
-    ActualizarCatalogoService,
-  ],
+  exports: [PLAYERS_REPOSITORY, CatalogoJugadoresService, ActualizarCatalogoService],
 })
 export class PlayersModule {}

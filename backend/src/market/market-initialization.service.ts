@@ -9,7 +9,7 @@ import {
 } from '../quotes/quote-opening-writer';
 import type { QuoteOpeningWriter } from '../quotes/quote-opening-writer';
 import { SuperadminBootstrapService } from '../auth/superadmin-bootstrap.service';
-import { Cotizacion } from './domain/cotizacion';
+import { Cotizacion } from '../quotes/domain/cotizacion';
 import { TenenciaJugador } from './domain/tenencia-jugador';
 import { TokenJugador } from './domain/token-jugador';
 import { MARKET_REPOSITORY } from './market.repository';

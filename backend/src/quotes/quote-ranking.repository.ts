@@ -1,4 +1,4 @@
-import type { TipoEstrategiaCotizacion } from '../players/domain/estrategia-cotizacion';
+import type { TipoEstrategiaCotizacion } from './domain/estrategia-cotizacion';
 
 export const QUOTE_RANKING_REPOSITORY = Symbol('QUOTE_RANKING_REPOSITORY');
 

@@ -2,7 +2,7 @@ import {
   EstrategiaCotizacion,
   type EstadisticasParaCotizacion,
   type TipoEstrategiaCotizacion,
-} from '../../../src/players/domain/estrategia-cotizacion';
+} from '../../../src/quotes/domain/estrategia-cotizacion';
 
 const estadisticas: EstadisticasParaCotizacion = {
   goles: 10,

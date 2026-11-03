@@ -4,7 +4,7 @@ import {
   EstrategiaCotizacion,
   type PesosEstrategiaCotizacion,
   type TipoEstrategiaCotizacion,
-} from '../players/domain/estrategia-cotizacion';
+} from './domain/estrategia-cotizacion';
 import {
   QUOTE_RECALCULATION_REPOSITORY,
   type QuoteRecalculationRepository,

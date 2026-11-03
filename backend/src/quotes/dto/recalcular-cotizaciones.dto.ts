@@ -9,8 +9,8 @@ import {
   Min,
   ValidateNested,
 } from 'class-validator';
-import { TIPOS_ESTRATEGIA_COTIZACION } from '../../players/domain/estrategia-cotizacion';
-import type { TipoEstrategiaCotizacion } from '../../players/domain/estrategia-cotizacion';
+import { TIPOS_ESTRATEGIA_COTIZACION } from '../domain/estrategia-cotizacion';
+import type { TipoEstrategiaCotizacion } from '../domain/estrategia-cotizacion';
 
 const tiposEstrategia = Object.values(TIPOS_ESTRATEGIA_COTIZACION);
 

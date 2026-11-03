@@ -1,7 +1,8 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../auth/auth.module';
 import { UsersModule } from '../users/users.module';
-import { PLAYERS_DATA_SOURCE, PlayersModule } from '../players/players.module';
+import { DATABASE_DATA_SOURCE, DatabaseModule } from '../database/database.module';
+import { QuotesModule } from '../quotes/quotes.module';
 import { OrdersModule } from './orders/orders.module';
 import { PortfolioModule } from './portfolio/portfolio.module';
 import { TransactionsModule } from './transactions/transactions.module';
@@ -13,7 +14,8 @@ import { TypeOrmMarketRepository } from './persistence/typeorm-market.repository
   imports: [
     AuthModule,
     UsersModule,
-    PlayersModule,
+    DatabaseModule,
+    QuotesModule,
     OrdersModule,
     PortfolioModule,
     TransactionsModule,
@@ -21,7 +23,7 @@ import { TypeOrmMarketRepository } from './persistence/typeorm-market.repository
   providers: [
     {
       provide: MARKET_REPOSITORY,
-      inject: [PLAYERS_DATA_SOURCE],
+      inject: [DATABASE_DATA_SOURCE],
       useFactory: (dataSource: import('typeorm').DataSource) =>
         new TypeOrmMarketRepository(dataSource),
     },

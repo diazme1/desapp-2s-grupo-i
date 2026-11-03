@@ -1,5 +1,5 @@
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
-import { TypeOrmQuoteOpeningWriter } from '../../../src/players/persistence/typeorm-quote-opening-writer';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
+import { TypeOrmQuoteOpeningWriter } from '../../../src/quotes/persistence/typeorm-quote-opening-writer';
 
 describe('TypeOrmQuoteOpeningWriter', () => {
   it('persiste una apertura mediante el contexto transaccional y conserva Cotizacion', async () => {

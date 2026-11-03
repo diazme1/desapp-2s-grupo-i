@@ -1,5 +1,5 @@
-import { Cotizacion } from '../../../../src/market/domain/cotizacion';
-import { RecalculoCotizacionActivoEntity } from '../../../../src/players/persistence/recalculo-cotizacion-activo.entity';
+import { Cotizacion } from '../../../../src/quotes/domain/cotizacion';
+import { RecalculoCotizacionActivoEntity } from '../../../../src/quotes/persistence/recalculo-cotizacion-activo.entity';
 import { TypeOrmOrdersRepository } from '../../../../src/market/orders/persistence/typeorm-orders.repository';
 
 function setup(active: Partial<RecalculoCotizacionActivoEntity> | null, rows: unknown[]) {

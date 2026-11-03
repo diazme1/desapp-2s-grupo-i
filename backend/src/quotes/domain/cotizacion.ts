@@ -1,4 +1,4 @@
-import { formatDecimalUnits, parseDecimalUnits } from './creditos';
+import { formatDecimalUnits, parseDecimalUnits } from '../../market/domain/creditos';
 
 const MAX_NUMERIC_14_2 = 99_999_999_999_999n;
 

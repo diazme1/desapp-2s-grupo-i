@@ -1,4 +1,4 @@
-import { Cotizacion } from '../domain/cotizacion';
+import { Cotizacion } from '../../quotes/domain/cotizacion';
 import { Jugador } from '../../players/domain/jugador';
 import { SaldoUsuario } from '../../users/domain/saldo-usuario';
 import { User } from '../../users/domain/user';

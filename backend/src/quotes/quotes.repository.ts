@@ -1,4 +1,4 @@
-import { Cotizacion } from '../market/domain/cotizacion';
+import { Cotizacion } from './domain/cotizacion';
 
 export const QUOTE_HISTORY_REPOSITORY = Symbol('QUOTE_HISTORY_REPOSITORY');
 

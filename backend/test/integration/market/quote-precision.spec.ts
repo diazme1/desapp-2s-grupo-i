@@ -1,6 +1,6 @@
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
-import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { HistorialCotizacionEntity } from '../../../src/quotes/persistence/historial-cotizacion.entity';
 import {
   createPlayersIntegrationApp,
   PlayersIntegrationApp,

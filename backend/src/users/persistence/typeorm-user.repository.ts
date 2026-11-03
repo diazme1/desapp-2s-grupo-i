@@ -9,10 +9,6 @@ import { UserEntity } from './user.entity';
 export class TypeOrmUserRepository implements UserRepository {
   constructor(private readonly dataSource: DataSource) {}
 
-  async onApplicationShutdown(): Promise<void> {
-    if (this.dataSource.isInitialized) await this.dataSource.destroy();
-  }
-
   async create(
     user: User,
     options: { saldoInicial?: Creditos } = {},

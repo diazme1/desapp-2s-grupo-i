@@ -6,9 +6,9 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { JugadorEntity } from './jugador.entity';
-import { EstadisticasJugadorEntity } from './estadisticas-jugador.entity';
-import { Cotizacion } from '../../market/domain/cotizacion';
+import { JugadorEntity } from '../../players/persistence/jugador.entity';
+import { EstadisticasJugadorEntity } from '../../players/persistence/estadisticas-jugador.entity';
+import { Cotizacion } from '../domain/cotizacion';
 
 const numericTransformer = {
   to(value: Cotizacion | string | number): string {

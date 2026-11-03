@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { EstrategiaCotizacion } from '../../../../src/players/domain/estrategia-cotizacion';
+import { EstrategiaCotizacion } from '../../../../src/quotes/domain/estrategia-cotizacion';
 import type { OrdersIntegrationApp } from './orders-integration-app';
 
 export const SELL_IDS = {

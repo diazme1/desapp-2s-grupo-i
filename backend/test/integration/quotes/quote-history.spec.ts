@@ -1,13 +1,13 @@
 import request from 'supertest';
 import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
-import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { HistorialCotizacionEntity } from '../../../src/quotes/persistence/historial-cotizacion.entity';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
 import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 import {
   createPlayersIntegrationApp,
   PlayersIntegrationApp,
-} from './players-integration-app';
+} from '../players/players-integration-app';
 
 const LEAGUE_ID = '2c2eb773-a1d7-4fa8-863e-3df115ce0071';
 const TEAM_ID = '6c0fe8a3-91f4-40a2-a836-8329a3b0fb73';

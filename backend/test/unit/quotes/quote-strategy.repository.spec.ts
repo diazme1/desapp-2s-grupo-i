@@ -1,9 +1,9 @@
 import { DataSource, EntityManager } from 'typeorm';
-import { EstrategiaCotizacion } from '../../../src/players/domain/estrategia-cotizacion';
+import { EstrategiaCotizacion } from '../../../src/quotes/domain/estrategia-cotizacion';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
-import { TypeOrmPlayersRepository } from '../../../src/players/persistence/typeorm-players.repository';
-import { VersionEstrategiaCotizacionEntity } from '../../../src/players/persistence/version-estrategia-cotizacion.entity';
-import type { VersionEstrategiaCotizacion } from '../../../src/players/domain/estrategia-cotizacion';
+import { TypeOrmQuotesRepository } from '../../../src/quotes/persistence/typeorm-quotes.repository';
+import { VersionEstrategiaCotizacionEntity } from '../../../src/quotes/persistence/version-estrategia-cotizacion.entity';
+import type { VersionEstrategiaCotizacion } from '../../../src/quotes/domain/estrategia-cotizacion';
 
 function version(
   tipoEstrategia: 'ataque_decisivo' | 'creacion_tecnica',
@@ -50,14 +50,14 @@ function preparar(
     ),
   } as unknown as DataSource;
   return {
-    repository: new TypeOrmPlayersRepository(dataSource),
+    repository: new TypeOrmQuotesRepository(dataSource),
     dataSource,
     manager,
     versionRepository,
   };
 }
 
-describe('TypeOrmPlayersRepository: versiones de estrategias', () => {
+describe('TypeOrmQuotesRepository: versiones de estrategias', () => {
   it('devuelve solo la versión más reciente de cada estrategia', async () => {
     const ataqueVigente = version('ataque_decisivo', 3);
     const tecnicaVigente = version('creacion_tecnica', 2);

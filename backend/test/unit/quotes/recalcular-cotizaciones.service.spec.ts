@@ -3,7 +3,7 @@ import {
   EstrategiaCotizacion,
   type PesosEstrategiaCotizacion,
   type TipoEstrategiaCotizacion,
-} from '../../../src/players/domain/estrategia-cotizacion';
+} from '../../../src/quotes/domain/estrategia-cotizacion';
 import { RecalcularCotizacionesService } from '../../../src/quotes/recalcular-cotizaciones.service';
 import type {
   ConfiguracionEstrategiaCotizacion,

@@ -1,12 +1,12 @@
 import request from 'supertest';
 import { EquipoEntity } from '../../../src/players/persistence/equipo.entity';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
-import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
+import { HistorialCotizacionEntity } from '../../../src/quotes/persistence/historial-cotizacion.entity';
 import { JugadorEntity } from '../../../src/players/persistence/jugador.entity';
 import { LigaEntity } from '../../../src/players/persistence/liga.entity';
 import { UserEntity } from '../../../src/users/persistence/user.entity';
 import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
 import { HistorialCotizacionService } from '../../../src/quotes/historial-cotizacion.service';
 import {
   createPlayersIntegrationApp,

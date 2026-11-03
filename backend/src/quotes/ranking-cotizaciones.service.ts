@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import type { TipoEstrategiaCotizacion } from '../players/domain/estrategia-cotizacion';
+import type { TipoEstrategiaCotizacion } from './domain/estrategia-cotizacion';
 import {
   QUOTE_RANKING_REPOSITORY,
   type QuoteRankingRepository,

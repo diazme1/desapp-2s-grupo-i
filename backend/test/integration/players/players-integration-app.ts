@@ -28,11 +28,11 @@ import { CreateTokens1790275841000 } from '../../../migrations/1790275841000-Cre
 import { CreateTenenciasJugador1790275842000 } from '../../../migrations/1790275842000-CreateTenenciasJugador';
 import { EstadisticasJugadorService } from '../../../src/players/estadisticas-jugador.service';
 import { EstadisticasJugadorEntity } from '../../../src/players/persistence/estadisticas-jugador.entity';
-import { HistorialCotizacionEntity } from '../../../src/players/persistence/historial-cotizacion.entity';
-import { VersionEstrategiaCotizacionEntity } from '../../../src/players/persistence/version-estrategia-cotizacion.entity';
-import { RecalculoCotizacionEntity } from '../../../src/players/persistence/recalculo-cotizacion.entity';
-import { RecalculoCotizacionActivoEntity } from '../../../src/players/persistence/recalculo-cotizacion-activo.entity';
-import { CotizacionVigenteEntity } from '../../../src/players/persistence/cotizacion-vigente.entity';
+import { HistorialCotizacionEntity } from '../../../src/quotes/persistence/historial-cotizacion.entity';
+import { VersionEstrategiaCotizacionEntity } from '../../../src/quotes/persistence/version-estrategia-cotizacion.entity';
+import { RecalculoCotizacionEntity } from '../../../src/quotes/persistence/recalculo-cotizacion.entity';
+import { RecalculoCotizacionActivoEntity } from '../../../src/quotes/persistence/recalculo-cotizacion-activo.entity';
+import { CotizacionVigenteEntity } from '../../../src/quotes/persistence/cotizacion-vigente.entity';
 import { SaldoUsuarioEntity } from '../../../src/users/persistence/saldo-usuario.entity';
 import { TokenJugadorEntity } from '../../../src/market/persistence/token-jugador.entity';
 import { TenenciaJugadorEntity } from '../../../src/market/persistence/tenencia-jugador.entity';

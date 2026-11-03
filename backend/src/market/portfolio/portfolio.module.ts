@@ -1,18 +1,18 @@
 import { Module } from '@nestjs/common';
 import { AuthModule } from '../../auth/auth.module';
-import { PlayersModule, PLAYERS_DATA_SOURCE } from '../../players/players.module';
+import { DATABASE_DATA_SOURCE, DatabaseModule } from '../../database/database.module';
 import { PortfolioController } from './portfolio.controller';
 import { PortfolioService } from './portfolio.service';
 import { PORTFOLIO_REPOSITORY } from './portfolio.repository';
 import { TypeOrmPortfolioRepository } from './persistence/typeorm-portfolio.repository';
 
 @Module({
-  imports: [AuthModule, PlayersModule],
+  imports: [AuthModule, DatabaseModule],
   controllers: [PortfolioController],
   providers: [
     {
       provide: PORTFOLIO_REPOSITORY,
-      inject: [PLAYERS_DATA_SOURCE],
+      inject: [DATABASE_DATA_SOURCE],
       useFactory: (dataSource: import('typeorm').DataSource) =>
         new TypeOrmPortfolioRepository(dataSource),
     },

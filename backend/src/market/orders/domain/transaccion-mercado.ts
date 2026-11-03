@@ -1,4 +1,4 @@
-import { Cotizacion } from '../../domain/cotizacion';
+import { Cotizacion } from '../../../quotes/domain/cotizacion';
 
 export type TipoTransaccionMercado = 'COMPRA' | 'VENTA';
 

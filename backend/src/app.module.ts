@@ -4,6 +4,7 @@ import { validateEnvironment } from './config/environment';
 import { HealthModule } from './health/health.module';
 import { AuthModule } from './auth/auth.module';
 import { PlayersModule } from './players/players.module';
+import { QuotesModule } from './quotes/quotes.module';
 import { MarketModule } from './market/market.module';
 import { MlPlayersModule } from './ml-players/ml-players.module';
 
@@ -20,6 +21,7 @@ export class AppModule {
         }),
         HealthModule,
         AuthModule,
+        QuotesModule,
         PlayersModule,
         MarketModule,
         MlPlayersModule,

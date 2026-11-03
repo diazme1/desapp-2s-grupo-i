@@ -1,6 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { User, UserRole } from '../../../src/users/domain/user';
-import { Cotizacion } from '../../../src/market/domain/cotizacion';
+import { Cotizacion } from '../../../src/quotes/domain/cotizacion';
 import { MarketInitializationService } from '../../../src/market/market-initialization.service';
 import { TokenJugador } from '../../../src/market/domain/token-jugador';
 import { TenenciaJugador } from '../../../src/market/domain/tenencia-jugador';

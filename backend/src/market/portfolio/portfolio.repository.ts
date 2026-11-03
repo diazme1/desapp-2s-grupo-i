@@ -1,4 +1,4 @@
-import { Cotizacion } from '../domain/cotizacion';
+import { Cotizacion } from '../../quotes/domain/cotizacion';
 
 export const PORTFOLIO_REPOSITORY = Symbol('PORTFOLIO_REPOSITORY');
 

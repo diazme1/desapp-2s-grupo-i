@@ -1,4 +1,4 @@
-import { Cotizacion } from '../market/domain/cotizacion';
+import { Cotizacion } from './domain/cotizacion';
 
 export const QUOTE_OPENING_WRITER = Symbol('QUOTE_OPENING_WRITER');
 

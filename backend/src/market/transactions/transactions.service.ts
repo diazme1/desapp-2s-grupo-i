@@ -5,7 +5,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { Creditos } from '../domain/creditos';
-import { Cotizacion } from '../domain/cotizacion';
+import { Cotizacion } from '../../quotes/domain/cotizacion';
 import { OwnershipService } from '../../auth/ownership/ownership.service';
 import { TransactionsResponseDto } from './dto/transactions-response.dto';
 import {

@@ -1,5 +1,5 @@
 import { DataSource, EntityManager } from 'typeorm';
-import { Cotizacion } from '../../domain/cotizacion';
+import { Cotizacion } from '../../../quotes/domain/cotizacion';
 import {
   PortfolioRepository,
   type PortfolioReadModel,

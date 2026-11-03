@@ -25,9 +25,6 @@ import { JugadorDetalleResponseDto } from './dto/jugador-detalle-response.dto';
 import { JugadorResponseDto } from './dto/jugador-response.dto';
 import { ListarJugadoresDto } from './dto/listar-jugadores.dto';
 import { RefreshCatalogoResponseDto } from './dto/refresh-catalogo-response.dto';
-import { HistorialCotizacionResponseDto } from '../quotes/dto/historial-cotizacion-response.dto';
-import { ListarCotizacionesDto } from '../quotes/dto/listar-cotizaciones.dto';
-import { HistorialCotizacionService } from '../quotes/historial-cotizacion.service';
 
 @ApiTags('Jugadores')
 @Controller()
@@ -35,7 +32,6 @@ export class PlayersController {
   constructor(
     private readonly catalogo: CatalogoJugadoresService,
     private readonly actualizar: ActualizarCatalogoService,
-    private readonly historialCotizacion: HistorialCotizacionService,
   ) {}
 
   @Get('players')
@@ -68,31 +64,6 @@ export class PlayersController {
     id: string,
   ) {
     return JugadorDetalleResponseDto.from(await this.catalogo.buscarPorId(id));
-  }
-
-  @Get('players/:id/quotes')
-  @ApiOperation({
-    summary: 'Listar el historial de cotizaciones de un jugador',
-  })
-  @ApiOkResponse({ type: HistorialCotizacionResponseDto })
-  @ApiResponse({ status: 404, description: 'Jugador no encontrado.' })
-  @ApiResponse({
-    status: 422,
-    description: 'El identificador o la paginación no son válidos.',
-  })
-  async listarCotizaciones(
-    @Param(
-      'id',
-      new ParseUUIDPipe({
-        errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      }),
-    )
-    id: string,
-    @Query() query: ListarCotizacionesDto,
-  ) {
-    return HistorialCotizacionResponseDto.from(
-      await this.historialCotizacion.listar(id, query),
-    );
   }
 
   @Post('catalog/refresh')

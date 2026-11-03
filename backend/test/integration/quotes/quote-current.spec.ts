@@ -5,7 +5,7 @@ import { UserRole } from '../../../src/users/domain/user';
 import {
   createPlayersIntegrationApp,
   type PlayersIntegrationApp,
-} from './players-integration-app';
+} from '../players/players-integration-app';
 
 const LIGA_ID = '3f1f8e5f-e2b9-4f4a-9d25-06c248d78e5b';
 const EQUIPO_ID = 'd21b7e37-50a7-4da6-bfcb-4f4ecb7b7b99';

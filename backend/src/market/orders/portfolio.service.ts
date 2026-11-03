@@ -1,7 +1,7 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
 import { Creditos } from '../domain/creditos';
-import { PLAYERS_DATA_SOURCE } from '../../players/players.module';
+import { DATABASE_DATA_SOURCE } from '../../database/database.module';
 
 interface PortfolioPositionRow {
   idJugador: string;
@@ -26,7 +26,7 @@ interface TradeRow {
 
 @Injectable()
 export class PortfolioService {
-  constructor(@Inject(PLAYERS_DATA_SOURCE) private readonly dataSource: DataSource) {}
+  constructor(@Inject(DATABASE_DATA_SOURCE) private readonly dataSource: DataSource) {}
 
   async obtener(usuarioId: string) {
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
