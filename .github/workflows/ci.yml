@@ -78,13 +78,13 @@ jobs:
           path: backend/coverage/unit/lcov.info
           if-no-files-found: ignore
 
-  integration:
-    name: Tests de integración con PostgreSQL
+  e2e:
+    name: Tests e2e con PostgreSQL
     runs-on: ubuntu-latest
     needs: 
       - build-unit
     outputs:
-      coverage_available: ${{ steps.integration_coverage.outputs.available }}
+      coverage_available: ${{ steps.e2e_coverage.outputs.available }}
     defaults:
       run:
         working-directory: backend
@@ -123,45 +123,45 @@ jobs:
           docker compose -f ../docker-compose.yml logs postgres || true
           exit 1
 
-      - name: Ejecutar migraciones de integración
+      - name: Ejecutar migraciones para e2e
         run: npm run migration:run
 
-      - name: Verificar descubrimiento de tests de integración
+      - name: Verificar descubrimiento de tests e2e
         shell: bash
         run: |
           set -euo pipefail
           expected="$(mktemp)"
           discovered="$(mktemp)"
           trap 'rm -f "$expected" "$discovered"' EXIT
-          find test/integration -type f -name '*.spec.ts' -print | sort > "$expected"
-          npm run test:integration -- --listTests | sed -n "s#^${PWD}/##p" | sort > "$discovered"
+          find test/e2e -type f -name '*.spec.ts' -print | sort > "$expected"
+          npm run test:e2e -- --listTests | sed -n "s#^${PWD}/##p" | sort > "$discovered"
           test -s "$expected"
           diff -u "$expected" "$discovered"
 
-      - name: Ejecutar tests de integración con coverage
-        run: npm run test:integration -- --coverage --coverageDirectory=coverage/integration
+      - name: Ejecutar tests e2e con coverage
+        run: npm run test:e2e -- --coverage --coverageDirectory=coverage/e2e
 
-      - name: Detectar coverage de integración
-        id: integration_coverage
+      - name: Detectar coverage e2e
+        id: e2e_coverage
         if: ${{ always() }}
         shell: bash
         run: |
-          if [[ -f coverage/integration/lcov.info ]]; then
+          if [[ -f coverage/e2e/lcov.info ]]; then
             echo "available=true" >> "$GITHUB_OUTPUT"
           else
             echo "available=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::No se generó coverage/integration/lcov.info; Sonar continuará sin ese reporte."
+            echo "::notice::No se generó coverage/e2e/lcov.info; Sonar continuará sin ese reporte."
           fi
 
-      - name: Publicar LCOV de integración disponible
-        if: ${{ always() && steps.integration_coverage.outputs.available == 'true' }}
+      - name: Publicar LCOV e2e disponible
+        if: ${{ always() && steps.e2e_coverage.outputs.available == 'true' }}
         uses: actions/upload-artifact@v7
         with:
-          name: coverage-integration
-          path: backend/coverage/integration/lcov.info
+          name: coverage-e2e
+          path: backend/coverage/e2e/lcov.info
           if-no-files-found: ignore
 
-      - name: Limpiar PostgreSQL de integración
+      - name: Limpiar PostgreSQL de e2e
         if: ${{ always() }}
         run: docker compose -f ../docker-compose.yml down -v --remove-orphans
 
@@ -170,7 +170,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-unit
-      - integration
+      - e2e
 
     steps:
       - name: Informar exclusión de Sonar para Pull Requests desde forks
@@ -203,7 +203,7 @@ jobs:
           name: coverage-unit
           path: backend/coverage/unit
 
-      - name: Restaurar LCOV de integración cuando esté disponible
+      - name: Restaurar LCOV e2e cuando esté disponible
         if: >-
           ${{
             (
@@ -211,12 +211,12 @@ jobs:
               (github.event_name == 'pull_request' &&
               github.event.pull_request.head.repo.full_name == github.repository)
             ) &&
-            needs.integration.outputs.coverage_available == 'true'
+            needs.e2e.outputs.coverage_available == 'true'
           }}
         uses: actions/download-artifact@v7
         with:
-          name: coverage-integration
-          path: backend/coverage/integration
+          name: coverage-e2e
+          path: backend/coverage/e2e
 
       - name: Informar disponibilidad de coverage
         if: >-
@@ -231,9 +231,9 @@ jobs:
             && echo "LCOV unitario disponible para Sonar." \
             || echo "::notice::LCOV unitario ausente; el análisis Sonar se ejecutará igualmente."
 
-          [[ -f backend/coverage/integration/lcov.info ]] \
-            && echo "LCOV de integración disponible para Sonar." \
-            || echo "::notice::LCOV de integración ausente; el análisis Sonar se ejecutará igualmente."
+          [[ -f backend/coverage/e2e/lcov.info ]] \
+            && echo "LCOV e2e disponible para Sonar." \
+            || echo "::notice::LCOV e2e ausente; el análisis Sonar se ejecutará igualmente."
 
       - name: Validar precondiciones externas de SonarQube Cloud
         if: >-
@@ -281,7 +281,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - build-unit
-      - integration
+      - e2e
       - sonar
     env:
       IMAGE_TAG: desapp-backend-ci:${{ github.run_id }}-${{ github.run_attempt }}

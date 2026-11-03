@@ -37,7 +37,7 @@ ml-players/
 ├── src/ml_players/training/        # regresión, métricas y persistencia
 ├── src/ml_players/inference/       # FastAPI, seguridad, carga y recarga
 ├── examples/                       # bodies de entrenamiento reproducibles
-└── tests/fixtures/                 # fixture determinista
+└── test/fixtures/                  # fixture determinista
 
 backend/src/ml-players/
 ├── fastapi-prediction.adapter.ts
